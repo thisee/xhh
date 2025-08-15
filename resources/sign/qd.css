@@ -1,0 +1,174 @@
+@font-face {
+  font-family: "主";
+  src: url("../font/主.ttf");
+}
+
+@font-face {
+  font-family: "正";
+  src: url("../font/yuan.ttf");
+}
+
+@font-face {
+  font-family: "宋";
+  src: url("../font/宋.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-size: 16px;
+  width: 1000px;
+  transform-origin: 0 0;
+}
+
+.container {
+  padding: 20px 15px 10px 15px;
+  background-image: url(./bg.jpg);
+  background-size: cover;
+}
+
+.xkl_box {
+  /*min-height: 500px;*/
+  margin: 150px 60px 10px 60px;
+  position: relative;
+}
+
+.tou {
+  box-shadow: 0 5px 10px 0 rgb(0 0 0 / 15%);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  position: relative;
+  font-family: '正';
+  font-weight: bolder;
+  font-size: 18px;
+  display: flex;
+  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.tou img {
+  border-radius: 50%;
+  width: 74px;
+  height: 74px;
+  border-style: ridge;
+  border-color: #ace0f9;
+  border-width: 2px;
+}
+
+.tou .mianju {
+  border-radius: 0%;
+  width: 70px;
+  height: 70px;
+  border: none;
+  border-width: 0px;
+  position: absolute;
+  bottom: 0;
+  right: 0px;
+}
+
+.tou .t_box {
+  margin-left: 10px;
+  width: 800px;
+  padding: 10px 0px 0px 5px;
+  border-radius: 15px;
+  font-size: 22px;
+  color: #6fece6ea;
+  text-shadow: 1px 1px 2px #2b2b2b;
+}
+
+.tou .t_box p {
+  font-size: 20px;
+  position: relative;
+  top: 2px;
+}
+
+._box_ {
+  background: linear-gradient(to right bottom, rgba(255, 155, 180, 0.5), rgba(255, 255, 255, 0.7));
+  border-radius: 15px;
+  position: relative;
+  font-family: '正';
+  font-weight: bolder;
+  font-size: 22px;
+  color: #A1F78C;
+  display: flex;
+  margin-top: 10px;
+  padding: 10px 0 0px 10px;
+  text-shadow: 2px 2px 4px #3e3e3e;
+  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+._box_ .gs {
+  width: 56px;
+  height: 44px;
+  margin-right: 14px;
+}
+
+._box_ .sr {
+  width: 61px;
+  height: 44px;
+  margin-right: 9px;
+}
+
+._box_ .zzz {
+  width: 41px;
+  height: 44px;
+  margin-right: 15px;
+  margin-left: 14px;
+}
+
+._box_ p {
+  margin: 20px 0 0 20px;
+  min-width: 240px;
+}
+
+._box_ p:nth-child(2) {
+  margin: 20px 40px 0 0;
+}
+
+._box_ .jiang {
+  margin: 20px 0 0 0;
+  min-width: 0px;
+  color: #70f7d1;
+  text-shadow: 1.5px 1.5px 3px #3e3e3e;
+}
+
+._box_ .jiang_ {
+  margin: 30px 0 0 0;
+  min-width: 0px;
+  font-size: 17px;
+  color: #33a1d3;
+  text-shadow: none;
+}
+
+.jiangli {
+  width: 40px;
+  height: 40px;
+  margin-top: 10px;
+}
+
+
+hr {
+  width: 95%;
+}
+
+.tou .t_box .name {
+  color: #fff;
+  text-shadow: 1px 1px 2px #3e3e3e;
+  font-size: 24px;
+}
+
+
+.logo {
+  font-size: 18px;
+  font-family: "正";
+  text-align: center;
+  text-shadow: 0.5px 0.5px 1px #999;
+  font-weight: bolder;
+  color: #ffffff;
+}

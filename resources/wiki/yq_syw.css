@@ -1,0 +1,114 @@
+@font-face {
+    font-family: "yuan";
+    src: url("../font/yuan.ttf");
+}
+
+@font-face {
+    font-family: '宋';
+    src: url("../font/宋.ttf");
+}
+
+@font-face {
+    font-family: "i";
+    src: url("../font/i.ttf");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-size: 16px;
+    font-family: "yuan";
+    width: 500px;
+    transform-origin: 0 0;
+}
+
+.container {
+    /* background: #add8e6; */
+    background-image: url("./imgs/bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 10px;
+    width: 600px;
+}
+
+.pic_ {
+    display: flex;
+    justify-content: center;
+    border: none;
+    align-items: center;
+    width: 100%;
+}
+
+.box .pic_ img{
+    width: 10%;
+    height: 10%;
+}
+
+.pic_ p{
+    position: relative;
+    top: 18px;
+    left: 10px;
+}
+
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table, td {
+  border: 0.5px solid #b3b2b2ef;
+}
+
+table .key{
+    min-width: 150px;
+    text-align: center;
+}
+
+.name{
+    text-align: center;
+    border-right: none;
+    font-family: '宋';
+    min-width: 150px;
+}
+
+.pic{
+    display: flex;
+    border:none;
+}
+
+.pic img{
+    width: 20%;
+    height: 20%;
+}
+
+.box {
+    min-height: 40px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+    /* border: 3px solid #618b91;
+    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px; */
+    border: 4px solid #e2e8f0;
+    outline: 1px solid #8ebde3;
+    outline-offset: -6px;
+    padding: 3px;
+    background: #f3ddb0dc;
+    background-position: calc(100% - 20px) center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: relative;
+    color: #464c3d;
+    box-shadow: 2px 6px 6px 0px rgba(49, 48, 48, 0.4);
+    text-shadow:  1px 1px 2px #b4b7b0;
+}
+
+
+.logo {
+    font-size: 12px;
+    text-align: center;
+    text-shadow: 0.5px 0.5px 1px #2d2c2c;
+    color: #ee8e8ef8;
+}

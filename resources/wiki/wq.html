@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/wq.css" />
+</head>
+
+<body {{sys.scale}}>
+    <div class="container" id="container">
+        <div class="weapon-container">
+            <!-- 左侧：武器-->
+            <div class="weapon-image">
+                <img src="{{img}}" alt="武器">
+            </div>
+            <table class="info-table">
+                <tr>
+                    <th>名称：</th>
+                    <td>{{name}}</td>
+                </tr>
+                <tr>
+                    <th>装备类型：</th>
+                    <td>{{type}}</td>
+                </tr>
+                <tr>
+                    <th>星级：</th>
+                    <td>{{star}}</td>
+                </tr>
+                <tr>
+                    <th>基础攻击力：</th>
+                    <td>{{atk}}</td>
+                </tr>
+                <tr>
+                    <th>{{attr_.key}}：</th>
+                    <td>{{attr_.value}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="box" style="background-image: url(../../../../.{{path_img}})">
+                {{@rich_text}}
+                <hr>
+                <span class="no">{{attr[0].key}}</span>{{@attr[0].value}}
+                <hr>
+                <span class="no">{{attr[1].key}}</span>{{@attr[1].value}}
+        </div>
+        <div class="_box">
+            {{each materials ma}}
+             <div class="material">
+                <img src="{{ma.img}}">
+                <p>{{ma.nickname}} x{{ma.amount}}</p>
+            </div>
+            {{/each}}
+        <span class="tab">突破材料</span>
+        <span class="tab_right">{{week}}</span>
+        </div>
+        <div class="logo">from 小花火</div>
+    </div>
+</body>
+
+</html>

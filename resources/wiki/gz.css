@@ -1,0 +1,190 @@
+@font-face {
+    font-family: "yuan";
+    src: url("../font/yuan.ttf");
+}
+
+@font-face {
+    font-family: '宋';
+    src: url("../font/宋.ttf");
+}
+
+@font-face {
+    font-family: "i";
+    src: url("../font/i.ttf");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-size: 16px;
+    font-family: "yuan";
+    width: 1000px;
+    transform-origin: 0 0;
+}
+
+.container {
+    /* background: #add8e6; */
+    background-image: url("./imgs/bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 10px;
+    width: 1000px;
+}
+
+/* 容器布局：左侧图片 + 右侧信息栏 */
+.container_ {
+    display: flex;
+    padding: 20px;
+}
+
+/* 左侧角色立绘 */
+.image {
+    background-color: #dfe294dd;
+    border: 1px solid #ddd;
+    min-height: 610px;
+    display: grid;
+    place-items: center;
+    border-radius: 20px 0 0px 20px ;
+}
+
+.image img {
+    width: 432px;
+    height: 610px;
+}
+
+/* 右侧信息栏 */
+.info {
+    background-color: #dfe294dd;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 0px 20px 20px 0;
+}
+
+/* 表格样式（左侧属性栏） */
+.info table {
+    width: 80%;
+    margin-left: 40px;
+    border-collapse: collapse;
+}
+
+.info table td {
+    display: flex;
+    padding: 5px;
+    /* border: 2px solid #68b1ab; */
+    border-radius: 5px;
+    justify-content: space-between;
+    font-family: '宋';
+    font-weight: bold;
+    box-shadow: 0 8px 32px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    position: relative;
+}
+td p {
+    font-weight: normal;
+    font-family: 'yuan';
+}
+
+td img{
+    position: absolute;
+    right: 40px;
+    width: 8%;
+    height: 100%;
+}
+
+/* 每个信息区块（技能/光锥描述） */
+.section {
+    margin-top: 15px;
+}
+
+/* 标题样式（技能/光锥描述） */
+.section .label {
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 10px;
+    background: #ddddddc7;
+    box-shadow: 3px 3px 9px 0px rgba(57, 48, 48, 0.8);
+    width: max-content;
+    padding: 5px 5px;
+    margin-bottom: 5px;
+}
+
+/* 内容样式（技能/光锥描述） */
+.section .content {
+    font-size: 16px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    display: inline;
+}
+
+/* 技能数据高亮（蓝色） */
+.lan {
+    color: #1e90ff;
+    word-break: break-all;
+    display: inline;
+}
+
+._box {
+    min-height: 40px;
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    border: 4px solid #e2e8f0;
+    outline: 1px solid #8ebde3;
+    outline-offset: -6px;
+    padding: 5px 0 3px 5px;
+    background: #f3ddb0dc;
+    position: relative;
+    color: #464c3d;
+    box-shadow: 2px 6px 6px 0px rgba(49, 48, 48, 0.4);
+    text-shadow: 1px 1px 2px rgba(42, 41, 41, 0.3);
+}
+
+._box img {
+    height: 45px;
+    width: 45px;
+    border-radius: 10px;
+    margin-right: 5px;
+}
+
+._box .material {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+._box p {
+    position: relative;
+    top: 25px;
+    /* margin-right: 25px; */
+    font-size: 14px;
+    color: #ae5c5c;
+}
+
+.tab {
+    position: absolute;
+    left: -5px;
+    top: -17px;
+    padding: 2px;
+    background: #b4f6ee;
+    border-radius: 8px 0px 8px 0px;
+    color: rgb(81, 6, 232);
+    font-size: 14px;
+    box-shadow: 0 8px 32px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+
+
+.logo {
+    font-size: 18px;
+    text-align: center;
+    text-shadow: 0.5px 0.5px 1px #2d2c2c;
+    padding-left: 20px;
+    color: #ee8e8ef8;
+}

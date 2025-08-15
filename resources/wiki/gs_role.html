@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/gs_role.css" />
+</head>
+
+<body {{sys.scale}}>
+    <div class="container" id="container">
+        <!-- 1 -->
+        <div class="head_box" style="background-image: url({{img}})">
+            <div class="detail">
+                <div class="detail_one">
+                    <img class="img_attribute" src="{{ppath}}wiki/imgs/{{attribute}}.png">
+                    <div class="name">
+                        {{name}}
+                        <div class="star">
+                            <% for (var i=0; i<star; i++) { %>
+                                <img src="{{ppath}}wiki/imgs/star.png">
+                                <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail_two">
+                    {{each attr b}}
+                    <div class="tag">
+                        <p class="tag_key">{{b.key}}</p>
+                        <p class="tag_value">{{b.value[0]}}</p>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+        <!-- 2 -->
+        <div class="two_box">
+            {{each material ma}}
+            <div class="material">
+                <img src="{{ma.img}}">
+                <p>{{ma.nickname}} x{{ma.amount}}</p>
+            </div>
+            {{/each}}
+            <span class="tab">突破材料</span>
+            {{if !name.includes('旅行者') }}
+            <span class="tab_right">突破加成：{{grow}}</span>
+            {{/if}}
+        </div>
+        <!-- 3 -->
+        <div class="two_box">
+            <span class="tab">天赋材料</span>
+            <span class="tab_right">{{week}}</span>
+            <% for (var i=0; i <8; i++) { %>
+                <div class="material_">
+                    <img src="{{pngs[i]}}">
+                    <p class="png_names">{{png_names[i]}}</p>
+                </div>
+                <% } %>
+        </div>
+
+
+
+        <div class="logo">from 小花火</div>
+    </div>
+</body>
+
+</html>
