@@ -1,0 +1,5 @@
+config/
+data/
+node_modules/
+temp/
+resources/srstrategy/

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/list.css" />
+</head>
+
+<body {{sys.scale}}>
+    <div class="container" id="container">
+        <div class="box">
+            {{each data s}}
+            <div class="box_">
+                <img src="{{s.icon}}">
+                <p>{{s.name}}</p>
+            </div>
+            {{/each}}
+        <span class="tab">{{name}}图鉴</span>
+        </div>
+        <div class="logo">from 小花火</div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/sr_role.css" />
+</head>
+
+<body {{sys.scale}}>
+    <div class="container" id="container">
+        <!-- 1 -->
+        <div class="head_box" style="background-image: url({{ppath}}wiki/imgs/sr_bg.png)">
+            <img class="{{attr_ ? 'role'  :  'role_'}} " src="{{img}}">
+            <div class="detail">
+                <div class="detail_one">
+                    <img class="img_fate" src="{{ppath}}wiki/imgs/{{fate}}.png">
+                    <div class="name">
+                        {{name}}
+                        <img class="attribute" src="{{ppath}}wiki/imgs/{{attribute}}.jpg">
+                        <div class="star">
+                            <% for (var i=0; i<star; i++) { %>
+                                <img src="{{ppath}}wiki/imgs/star.jpg">
+                                <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail_two">
+                    {{each attr b}}
+                    <div class="tag">
+                        <p class="tag_key">{{b.key}}</p>
+                        <p class="tag_value">{{b.value}}</p>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+        <!-- 2 -->
+         {{if material}}
+        <div class="two_box">
+            {{each material ma}}
+            <div class="material">
+                <img src="{{ma.icon}}">
+                <!-- 米游社的瑕蝶和风堇的信用点有问题-->
+                <p>{{ma.title}} x{{ma.amount=='3308000' ? '308000' : ma.amount}}</p>
+            </div>
+            {{/each}}
+            <span class="tab">晋阶材料</span>
+        </div>
+        {{/if}}
+
+
+        <div class="logo">from 小花火</div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/gz.css" />
+</head>
+
+<body {{sys.scale}}>
+    <div class="container" id="container">
+        <div class="container_">
+            <div class="image">
+                <img src="{{img}}" alt="">
+            </div>
+            <div class="info">
+                <table>
+                    <tr>
+                        <td>名称：<p>{{name}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>命途：<img src="{{ppath}}wiki/imgs/{{mingtu}}.png"><p>{{mingtu}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>稀有度：<p>{{xiyoudu}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>生命值：<p>{{grow[1]}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>攻击力：<p>{{grow[2]}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>防御力：<p>{{grow[3]}}</p>
+                        </td>
+                    </tr>
+                </table>
+                <div class="section">
+                    <p class="label">技能</p>
+                    <p class="content">{{@jineng[1]}}
+                    </p>
+                </div>
+                <div class="section">
+                    <p class="label">光锥描述</p>
+                    <p class="content">{{@miaoshu}}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="_box">
+            <% for (let i=0; i < 7; i++) { %>
+                <div class="material">
+                    <img src="{{mat[i]}}">
+                    <p> x{{mat_num[i]}}</p>
+                </div>
+                <% } %>
+                    <span class="tab">晋阶材料</span>
+        </div>
+        <div class="logo">from 小花火</div>
+    </div>
+</body>
+
+</html>

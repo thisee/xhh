@@ -1,0 +1,45 @@
+#修改的时候注意英文冒号后面要加空格
+#凌晨3:30是否自动更新xhh：true开，false关 (注意：这是强制更新,会覆盖文件的那种,爱改文件的大佬慎用)
+update: false
+#图片渲染精度：填数字（单位：%）
+img_quality: 80
+#超清语音开关：true开，false关 (注意：pc端QQ无法听取超清语音，请谨慎开启)
+voice: false
+#塔罗牌开关：true开，false关
+tlp: false
+#塔罗牌每天上限次数：填数字（单位：次）
+tlpcs: 3
+#星铁攻略开关：true开，false关
+sr_strategy: false
+#查委托是否必须带#号前缀：true开，false关
+wt: false
+#是否设置小花火体力为默认体力：true是，false否
+Tl: false
+#原神和星铁的语音功能: true开，false关
+all_voice: true
+#原神历史卡池功能: true开，false关
+gs_logs: true
+#星铁历史卡池功能: true开，false关
+sr_logs: true
+#小花火图鉴设置成默认图鉴：true是，false否
+wiki: false
+#米游社扫码绑定功能：true开，false关
+sm: false
+#米游社扫码绑定的触发CD：填数字 (单位：秒)
+sm_cd: 60
+#签到功能：true开，false关 (自动签到设置在sign.yaml文件)
+sign: false
+#米哈游视频播报(米游社)：QQ群号
+groups: []
+#是否启用bilibili相关功能：true开，false关 (注意：如果是首次启用，记得发送：b站登录，你得让bot有个B站账号吧)
+bilibili: false
+#b站视频小于30MB时是否自动下载：true开，false关
+dow: true
+#bilibili视频的主评论区，显示几条评论((1-20)不建议设置过多)
+list_num: 12
+#bilibili收藏视频的收藏夹序号(1就是默认收藏夹)
+mlid_n: 1
+#bilibili的Cookie(别手动加,首次获取请发送：b站登录)
+bili_ck: ''
+#bilibili刷新ck需要用到的刷新口令(不要乱改，这是b站登录获取的)
+refresh_token: ''
