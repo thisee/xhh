@@ -68,10 +68,8 @@ async function MysSign(e, games) {
                 } else {
                     //未签到,开始签到
                     logger.mark(`[${game_name}签到]QQ: ${e.user_id},UID: ${uid}`)
-
                     data.type = 'sign'
                     const sign_res = await api(e, data)
-                    logger.error(sign_res)
                     //签到成功
                     if (sign_res.retcode == 0) {
                         msgs.push({
@@ -216,7 +214,7 @@ async function zd_MysSign(qqs) {
                         data.type = 'sign'
                         const sign_res = await api(e, data)
                         //签到成功
-                        if (sign_res.message == 'ok') {
+                        if (sign_res.retcode == 0) {
                             num++
                             continue
                         }
