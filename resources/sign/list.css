@@ -155,7 +155,7 @@ span {
     left: -6px;
     top: -12px;
     font-size: 12px;
-    color: #f27395;
+    color: #1c50ed;
     background: rgb(113, 238, 213);
     text-shadow: 0.5px 0.5px 1px rgba(45, 45, 45, 0.8);
     box-shadow: 0 2px 3px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
@@ -165,7 +165,9 @@ span {
     border-radius: 8px;
 }
 
-
+.red{
+    color: #f52334;
+}
 
 
 .logo {
