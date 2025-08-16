@@ -1,5 +1,7 @@
 import { config, MysSign, zd_MysSign, yaml, sleep } from '#xhh'
 import lodash from 'lodash'
+import Runtime from '../../../lib/plugins/runtime.js'
+
 let signing = false
 export class Sign extends plugin {
     constructor(e) {
@@ -56,16 +58,48 @@ export class Sign extends plugin {
         if (!data.zd_sign) return false
         signing = true
         let groups = Object.keys(data.sign)
-        if(this.e?.msg?.includes('本群') && this.e.isGroup) groups=[this.e.group_id]
+        if (this.e?.msg?.includes('本群') && this.e.isGroup) groups = [this.e.group_id]
         for (const group of groups) {
-            if(data.sign_group && !data.sign_group.includes(group)) continue
-            const msg = `开始本群米游社自动签到(*^▽^*), 请稍等...\n当前群聊共${data.sign[group].length}个用户\n预计签到${data.sign[group].length*3}个游戏账号`
-            Bot.pickGroup(Number(group)).sendMsg(msg)
-            const { num, z_num } = await zd_MysSign(data.sign[group])
-            Bot.pickGroup(Number(group)).sendMsg(`---本群签到任务完成---\n共${z_num}个游戏账号参与签到\n成功了${num}个~`)
+            if (data.sign_group && !data.sign_group.includes(group)) continue//非白名单群
+            let data_ = {
+                qqs : data.sign[group]
+            }
+            let path = 'sign/list'
+            //渲染
+            let img = await render(path, data_)
+            Bot.pickGroup(Number(group)).sendMsg(img)
+            const { num, z_num,cg_qqs,sbai_qqs} = await zd_MysSign(data.sign[group])//开始签到
+            data_={
+                num,
+                z_num,
+                cg_qqs,
+                sbai_qqs
+            }
+            path='sign/end_list'
+            img = await render(path, data_)
+            Bot.pickGroup(Number(group)).sendMsg(img)
             await sleep(lodash.random(15000, 30000))
         }
         signing = false
     }
 
+}
+
+
+
+async function render(path, data_) {
+    let tplFile = process.cwd()+'/plugins/xhh/resources/'+path+'.html'
+    const img = await new Runtime().render('小花火', path, data_, {
+        retType: 'base64',
+        beforeRender({ data }) {
+            return {
+                sys: { scale: `style=transform:scale(${config().img_quality / 100 * 2.4 || 2.4 * 0.8})` },
+                ...data_,
+                ppath: '../../../../../plugins/xhh/resources/',
+                tplFile: tplFile,
+                saveId: path.split('/')[path.split('/').length - 1]
+            }
+        }
+    })
+    return img
 }

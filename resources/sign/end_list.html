@@ -11,10 +11,17 @@
       <div class="title">
       </div>
        <div class="content">
-        <div class="qd"><strong>本群开始签到</strong></div>
-        <p>当前群聊共<span>{{qqs.length}}</span>个用户，预计签到<span>{{qqs.length*3}}</span>个游戏账号</p>
+        <div class="qd"><strong>本群签到完成</strong></div>
+        <p>共<span>{{z_num}}</span>个游戏账号参与签到，成功了<span>{{num}}</span>个</p>
         <div class="qqs">
-          {{each qqs qq}}
+          <div class="tag">签到成功的用户</div>
+          {{each cg_qqs qq}}
+          <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}">
+          {{/each}}
+        </div>
+        <div class="qqs">
+          <div class="tag">签到失败的用户</div>
+          {{each sbai_qqs qq}}
           <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}">
           {{/each}}
         </div>

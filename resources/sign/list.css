@@ -1,15 +1,40 @@
- body {
-    background-color: #f0f2f5;
+@font-face {
+    font-family: "主";
+    src: url("../font/主.ttf");
 }
 
+@font-face {
+    font-family: "正";
+    src: url("../font/yuan.ttf");
+}
 
+@font-face {
+    font-family: "宋";
+    src: url("../font/宋.ttf");
+}
 
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-size: 16px;
+    font-family: '正';
+    transform-origin: 0 0;
+}
+
+.container {
+    padding: 20px 15px 2px 15px;
+    width: 560px;
+    background-color: #effaf6;
+}
 
 
 /* 彩色浮雕效果容器样式 */
 .colorful-embossed {
-/* 渐变背景色：从左上到右下的浅色渐变 */
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    /* 渐变背景色：从左上到右下的浅色渐变 */
+    background-image: linear-gradient(to right bottom, #6bc1d1, #65c1dc, #64c0e7, #6abef0, #76bbf8, #7abafb, #7eb8fd, #83b7ff, #7bb7fe, #72b8fd, #69b8fc, #5fb8fb);
     /* 圆角边框 */
     border-radius: 15px;
     /* 内边距 */
@@ -19,34 +44,135 @@
     2. 左上方向的内阴影（浅色）
     3. 外部常规阴影 */
     box-shadow:
-    inset 4px 4px 8px rgba(0,0,0,0.1), /* 右下内阴影 */
-    inset -4px -4px 8px rgba(255,255,255,0.8), /* 左上内阴影 */
-    5px 5px 15px rgba(0,0,0,0.1); /* 外部阴影 */
+        inset 8px 8px 16px rgba(0, 0, 0, 0.1),
+        /* 右下内阴影 */
+        inset -8px -8px 16px rgba(255, 255, 255, 0.8),
+        /* 左上内阴影 */
+        5px 5px 15px rgba(0, 0, 0, 0.1);
+    /* 外部阴影 */
     /* 相对定位（为伪元素定位做准备） */
     position: relative;
     /* 隐藏溢出内容 */
-    overflow: hidden;
-    width: 300px;
-    margin: 50px auto;
+    /* overflow: hidden; */
+    width: 500px;
 }
 
 /* 彩色浮雕的伪元素（用于创建静态光泽效果） */
 .colorful-embossed::before {
-    content: ''; /* 必须属性 */
-    position: absolute; /* 绝对定位 */
+    content: '';
+    /* 必须属性 */
+    position: absolute;
+    /* 绝对定位 */
     /* 定位和尺寸：覆盖整个元素的2倍大小 */
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
     /* 半透明渐变背景：从左上到右下的白色渐变 */
-    background: linear-gradient(
-    to bottom right,
-    rgba(255,255,255,0.3), /* 左上较亮 */
-    rgba(255,255,255,0) /* 右下透明 */
-    );
+    background: linear-gradient(to bottom right,
+            rgba(255, 255, 255, 0.3),
+            /* 左上较亮 */
+            rgba(255, 255, 255, 0)
+            /* 右下透明 */
+        );
     /* 固定30度旋转使渐变对角线更明显 */
     transform: rotate(30deg);
     /* 层级设置（置于内容下方） */
     z-index: 0;
+}
+
+.colorful-embossed .title {
+    height: 30px;
+    box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.2);
+}
+
+.colorful-embossed .content {
+    min-height: 300px;
+    box-shadow: inset 0 5px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 0 20px;
+}
+
+.content .qd {
+    font-size: 20px;
+    text-align: center;
+    font-family: '宋';
+}
+
+.content p {
+    text-align: center;
+}
+
+span {
+    color: rgb(255, 128, 0);
+    background: rgb(113, 238, 213);
+    text-shadow: 0.5px 0.5px 1px rgba(45, 45, 45, 0.8);
+    padding: 2px;
+    border-radius: 5px;
+    box-shadow: 0 2px 3px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.qqs {
+    min-height: 210px;
+    margin-top: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    color: white;
+    text-align: center;
+    display: flex;
+    align-content: flex-start;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.qqs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100px;
+    border-top: 2px solid rgba(255, 255, 255, 0.8);
+    border-left: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 10px 0 0 0;
+}
+
+.qqs img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.tag {
+    position: absolute;
+    left: -6px;
+    top: -12px;
+    font-size: 12px;
+    color: #f27395;
+    background: rgb(113, 238, 213);
+    text-shadow: 0.5px 0.5px 1px rgba(45, 45, 45, 0.8);
+    box-shadow: 0 2px 3px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    padding: 2px 4px;
+    border-radius: 8px;
+}
+
+
+
+
+.logo {
+    font-size: 10px;
+    font-family: "正";
+    text-align: center;
+    text-shadow: 0.5px 0.5px 1px #999;
+    font-weight: bolder;
+    color: #f27395;
 }

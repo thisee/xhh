@@ -113,13 +113,13 @@ function add(e) {
     const path = './plugins/xhh/config/sign.yaml'
     const data = yaml.get(path)
     if (!data.zd_sign || !e.isGroup) return
-    if(data.sign_group && !data.sign_group.includes(e.group_id)) return
+    if (data.sign_group && !data.sign_group.includes(e.group_id)) return
     if (!data.sign) {
-    data.sign = {}
-    }else{
-    const arrays = Object.values(data.sign);
-    const allNumbers = arrays.flat();
-    if(allNumbers.includes(e.user_id)) return
+        data.sign = {}
+    } else {
+        const arrays = Object.values(data.sign);
+        const allNumbers = arrays.flat();
+        if (allNumbers.includes(e.user_id)) return
     }
     let qqs = data.sign[e.group_id]
     if (!qqs) {
@@ -164,18 +164,17 @@ function getSecondsToMidnight() {
 
 
 async function zd_MysSign(qqs) {
-    let num = 0,z_num = 0
+    let num = 0, z_num = 0, cg_qqs = [], sbai_qqs = []
+    const games = ['gs', 'sr', 'zzz']
     for (let qq of qqs) {
-        let user = (await NoteUser.create(qq))?.mysUsers
-        if (!user) continue
         let e = {}
         e.user_id = qq
-        e.reply = (msg) => {}
-        user = Object.values(user)[0] //多米游社只取一个
-        for (let game of Object.keys(user.uids)) {
+        // e.reply = (msg) => { }
+        for (let game of games) {
+            let user = (await NoteUser.create(qq)).getMysUser(game) //只要当前xx游戏绑定ck的账号信息（原神可能有多个，如渠道服）
+            if (!user) continue
             const ck = user.ck
             const uids = user.uids[game]
-            const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : '绝区零'
             for (let i = 0; i < uids.length; i++) {
                 z_num++
                 const uid = uids[i]
@@ -198,7 +197,13 @@ async function zd_MysSign(qqs) {
                  * 报错
                  */
                 if (typeof res == 'string') {
-                    num++
+                    if (!sbai_qqs.includes(qq)) {
+                        if (cg_qqs.includes(qq)) {
+                            const index = cg_qqs.indexOf(qq);
+                            cg_qqs.splice(index, 1);
+                        }
+                        sbai_qqs.push(qq)
+                    }
                     continue
                 }
                 /**
@@ -207,6 +212,9 @@ async function zd_MysSign(qqs) {
                 else if (res.retcode == 0 && res.data) {
                     //已经签到
                     if (res.data.is_sign == true) {
+                        if (!cg_qqs.includes(qq)) {
+                            cg_qqs.push(qq)
+                        }
                         num++
                         continue
                     } else {
@@ -215,11 +223,21 @@ async function zd_MysSign(qqs) {
                         const sign_res = await api(e, data)
                         //签到成功
                         if (sign_res.retcode == 0) {
+                            if (!cg_qqs.includes(qq)) {
+                                cg_qqs.push(qq)
+                            }
                             num++
                             continue
                         }
                         //签到失败 
                         else if (typeof sign_res == 'string') {
+                            if (!sbai_qqs.includes(qq)) {
+                                if (cg_qqs.includes(qq)) {
+                                    const index = cg_qqs.indexOf(qq);
+                                    cg_qqs.splice(index, 1);
+                                }
+                                sbai_qqs.push(qq)
+                            }
                             continue
                         }
                     }
@@ -230,9 +248,12 @@ async function zd_MysSign(qqs) {
         }
         await sleep(500)
     }
+
     return {
         num,
-        z_num
+        z_num,
+        cg_qqs,
+        sbai_qqs
     }
 }
 
