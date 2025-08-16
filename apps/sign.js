@@ -61,13 +61,19 @@ export class Sign extends plugin {
         if (this.e?.msg?.includes('本群') && this.e.isGroup) groups = [this.e.group_id]
         for (const group of groups) {
             if (data.sign_group && !data.sign_group.includes(group)) continue//非白名单群
+            if(data.sign[group].length === 0) continue//群里没人
             let data_ = {
                 qqs : data.sign[group]
             }
             let path = 'sign/list'
             //渲染
             let img = await render(path, data_)
-            Bot.pickGroup(Number(group)).sendMsg(img)
+            try {
+                Bot.pickGroup(Number(group)).sendMsg(img)
+            } catch (err) {
+                logger.error(err)
+                continue
+            }
             const { num, z_num,cg_qqs,sbai_qqs} = await zd_MysSign(data.sign[group])//开始签到
             data_={
                 num,
@@ -78,6 +84,11 @@ export class Sign extends plugin {
             path='sign/end_list'
             img = await render(path, data_)
             Bot.pickGroup(Number(group)).sendMsg(img)
+            //删除签到失败的qq
+            for(const qq of sbai_qqs){
+                del(qq,group)
+            }
+            //等待一会再执行下一个群
             await sleep(lodash.random(15000, 30000))
         }
         signing = false
@@ -85,7 +96,12 @@ export class Sign extends plugin {
 
 }
 
-
+function del(qq,group) {
+    const path = './plugins/xhh/config/sign.yaml'
+    const data = yaml.get(path)
+    data.sign[group].splice(data.sign[group].indexOf(qq), 1)
+    return yaml.set(path, 'sign', data.sign)
+}
 
 async function render(path, data_) {
     let tplFile = process.cwd()+'/plugins/xhh/resources/'+path+'.html'
