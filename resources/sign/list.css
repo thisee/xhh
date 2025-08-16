@@ -1,0 +1,52 @@
+ body {
+    background-color: #f0f2f5;
+}
+
+
+
+
+
+/* 彩色浮雕效果容器样式 */
+.colorful-embossed {
+/* 渐变背景色：从左上到右下的浅色渐变 */
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    /* 圆角边框 */
+    border-radius: 15px;
+    /* 内边距 */
+    padding: 30px;
+    /* 三层阴影效果：
+    1. 右下方向的内阴影（深色）
+    2. 左上方向的内阴影（浅色）
+    3. 外部常规阴影 */
+    box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,0.1), /* 右下内阴影 */
+    inset -4px -4px 8px rgba(255,255,255,0.8), /* 左上内阴影 */
+    5px 5px 15px rgba(0,0,0,0.1); /* 外部阴影 */
+    /* 相对定位（为伪元素定位做准备） */
+    position: relative;
+    /* 隐藏溢出内容 */
+    overflow: hidden;
+    width: 300px;
+    margin: 50px auto;
+}
+
+/* 彩色浮雕的伪元素（用于创建静态光泽效果） */
+.colorful-embossed::before {
+    content: ''; /* 必须属性 */
+    position: absolute; /* 绝对定位 */
+    /* 定位和尺寸：覆盖整个元素的2倍大小 */
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    /* 半透明渐变背景：从左上到右下的白色渐变 */
+    background: linear-gradient(
+    to bottom right,
+    rgba(255,255,255,0.3), /* 左上较亮 */
+    rgba(255,255,255,0) /* 右下透明 */
+    );
+    /* 固定30度旋转使渐变对角线更明显 */
+    transform: rotate(30deg);
+    /* 层级设置（置于内容下方） */
+    z-index: 0;
+}

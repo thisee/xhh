@@ -95,7 +95,7 @@ async function vid(e,thise=false) {
     }
     img=segment.image(path)
     //我们合体(˃ ⌑ ˂
-    msg=[`游戏：${name}\n\n标题：${subject}\n\n发布时间：${time}\n\n画质大小：${p}  ${size}\n\n封面：\n`,img,`\n\n视频链接(点击即可观看)：${vid_url}\n\n内容：\n${content}`]
+    msg=[`游戏：${name}\n\n标题：${subject}\n\n发布时间：${time}\n\n画质大小：${p}  ${size}\n\n封面：\n`,img,`\n\n视频链接(点击即可观看)：${vid_url}${(content&&typeof content=='string') ? '\n\n内容：\n'+content : ''}`]
     msgs.push(msg)
     names=names+name+' '
     break
