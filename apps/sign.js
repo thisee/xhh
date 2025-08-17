@@ -88,8 +88,7 @@ export class Sign extends plugin {
             for(const qq of sbai_qqs){
                 del(qq,group)
             }
-            //等待一会再执行下一个群
-            await sleep(lodash.random(15000, 30000))
+            await sleep(200)
         }
         signing = false
     }
