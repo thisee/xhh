@@ -79,7 +79,7 @@ export class config extends plugin {
     let groups = (await yaml.get(path)).groups
     if (e.msg.includes('添加')) {
       try {
-        if (!Bot.pickGroup(group_id, true).info) return e.reply(`o(´^｀)o我可不在这个群里\n${group_id}`)
+        if (!Bot.pickGroup(group_id, true)) return e.reply(`o(´^｀)o我可不在这个群里\n${group_id}`)
       } catch (err) {
         e.reply(`o(´^｀)o我可不在这个群里\n${group_id}`)
         return false
@@ -128,7 +128,7 @@ export class config extends plugin {
         logger.info(`检测到群号${group}已失效，已经自动删除`)
         continue
       }
-      let gname = Bot.pickGroup(group, true).info?.group_name || Bot.pickGroup(group, true).name
+      let gname = Bot.pickGroup(group, true).info?.group_name || Bot.pickGroup(group, true).group_name|| Bot.pickGroup(group, true).name
       if (gname == undefined) {
         await yaml.del(path, 'groups', group)
         logger.info(`检测到群号${group}已失效，已经自动删除`)
