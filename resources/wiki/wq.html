@@ -36,12 +36,15 @@
                 </tr>
             </table>
         </div>
-        <div class="box" style="background-image: url(../../../../.{{path_img}})">
+        <div class="box">
+            <!-- <img src="../../../../.{{path_img}}" class="wuqi_img" > -->
+            <!-- <div class="ms"> -->
                 {{@rich_text}}
                 <hr>
                 <span class="no">{{attr[0].key}}</span>{{@attr[0].value}}
                 <hr>
                 <span class="no">{{attr[1].key}}</span>{{@attr[1].value}}
+            <!-- </div> -->
         </div>
         <div class="_box">
             {{each materials ma}}

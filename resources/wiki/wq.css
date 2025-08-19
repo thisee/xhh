@@ -39,7 +39,7 @@ body {
   /* border: px solid #a0522d; */
   border-radius: 8px;
   padding: 16px;
-  background-color: #8ecfdcbe;
+  background-color: #8ecfdc;
    box-shadow: 0 8px 32px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
@@ -58,6 +58,7 @@ body {
 .weapon-image img {
   width: 160px;
   height: auto;
+  border-radius: 10px;
 }
 
 /* 右侧表格样式 */
@@ -73,19 +74,19 @@ body {
   padding: 4px;
   font-family: '宋';
   font-weight: bold;
-  color: #b64804ec;
-    text-shadow:     
-    -0.25px -0.25px 0 #fff,  
+  color: #c0520eec;
+    text-shadow: none;
+    /* -0.25px -0.25px 0 #fff,  
     0.25px -0.25px 0 #fff,
     -0.25px 0.25px 0 #fff,
-    0.25px 0.25px 0 #fff;
-  border-bottom: 1px solid #a0522d;
+    0.25px 0.25px 0 #fff; */
+  border-bottom: 1px solid #efe7e5;
 }
 
 /* 表格单元格样式（值列） */
 .info-table td {
   padding: 4px;
-  border-bottom: 1px solid #a0522d;
+  border-bottom: 1px solid #efe7e5;
   text-align: right;
 }
 
@@ -100,25 +101,43 @@ body {
     outline-offset: -6px;
     padding: 5px 0 0 5px;
     background: #f3ddb0dc;
-    background-position: calc(100% - 20px) center;
+    /* background-position: calc(100% - 20px) center;
     background-repeat: no-repeat;
-    background-size: contain;
+    background-size: contain; */
     position: relative;
     color: #464c3d;
     box-shadow: 2px 6px 6px 0px rgba(49, 48, 48, 0.4);
-    text-shadow:     
+    /* text-shadow:     
     -0.5px -0.5px 0 #fff,  
     0.5px -0.5px 0 #fff,
     -0.5px 0.5px 0 #fff,
-    0.5px 0.5px 0 #fff;
+    0.5px 0.5px 0 #fff; */
 }
+
+strong{
+    font-weight: 500;
+    color: #d24128;
+}
+.box .ms{
+    position: relative;
+    z-index: 2;
+}
+.wuqi_img{
+    position: absolute;
+    height: 100px;
+    right: 10px;
+    bottom: 4px;
+    opacity: 0.5;
+    z-index: 1;
+}
+
 .box strong{
     /* text-shadow: 1.5px 1.5px 3px rgb(255, 254, 254); */
-    text-shadow: 
+    /* text-shadow: 
     -0.5px -0.5px 0 #fff,  
     0.5px -0.5px 0 #fff,
     -0.5px 0.5px 0 #fff,
-    0.5px 0.5px 0 #fff;
+    0.5px 0.5px 0 #fff; */
 }
 
 strong span{
