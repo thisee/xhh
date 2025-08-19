@@ -54,7 +54,7 @@ async function makeForwardMsg(e, msg = [], dec = '') {
     }
     let msg_=await Bot.makeForwardMsg(forwardMsg)
     
-    if(!msg_){
+    if(!msg_||!msg_.data){
     if (e?.group?.makeForwardMsg) {
       msg_= await e.group.makeForwardMsg(forwardMsg)
     } else if (e?.friend?.makeForwardMsg) {
