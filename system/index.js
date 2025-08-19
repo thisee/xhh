@@ -65,7 +65,7 @@ async function makeForwardMsg(e, msg = [], dec = '') {
     }
     
     if (dec&&msg_.data) {
-        if (!isTrss) msg_.data.meta?.detail?.news=[{'text':dec}]
+        if (!isTrss&&msg_.data.meta?.detail) msg_.data.meta.detail.news=[{'text':dec}]
         else msg_.data.unshift({...userInfo,message: dec})
     }
     return msg_
