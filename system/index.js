@@ -53,8 +53,19 @@ async function makeForwardMsg(e, msg = [], dec = '') {
         })
     }
     let msg_=await Bot.makeForwardMsg(forwardMsg)
-    if (dec) {
-        if (!isTrss) msg_.data.meta.detail.news=[{'text':dec}]
+    
+    if(!msg_){
+    if (e?.group?.makeForwardMsg) {
+      msg_= await e.group.makeForwardMsg(forwardMsg)
+    } else if (e?.friend?.makeForwardMsg) {
+      msg_ = await e.friend.makeForwardMsg(forwardMsg)
+    } else {
+      return msg.join("\n")
+    }
+    }
+    
+    if (dec&&msg_.data) {
+        if (!isTrss) msg_.data.meta?.detail?.news=[{'text':dec}]
         else msg_.data.unshift({...userInfo,message: dec})
     }
     return msg_
