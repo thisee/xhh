@@ -243,7 +243,8 @@ export class user extends plugin {
     }
     if (kg) fs.writeFileSync(path, YAML.stringify(data), "utf-8")
     if (e.no_reply) e.reply = e.no_reply
-    msgs.map((item, i, arr) => arr[i] = item.replace(/绑定Cookie/g, '刷新Cookie'))
+    logger.info(msgs)
+    msgs[0]=msgs[0].replace(/绑定Cookie/g, '刷新Cookie')
     e.reply(await makeForwardMsg(e, msgs))
   }
 
