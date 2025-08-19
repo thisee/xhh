@@ -106,7 +106,8 @@ export class config extends plugin {
 
   async sz(e) {
     let data = await yaml.get(path)
-    let msg = [
+    let msg =[]
+    msg.push([
       '--------小花火设置状态--------',
       `塔罗牌：${data.tlp ? '已开启' : '已关闭'}`,
       `塔罗牌每日次数：${data.tlpcs}次`,
@@ -117,7 +118,7 @@ export class config extends plugin {
       `凌晨3:30自动更新xhh：${data.update ? '已开启' : '已关闭'}`,
       `图片渲染精度：${data.img_quality}%`,
       '米哈游视频播报群号：\n'
-    ].join('\n')
+    ].join('\n'))
     for (let group of data.groups) {
       try {
         Bot.pickGroup(group, true)
