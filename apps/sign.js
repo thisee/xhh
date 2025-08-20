@@ -6,8 +6,8 @@ let signing = false
 export class Sign extends plugin {
     constructor(e) {
         super({
-            name: '[小花火]帮助',
-            dsc: '帮助',
+            name: '[小花火]签到',
+            dsc: '签到',
             event: 'message',
             priority: -26,
             rule: [
