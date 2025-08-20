@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import common from '../../../lib/common/common.js'
 import lodash from 'lodash'
-import {yaml,makeForwardMsg} from '#xhh'
+import {yaml,makeForwardMsg,sleep} from '#xhh'
 
 //手动触发，只回复当前聊天
 export class video extends plugin{
@@ -29,23 +29,25 @@ async video(e) {
   await redis.del('xhh_vid:0')
   await redis.del('xhh_vid:1')
   await redis.del('xhh_vid:2')
-  vid(e,true)
+  if(getother().bh3)await redis.del('xhh_vid:3')
+  vid(e)
   }
 }
 
-
-async function vid(e,thise=false) {
+async function vid(e) {
   let groups=(await yaml.get('./plugins/xhh/config/config.yaml')).groups
-  if(!groups.length && !thise) return true
+  if(!groups.length && !e?.reply) return true
   //原神，星铁，绝区零
   let urls = ['https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=75276539','https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=288909600','https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=152039148']
+  //崩三？？？
+  if(getother().bh3) urls.push('https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=73565430')
   //啊～量有点多
   let list,p,size,time=1,subject,content,img,vid_url,res,vod_list,url,name,ti,msgs=[],names='',path
-  //遍历3游戏官号
+  //遍历游戏官号
   for (let i = 0;i<urls.length;i++) {
   let msg
   //游戏名字
-  name= i==0 ? '原神' : i==1 ? '崩坏星穹铁道' : '绝区零'
+  name= i==0 ? '原神' : i==1 ? '崩坏星穹铁道' : i == 2 ? '绝区零' : '崩坏3'
   url = urls[i]
   res = await fetch(url).then(res => res.json())
   list=res.data.list
@@ -84,18 +86,25 @@ async function vid(e,thise=false) {
     
     //标题
     subject=list[n].post.subject
-    //内容
-    content=JSON.parse(list[n].post.structured_content)[0].insert
+
+    //文本内容
+    const content_list = JSON.parse(list[n].post.structured_content)
+    content=content_list.map(item=>{
+      if(typeof item.insert=='string') return item.insert
+    }).join('')
+
+    // content=JSON.parse(list[n].post.structured_content)[0].insert
+
     //封面
     img=list[n].post.cover
-    //QQ不支持https://upload-bbs.miyoushe.com/
+    //QQ不支持直接发https://upload-bbs.miyoushe.com/
     if(img.includes('https://upload-bbs.miyoushe.com/')){
     path=`./plugins/xhh/temp/${name}视频封面.jpg`
     await common.downFile(img+'?x-oss-process=image//resize,p_30', path)
     }
     img=segment.image(path)
     //我们合体(˃ ⌑ ˂
-    msg=[`游戏：${name}\n\n标题：${subject}\n\n发布时间：${time}\n\n画质大小：${p}  ${size}\n\n封面：\n`,img,`\n\n视频链接(点击即可观看)：${vid_url}${(content&&typeof content=='string') ? '\n\n内容：\n'+content : ''}`]
+    msg=[`游戏：${name}\n\n标题：${subject}\n\n发布时间：${time}\n\n画质大小：${p}  ${size}\n\n封面：\n`,img,`\n\n视频链接(点击即可观看)：${vid_url}${(content&&typeof content=='string') ? '\n\n文本内容：\n'+content : ''}`]
     msgs.push(msg)
     names=names+name+' '
     break
@@ -104,21 +113,47 @@ async function vid(e,thise=false) {
   }
   }
   }
- if (msgs.length) {
+
+ if (!msgs.length) return 
+
+ //不制作合并转发消息
+  if(!getother().forwardMsg){
+    if(e?.reply) {
+      for(const text of msgs) {
+        await e.reply(text)
+        await sleep(200)
+      }
+    }else{
+      for (let group of groups) {
+        for(const text of msgs) {
+        Bot.pickGroup(group).sendMsg(text)
+        await sleep(200)
+      }
+      //多个群，随机延迟10~20秒发送
+      await sleep(lodash.random(10000, 20000))
+    }
+    }
+    return true
+  }
+
+ //制作合并转发消息
   const dec = `${names}发布了新视频，一起来看看吧！`
   let msg = await makeForwardMsg('',msgs,dec)
-   if (thise) {
+   if (e?.reply) {
    e.reply(msg)
    return true
    } else {
    for (let group of groups) {
      Bot.pickGroup(group).sendMsg(msg)
       //多个群，随机延迟10~20秒发送
-      await common.sleep(lodash.random(10000, 20000))
+      await sleep(lodash.random(10000, 20000))
     }
    }
- }
   
 }
+
+  function getother() {
+    return yaml.get('./plugins/xhh/config/other.yaml')
+  }
 
 

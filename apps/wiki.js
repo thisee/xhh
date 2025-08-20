@@ -5,14 +5,14 @@ const { window } = new JSDOM()
 const DOMParser = window.DOMParser;
 
 
-
+const pr = (yaml.get('./plugins/xhh/config/other.yaml')).wiki
 export class Wiki extends plugin {
     constructor(e) {
         super({
             name: '[小花火]图鉴',
             dsc: '图鉴',
             event: 'message',
-            priority: -99,
+            priority: pr || -99,
             rule: [
                 {
                     reg: '^#*(星铁)*(.*)图鉴$',
