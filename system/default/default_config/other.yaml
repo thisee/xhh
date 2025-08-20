@@ -4,7 +4,7 @@
 forwardMsg: true
 
 #米游社视频播报是否再加个崩坏三？: true是 false否
-bh3: true
+bh3: false
 
 #小花火图鉴优先级:
 wiki: -99
