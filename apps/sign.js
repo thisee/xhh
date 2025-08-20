@@ -55,9 +55,9 @@ export class Sign extends plugin {
 
     async scheduled_sign() {
         const data = yaml.get('./plugins/xhh/config/sign.yaml')
-        if (!data.zd_sign) return false
+        if (!data.zd_sign || !data.sign || typeof data.sign != 'object') return false
         signing = true
-        let groups = Object.keys(data.sign)
+        let groups = Object.keys(data.sign).sort((a, b) => data.sign[b].length - data.sign[a].length);
         if (this.e?.msg?.includes('本群') && this.e.isGroup) groups = [this.e.group_id]
         for (const group of groups) {
             if (data.sign_group && !data.sign_group.includes(group)) continue//非白名单群
