@@ -93,7 +93,7 @@ class bili {
     if (!n) n = 1
     let img, pic, pl_kg = true
     if (data.pls && data.pls[n - 1]) {
-      if (data.pls[1].xh == 1) n = Number(n) + 1
+      if (data.pls[1]?.xh == 1) n = Number(n) + 1
       let data_ = await this.zpl(data.bv || data.pl_id, data.pls[n - 1].rpid, data.pl_type)
       data.pls[n - 1]['reply'] = data_
       img = await render('bilibili/reply', data.pls[n - 1], { e, ret: false })
