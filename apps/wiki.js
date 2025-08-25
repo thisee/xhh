@@ -481,7 +481,7 @@ export class Wiki extends plugin {
         //数值
         const numeric_ = numeric_value[numeric_value.length - 1].attr[0].value[0]
         //如果喵有图就调用
-        const path_img = this.getpath(wq.name)
+        // const path_img = this.getpath(wq.name)
 
         const arr = numeric_.match(/<p>(.*?)<\/p>/g).map(m => m.replace(/<p>|<\/p>/g, ''))
         const atk = arr[0].replace(/基础攻击力: /g, '')
@@ -513,7 +513,7 @@ export class Wiki extends plugin {
             rich_text,
             attr,
             materials,
-            path_img,
+            // path_img,
             //基础攻击力
             atk,
             //武器副属性
@@ -553,7 +553,7 @@ export class Wiki extends plugin {
 
 
 
-
+/*
     getpath(name) {
         let path = './plugins/miao-plugin/resources/meta-gs/weapon/'
         const path_arr = fs.readdirSync(path).filter(file => {
@@ -570,7 +570,7 @@ export class Wiki extends plugin {
         })
         return _path
     }
-
+*/
 
 
 
