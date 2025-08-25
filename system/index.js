@@ -52,7 +52,12 @@ async function makeForwardMsg(e, msg = [], dec = '') {
             message: message,
         })
     }
-    let msg_=await Bot.makeForwardMsg(forwardMsg)
+    let msg_=false
+    try{
+    msg_=await Bot.makeForwardMsg(forwardMsg)
+    }catch (err) {
+    msg_=false
+    }
     
     if(!msg_||!msg_.data){
     if (e?.group?.makeForwardMsg) {
