@@ -128,7 +128,7 @@ async data(name='',type='js',isSr=false){
    // names.map(v=>{
      // if(!_data[v]) _data[v]=[v]
    // })
-   fs.writeFileSync(pa,YAML.stringify(_data))
+   // fs.writeFileSync(pa,YAML.stringify(_data))
     names.map((v,i)=>{
       data[i]={
         name:v,

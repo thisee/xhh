@@ -1,4 +1,4 @@
-import { yaml, render, mys, config } from '#xhh'
+import { yaml, render, mys, config, reply_recallMsg } from '#xhh'
 import fs from 'fs'
 import { JSDOM } from 'jsdom'
 const { window } = new JSDOM()
@@ -196,7 +196,7 @@ export class Wiki extends plugin {
         data = data.filter((item, index, self) =>
             index === self.findIndex(t => t.name === item.name)
         )
-
+      if(data.length>50) reply_recallMsg(e,`正在获取${name}列表中,请等待...`,30)
         data = {
             name: name,
             data: data
