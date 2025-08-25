@@ -122,15 +122,13 @@ async data(name='',type='js',isSr=false){
       }
     }
     }
-  /*
   //图鉴别名补缺
-   const pa='./plugins/xhh/system/default/.yaml'
-   const _data=yaml.get(pa)
-   names.map(v=>{
-     if(!_data[v]) _data[v]=[v]
-   })
+   // const pa='./plugins/xhh/system/default/gz_names.yaml'
+   // const _data=yaml.get(pa)
+   // names.map(v=>{
+     // if(!_data[v]) _data[v]=[v]
+   // })
    fs.writeFileSync(pa,YAML.stringify(_data))
-   */
     names.map((v,i)=>{
       data[i]={
         name:v,
