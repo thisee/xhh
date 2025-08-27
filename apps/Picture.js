@@ -55,6 +55,7 @@ async lj(e,gq=false) {
   }
   for (let i in imageMessages) {
     let index=Number(i)+1
+     if(imageMessages[i].file_size) imageMessages[i].size=imageMessages[i].file_size
     msg.push([`图片[${index}]：\n${imageMessages[i].url}\n大小:${Math.ceil(imageMessages[i].size/10000)/100}MB\n`,segment.image(imageMessages[i].url)])
   }
   msg=await makeForwardMsg(e, msg,'图片链接')

@@ -196,21 +196,9 @@ export class voice extends plugin {
     }
 
     if (img) {
-      // let kg=await this.check()
-      // let time=kg.time
-      // if(time==0||time>120) time=121
-
-      // let f
-      // if(time==121){
-      // f=await e.reply(img)
-      // }else{
-      // f=await e.reply(img,false,{ recallMsg:time })
-      // }
-
-      // await redis.set(`xhh_yy:${f.time}`,JSON.stringify(data),{EX: time })
       let f = await e.reply(img)
       await this.temp()
-      fs.writeFileSync(`./plugins/xhh/temp/yy_pic/${f.time}.json`, JSON.stringify(data), 'utf-8')
+      fs.writeFileSync(`./plugins/xhh/temp/yy_pic/${f.message_id}.json`, JSON.stringify(data), 'utf-8')
       return true
     }
     return false
@@ -229,7 +217,7 @@ export class voice extends plugin {
     if (e.isGroup) {
       source = (await e.group.getChatHistory(e.source?.seq, 1)).pop()
     } else {
-      source = (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop()
+      source = (await e.friend.getChatHistory(e.source?.time, 1)).pop()
     }
     if (source.message.length != 1 && source.message[0]?.type != 'image') return false
     if (e.msg && e.msg.length > 5) return false
@@ -250,10 +238,8 @@ export class voice extends plugin {
     } else { return false }
 
 
-    // let data =await redis.get(`xhh_yy:${source.time}`)
-    if (!fs.existsSync(`./plugins/xhh/temp/yy_pic/${source.time}.json`)) return false
-    let data = JSON.parse(fs.readFileSync(`./plugins/xhh/temp/yy_pic/${source.time}.json`, 'utf-8'))
-    // data=await JSON.parse(data)
+    if (!fs.existsSync(`./plugins/xhh/temp/yy_pic/${source.message_id}.json`)) return false
+    let data = JSON.parse(fs.readFileSync(`./plugins/xhh/temp/yy_pic/${source.message_id}.json`, 'utf-8'))
     let name = data.name
     let isSr = data.isSr
     let list = data.list
