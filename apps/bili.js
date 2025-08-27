@@ -77,7 +77,7 @@ export class bilibili extends plugin {
     //引用回复
     if (!e.source) return false
 
-    let source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop()
+    let source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory(e.source?.time , 1)).pop()
 
     // if (source.message.length!=1&&(source.message[0]?.type!='image'||source.message[0]?.type!='json'))  return false
     if (source.message[0]?.type != 'image' && source.message[0]?.type != 'json') return false
@@ -86,18 +86,18 @@ export class bilibili extends plugin {
       //展开评论区
       if (e.msg.includes('展开')) {
         let n = await (/\d+/).exec(e.msg)
-        return bili.reply_(e, n, source.time)
+        return bili.reply_(e, n, source.message_id)
       }
 
-      if (['获取图片', '下载图片', '图片'].includes(e.msg)) return bili.tu(e, source.time)
+      if (['获取图片', '下载图片', '图片'].includes(e.msg)) return bili.tu(e, source.message_id)
 
       try {
-        data = JSON.parse(fs.readFileSync(`./plugins/xhh/temp/bili/${source.time}.json`, 'utf-8'))
+        data = JSON.parse(fs.readFileSync(`./plugins/xhh/temp/bili/${source.message_id}.json`, 'utf-8'))
       } catch (err) {
         return false
       }
       bv = data.bv
-      if (['下载封面', '封面下载', '获取封面', '封面'].includes(e.msg) && bv) return bili.fm(e, source.time)
+      if (['下载封面', '封面下载', '获取封面', '封面'].includes(e.msg) && bv) return bili.fm(e, source.message_id)
       dt_id = data.dt_id
       pl_id = data.pl_id
       pl_type = data.pl_type
@@ -130,7 +130,7 @@ export class bilibili extends plugin {
     }
 
     //获取简介
-    if (e.msg == '简介' && bv) return bili.jj(e, source.time)
+    if (e.msg == '简介' && bv) return bili.jj(e, source.message_id)
 
     //主动解析卡片(emmm...一般都自动解析了)
     if (['解析', '解'].includes(e.msg) && source.message[0].type == 'json') {

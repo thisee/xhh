@@ -111,20 +111,20 @@ class bili {
       return e.reply('序号不对哟~')
     }
     let re = await e.reply(img)
-    // await redis.set(`xhh:bili:${re.time}`,JSON.stringify(pic), { EX: 600 })
+    // await redis.set(`xhh:bili:${re.message_id}`,JSON.stringify(pic), { EX: 600 })
     if (pl_kg) {
       await this.temp()
-      fs.writeFileSync(`./plugins/xhh/temp/bili/${re.time}.json`, JSON.stringify(data), 'utf-8')
+      fs.writeFileSync(`./plugins/xhh/temp/bili/${re.message_id}.json`, JSON.stringify(data), 'utf-8')
     }
     return true
   }
 
   //下载视频封面
-  async fm(e, msg_time, bv = '') {
+  async fm(e, msg_id, bv = '') {
     let data
-    if (msg_time) {
-      if (!fs.existsSync(`./plugins/xhh/temp/bili/${msg_time}.json`)) return false
-      data = fs.readFileSync(`./plugins/xhh/temp/bili/${msg_time}.json`, 'utf-8')
+    if (msg_id) {
+      if (!fs.existsSync(`./plugins/xhh/temp/bili/${msg_id}.json`)) return false
+      data = fs.readFileSync(`./plugins/xhh/temp/bili/${msg_id}.json`, 'utf-8')
       data = (JSON.parse(data)).pic
     } else if (bv) {
       data = await this.sp_(bv)
@@ -136,9 +136,9 @@ class bili {
   }
 
   //下载评论区图片
-  async tu(e, msg_time) {
-    if (!fs.existsSync(`./plugins/xhh/temp/bili/${msg_time}.json`)) return false
-    let data = fs.readFileSync(`./plugins/xhh/temp/bili/${msg_time}.json`, 'utf-8')
+  async tu(e, msg_id) {
+    if (!fs.existsSync(`./plugins/xhh/temp/bili/${msg_id}.json`)) return false
+    let data = fs.readFileSync(`./plugins/xhh/temp/bili/${msg_id}.json`, 'utf-8')
     data = (JSON.parse(data)).pic
     let msg_id = data.msg_id
     if (!msg_id) return false
@@ -268,7 +268,7 @@ class bili {
     let img = await render('bilibili/video', data, { e, ret: false })
     let re = await e.reply(img)
     await this.temp()
-    fs.writeFileSync(`./plugins/xhh/temp/bili/${re.time}.json`, JSON.stringify(data), 'utf-8')
+    fs.writeFileSync(`./plugins/xhh/temp/bili/${re.message_id}.json`, JSON.stringify(data), 'utf-8')
 
     return true
   }
@@ -540,7 +540,7 @@ class bili {
 
     let re = await e.reply(img)
     await this.temp()
-    fs.writeFileSync(`./plugins/xhh/temp/bili/${re.time}.json`, JSON.stringify(data), 'utf-8')
+    fs.writeFileSync(`./plugins/xhh/temp/bili/${re.message_id}.json`, JSON.stringify(data), 'utf-8')
   }
 
 
