@@ -140,7 +140,7 @@ class bili {
     if (!fs.existsSync(`./plugins/xhh/temp/bili/${msg_id}.json`)) return false
     let data = fs.readFileSync(`./plugins/xhh/temp/bili/${msg_id}.json`, 'utf-8')
     data = (JSON.parse(data)).pic
-    let msg_id = data.msg_id
+     msg_id = data.msg_id
     if (!msg_id) return false
     let n = data.n
     n--
