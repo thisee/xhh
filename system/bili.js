@@ -1021,6 +1021,7 @@ class bili {
       return false
     }
     let data = res.data.list.vlist[0]
+    if (!data) return false
     //最新视频时间戳
     const time = data.created
     //bv号
