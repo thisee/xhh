@@ -55,7 +55,7 @@ async function vid(e) {
   for (let i in urls) {
   let msg
   //游戏名字
-  name= i==gs ? '原神' : i==sr ? '崩坏星穹铁道' : i == zzz ? '绝区零' : i ==bh3 ? '崩坏3' : '崩坏因缘精灵'
+  name= i=='gs' ? '原神' : i=='sr' ? '崩坏星穹铁道' : i =='zzz' ? '绝区零' : i =='bh3' ? '崩坏3' : '崩坏因缘精灵'
   url ='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='+urls[i]
   res = await fetch(url).then(res => res.json())
   list=res.data.list
