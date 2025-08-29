@@ -23,6 +23,7 @@ export class video extends plugin{
 				fnc: () => vid(),
 				log: false
       }
+      this.user_url='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='
   }
   
 async video(e) {
@@ -33,23 +34,24 @@ async video(e) {
   vid(e)
   }
 }
-
 async function vid(e) {
   let groups=(await yaml.get('./plugins/xhh/config/config.yaml')).groups
   if(!groups.length && !e?.reply) return true
   //原神，星铁，绝区零
-  let urls = ['https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=75276539','https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=288909600','https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=152039148']
+  let urls = ['75276539','288909600','152039148']
   //崩三？？？
-  if(getother().bh3) urls.push('https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid=73565430')
+  if(getother().bh3) urls.push('73565430')
+  //崩缘？？？
+  if(getother().by) urls.push('448340772')
   //啊～量有点多
   let list,p,size,time=1,subject,content,img,vid_url,res,vod_list,url,name,ti,msgs=[],names='',path
   //遍历游戏官号
   for (let i = 0;i<urls.length;i++) {
   let msg
   //游戏名字
-  name= i==0 ? '原神' : i==1 ? '崩坏星穹铁道' : i == 2 ? '绝区零' : '崩坏3'
+  name= i==0 ? '原神' : i==1 ? '崩坏星穹铁道' : i == 2 ? '绝区零' : i ==3 ? '崩坏3' : '崩坏因缘精灵'
   url = urls[i]
-  res = await fetch(url).then(res => res.json())
+  res = await fetch(this.user_url+url).then(res => res.json())
   list=res.data.list
   ti = await redis.get(`xhh_vid:${i}`)
   //遍历最新发的10个帖子

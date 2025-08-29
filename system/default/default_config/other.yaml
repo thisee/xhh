@@ -6,5 +6,8 @@ forwardMsg: true
 #米游社视频播报是否再加个崩坏三？: true是 false否
 bh3: false
 
+#米游社视频播报是否再加个崩坏因缘精灵？: true是 false否
+by: true
+
 #小花火图鉴优先级:
 wiki: -99
