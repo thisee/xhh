@@ -942,6 +942,7 @@ class bili {
   //拿收藏夹id
   async media_id() {
     let n = (await yaml.get(path)).mlid_n || 1
+    const ck = await this.getck()
     let mid = (await this.xx(ck)).mid//用户id
     headers = await this.getHeaders()
     let url = `https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=${mid}`
