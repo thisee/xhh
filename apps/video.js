@@ -26,33 +26,38 @@ export class video extends plugin{
   }
   
 async video(e) {
-  await redis.del('xhh_vid:0')
-  await redis.del('xhh_vid:1')
-  await redis.del('xhh_vid:2')
-  if(getother().bh3)await redis.del('xhh_vid:3')
-  if(getother().by)await redis.del('xhh_vid:4')
+  await redis.del('xhh_vid:gs')
+  await redis.del('xhh_vid:sr')
+  await redis.del('xhh_vid:zzz')
+  if(getother().bh3)await redis.del('xhh_vid:bh3')
+  if(getother().by)await redis.del('xhh_vid:by')
   vid(e)
   }
+
 }
+
 async function vid(e) {
   let groups=(await yaml.get('./plugins/xhh/config/config.yaml')).groups
   if(!groups.length && !e?.reply) return true
-  const user_url='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='
   //原神，星铁，绝区零
-  let urls = ['75276539','288909600','152039148']
+  let urls = {
+    gs:75276539,
+    sr:288909600,
+    zzz:152039148
+  }
   //崩三？？？
-  if(getother().bh3) urls.push('73565430')
+  if(getother().bh3) urls.bh3=73565430
   //崩缘？？？
-  if(getother().by) urls.push('448340772')
+  if(getother().by) urls.by=448340772
   //啊～量有点多
   let list,p,size,time=1,subject,content,img,vid_url,res,vod_list,url,name,ti,msgs=[],names='',path
   //遍历游戏官号
-  for (let i = 0;i<urls.length;i++) {
+  for (let i in urls) {
   let msg
   //游戏名字
-  name= i==0 ? '原神' : i==1 ? '崩坏星穹铁道' : i == 2 ? '绝区零' : i ==3 ? '崩坏3' : '崩坏因缘精灵'
-  url = urls[i]
-  res = await fetch(user_url+url).then(res => res.json())
+  name= i==gs ? '原神' : i==sr ? '崩坏星穹铁道' : i == zzz ? '绝区零' : i ==bh3 ? '崩坏3' : '崩坏因缘精灵'
+  url ='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='+urls[i]
+  res = await fetch(url).then(res => res.json())
   list=res.data.list
   ti = await redis.get(`xhh_vid:${i}`)
   //遍历最新发的10个帖子
