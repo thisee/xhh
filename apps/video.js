@@ -113,19 +113,19 @@ async function vid(e) {
     img=segment.image(path)
     //我们合体(˃ ⌑ ˂
     msg=[
-      `游戏：${name}\n`,
-      `标题：${subject}\n`,
-      `发布时间：${time}\n`,
-      `画质大小：${p}  ${size}\n`,
-      `封面：`,
+      `游戏：${name}\n\n`,
+      `标题：${subject}\n\n`,
+      `发布时间：${time}\n\n`,
+      `画质大小：${p}  ${size}\n\n`,
+      `封面：\n`,
       img,
-      `\n视频链接(点击即可观看)：${vid_url}`
+      `\n\n视频链接(点击即可观看)：${vid_url}`
     ]
     if(content.length<600) {
       msg.push(`\n文本内容：\n${content}`)
-      msgs.push([msg.join('\n')])
+      msgs.push(msg)
     }else{
-      msgs.push([msg.join('\n')])
+      msgs.push(msg)
       msgs.push([`${name}文本内容：\n${content}`])
     }
     names=names+name+' '
