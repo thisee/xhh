@@ -23,7 +23,6 @@ export class video extends plugin{
 				fnc: () => vid(),
 				log: false
       }
-      this.user_url='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='
   }
   
 async video(e) {
@@ -31,12 +30,14 @@ async video(e) {
   await redis.del('xhh_vid:1')
   await redis.del('xhh_vid:2')
   if(getother().bh3)await redis.del('xhh_vid:3')
+  if(getother().by)await redis.del('xhh_vid:4')
   vid(e)
   }
 }
 async function vid(e) {
   let groups=(await yaml.get('./plugins/xhh/config/config.yaml')).groups
   if(!groups.length && !e?.reply) return true
+  const user_url='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='
   //原神，星铁，绝区零
   let urls = ['75276539','288909600','152039148']
   //崩三？？？
@@ -51,7 +52,7 @@ async function vid(e) {
   //游戏名字
   name= i==0 ? '原神' : i==1 ? '崩坏星穹铁道' : i == 2 ? '绝区零' : i ==3 ? '崩坏3' : '崩坏因缘精灵'
   url = urls[i]
-  res = await fetch(this.user_url+url).then(res => res.json())
+  res = await fetch(user_url+url).then(res => res.json())
   list=res.data.list
   ti = await redis.get(`xhh_vid:${i}`)
   //遍历最新发的10个帖子
