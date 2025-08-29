@@ -114,7 +114,7 @@ async function vid(e) {
     //我们合体(˃ ⌑ ˂
     msg=[
       `游戏：${name}\n`,
-      `标题：${subject}\n`
+      `标题：${subject}\n`,
       `发布时间：${time}\n`,
       `画质大小：${p}  ${size}\n`,
       `封面：`,
