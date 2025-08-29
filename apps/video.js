@@ -112,8 +112,22 @@ async function vid(e) {
     }
     img=segment.image(path)
     //我们合体(˃ ⌑ ˂
-    msg=[`游戏：${name}\n\n标题：${subject}\n\n发布时间：${time}\n\n画质大小：${p}  ${size}\n\n封面：\n`,img,`\n\n视频链接(点击即可观看)：${vid_url}${(content&&typeof content=='string') ? '\n\n文本内容：\n'+content : ''}`]
-    msgs.push(msg)
+    msg=[
+      `游戏：${name}\n`,
+      `标题：${subject}\n`
+      `发布时间：${time}\n`,
+      `画质大小：${p}  ${size}\n`,
+      `封面：`,
+      img,
+      `\n视频链接(点击即可观看)：${vid_url}`
+    ]
+    if(content.length<600) {
+      msg.push(`\n文本内容：\n${content}`)
+      msgs.push([msg.join('\n')])
+    }else{
+      msgs.push([msg.join('\n')])
+      msgs.push([`${name}文本内容：\n${content}`])
+    }
     names=names+name+' '
     break
   }else{
