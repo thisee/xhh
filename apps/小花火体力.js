@@ -93,7 +93,7 @@ export class TL extends plugin {
 
         const renderData = {
             bg: Object.values(resultData).filter(Boolean).length > 1 ? 'bg' : 'bg1',
-            tx: `https://q1.qlogo.cn/g?b=qq&s=0&nk=${e.user_id}`,
+            qq: e.user_id,
             qqname: e.sender?.nickname?.length < 11 ? e.sender?.nickname : e.user_id,
             time: `${moment().format("MM-DD HH:mm")} ${this.week[moment().day()]}`
         };
