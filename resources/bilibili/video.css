@@ -22,7 +22,7 @@ body {
 }
 
 
-p img.emoji, img.emoji-svg {
+.re_p img.emoji, .re_p .emoji-svg , ._r_box_ img.emoji, ._r_box_ .emoji-svg , p img.emoji, p img.emoji-svg  {
  display:inline-block;
  width: 1em;
  height: 1em;

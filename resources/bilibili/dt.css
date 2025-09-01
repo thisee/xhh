@@ -21,6 +21,14 @@ body {
   background-color: #c5ccda;
 }
 
+.re_p img.emoji, .re_p .emoji-svg , ._r_box_ img.emoji, ._r_box_ .emoji-svg , p img.emoji, p img.emoji-svg  {
+ display:inline-block;
+ width: 1em;
+ height: 1em;
+ vertical-align: -0.1em; /* 调整与文字基线对齐 */
+ border: none;
+}
+
 .pic{
 max-width: 360px;
 max-height: 300px;
