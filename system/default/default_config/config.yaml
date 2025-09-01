@@ -67,3 +67,6 @@ bili_ck: ''
 
 #bilibili刷新ck需要用到的刷新口令(不要乱改，这是b站登录获取的)
 refresh_token: ''
+
+#旧版浏览器不支持emoji时，用cdn渲染emoji的表情：true开，false关
+emoji: false
