@@ -198,6 +198,7 @@ export class voice extends plugin {
     if (img) {
       let f = await e.reply(img)
       await this.temp()
+      f.message_id = f.message_id.replace(/\//g, '')
       fs.writeFileSync(`./plugins/xhh/temp/yy_pic/${f.message_id}.json`, JSON.stringify(data), 'utf-8')
       return true
     }
@@ -237,7 +238,7 @@ export class voice extends plugin {
       type = '汉语'
     } else { return false }
 
-
+    source.message_id = source.message_id.replace(/\//g, '')
     if (!fs.existsSync(`./plugins/xhh/temp/yy_pic/${source.message_id}.json`)) return false
     let data = JSON.parse(fs.readFileSync(`./plugins/xhh/temp/yy_pic/${source.message_id}.json`, 'utf-8'))
     let name = data.name
