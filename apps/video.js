@@ -119,7 +119,7 @@ async function vid(e) {
       `画质大小：${p}  ${size}\n\n`,
       `封面：\n`,
       img,
-      `\n\n视频链接(点击即可观看)：${vid_url}`
+      `\n\n视频链接(点击即可观看)：\n${vid_url}`
     ]
     if(content.length<600) {
       msg.push(`\n文本内容：\n${content}`)
