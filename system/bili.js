@@ -114,6 +114,7 @@ class bili {
     // await redis.set(`xhh:bili:${re.message_id}`,JSON.stringify(pic), { EX: 600 })
     if (pl_kg) {
       await this.temp()
+      re.message_id=re.message_id.replace(/\//g, '')
       fs.writeFileSync(`./plugins/xhh/temp/bili/${re.message_id}.json`, JSON.stringify(data), 'utf-8')
     }
     return true
@@ -268,6 +269,7 @@ class bili {
     let img = await render('bilibili/video', data, { e, ret: false })
     let re = await e.reply(img)
     await this.temp()
+    re.message_id=re.message_id.replace(/\//g, '')
     fs.writeFileSync(`./plugins/xhh/temp/bili/${re.message_id}.json`, JSON.stringify(data), 'utf-8')
 
     return true
@@ -540,6 +542,7 @@ class bili {
 
     let re = await e.reply(img)
     await this.temp()
+    re.message_id=re.message_id.replace(/\//g, '')
     fs.writeFileSync(`./plugins/xhh/temp/bili/${re.message_id}.json`, JSON.stringify(data), 'utf-8')
   }
 
