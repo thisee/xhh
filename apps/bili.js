@@ -78,7 +78,7 @@ export class bilibili extends plugin {
     if (!e.source) return false
 
     let source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory(e.source?.time , 1)).pop()
-    source.message_id=source.message_id.replace(/\//g, '')
+    source.message_id=source.message_id.toString().replace(/\//g, '')
     // if (source.message.length!=1&&(source.message[0]?.type!='image'||source.message[0]?.type!='json'))  return false
     if (source.message[0]?.type != 'image' && source.message[0]?.type != 'json') return false
 
