@@ -21,6 +21,15 @@ body {
   background-color: #c5ccda;
 }
 
+
+p img.emoji, img.emoji-svg {
+ display:inline-block;
+ width: 1em;
+ height: 1em;
+ vertical-align: -0.1em; /* 调整与文字基线对齐 */
+ border: none;
+}
+
 .box{
   background: rgba(255, 255, 255, 0.45);
   border-radius: 15px;

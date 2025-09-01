@@ -5,6 +5,9 @@ async function render(path,data_,cfg){
    if (!e.runtime) {
       logger.error('未找到e.runtime')
     }
+  if(path.includes('bilibili')){
+    data_.emoji=config().emoji
+  }
   return e.runtime.render('小花火',path, data_,{
       retType:cfg.ret ? 'default' : 'base64',
       beforeRender ({ data }) { 
