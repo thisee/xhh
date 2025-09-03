@@ -250,7 +250,7 @@ function handleBilibiliLink(e) {
     const match = e.raw_message.match(pattern);
     if (match) {
       let id = match[1];
-      if(pattern==/BV[a-zA-Z0-9]{10}/) id=match[0]
+      if(pattern=='/BV[a-zA-Z0-9]{10}/') id=match[0]
       handler(id, e);
       return true;
     }
