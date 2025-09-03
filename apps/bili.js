@@ -241,13 +241,16 @@ function handleBilibiliLink(e) {
     { pattern: /https?:\/\/m\.bilibili\.com\/video\/([\w]+)/, handler: (bv, e) => bili.video(e, bv, false, true) },
     { pattern: /https?:\/\/www\.bilibili\.com\/opus\/([\w]+)/, handler: (dt_id, e) => bili.dt(dt_id, e) },
     { pattern: /https?:\/\/m\.bilibili\.com\/opus\/([\w]+)/, handler: (dt_id, e) => bili.dt(dt_id, e) },
-    { pattern: /https?:\/\/t\.bilibili\.com\/([\w]+)/, handler: (dt_id, e) => bili.dt(dt_id, e) }
+    { pattern: /https?:\/\/m\.bilibili\.com\/dynamic\/([\w]+)/, handler: (dt_id, e) => bili.dt(dt_id, e) },
+    { pattern: /https?:\/\/t\.bilibili\.com\/([\w]+)/, handler: (dt_id, e) => bili.dt(dt_id, e) },
+    { pattern: /BV[a-zA-Z0-9]{10}/, handler: (bv, e) => bili.video(e, bv, false, true)}//放最后匹配
   ];
 
   for (const { pattern, handler } of urlPatterns) {
     const match = e.raw_message.match(pattern);
     if (match) {
-      const id = match[1];
+      let id = match[1];
+      if(pattern==/BV[a-zA-Z0-9]{10}/) id=match[0]
       handler(id, e);
       return true;
     }
