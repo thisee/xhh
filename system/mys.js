@@ -91,6 +91,8 @@ async data(name='',type='js',isSr=false){
     for (let n in list) {
       const title=list[n].title.replace(/ /g,'')
       if(title.includes('预告')) continue
+      if(title.includes('奇偶·')) continue
+      if(title=='开拓者·毁灭') continue
       names.push(title)
       ids.push(list[n].content_id)
       icons.push(list[n].icon)
@@ -123,12 +125,13 @@ async data(name='',type='js',isSr=false){
     }
     }
   //图鉴别名补缺
-   // const pa='./plugins/xhh/system/default/gz_names.yaml'
-   // const _data=yaml.get(pa)
-   // names.map(v=>{
-     // if(!_data[v]) _data[v]=[v]
-   // })
-   // fs.writeFileSync(pa,YAML.stringify(_data))
+  //  const pa='./plugins/xhh/system/default/yiqi.yaml'
+  //  const _data=yaml.get(pa)
+  //  names.map(v=>{
+  //    if(!_data[v]) _data[v]=[v]
+  //  })
+  //  fs.writeFileSync(pa,YAML.stringify(_data))
+
     names.map((v,i)=>{
       data[i]={
         name:v,
