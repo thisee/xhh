@@ -97,11 +97,11 @@ export class gs_logs extends plugin {
 
 
 
-    //判断[[x.x上半/下半],[4-5].[0-8]]
+    //判断[[x.x上半/下半],[4-6].[0-8]]
     for (var val of date_name) {
       n = date_name.indexOf(val)
       list = data.imgs[`【${val}】`]
-      if (val == type || String(val.match(/[4-5]\.[0-8]/g)) == type) {
+      if (val == type || String(val.match(/[4-6]\.[0-8]/g)) == type) {
         msg.push(date_list[n])
         for (var img of list) {
           msg.push(segment.image(img))
