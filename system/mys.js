@@ -124,7 +124,7 @@ async data(name='',type='js',isSr=false){
       }
     }
     }
-  //图鉴别名补缺
+  // 图鉴别名补缺
   //  const pa='./plugins/xhh/system/default/yiqi.yaml'
   //  const _data=yaml.get(pa)
   //  names.map(v=>{
