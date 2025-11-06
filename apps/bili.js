@@ -251,7 +251,7 @@ function handleBilibiliLink(e) {
     if (match) {
       let id = match[1];
       if(pattern=='/BV[a-zA-Z0-9]{10}/') id=match[0]
-      return handler(id, e);
+      if(!handler(id, e)) return false
     }
   }
 
