@@ -306,7 +306,7 @@ class bili {
     if (res.code != 0) {
       const ck = await this.getck()
       this.Check(ck)
-      logger.error(res.message)
+      logger.mark(`B站视频：${res.message}`)
       return false
     }
     return res.data
