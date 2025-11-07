@@ -7,7 +7,13 @@ forwardMsg: true
 bh3: false
 
 #米游社视频播报是否再加个崩坏因缘精灵？: true是 false否
-by: true
+by: false
+
+#米游社视频播报是否再加个星布谷地？: true是 false否
+xbgd: false
+
+#米游社视频播报的封面是否采取原图下载？: true是 false否
+cover: false
 
 #小花火图鉴优先级:
 wiki: -99
