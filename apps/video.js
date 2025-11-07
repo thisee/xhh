@@ -31,6 +31,7 @@ async video(e) {
   await redis.del('xhh_vid:zzz')
   if(getother().bh3)await redis.del('xhh_vid:bh3')
   if(getother().by)await redis.del('xhh_vid:by')
+  if(getother().xbgd)await redis.del('xhh_vid:xbgd')
   vid(e)
   }
 
@@ -49,18 +50,20 @@ async function vid(e) {
   if(getother().bh3) urls.bh3=73565430
   //崩缘？？？
   if(getother().by) urls.by=448340772
+  //崩缘？？？
+  if(getother().xbgd) urls.xbgd=378227988
   //啊～量有点多
   let list,p,size,time=1,subject,content,img,vid_url,res,vod_list,url,name,ti,msgs=[],names='',path
   //遍历游戏官号
   for (let i in urls) {
   let msg
   //游戏名字
-  name= i=='gs' ? '原神' : i=='sr' ? '崩坏星穹铁道' : i =='zzz' ? '绝区零' : i =='bh3' ? '崩坏3' : '崩坏因缘精灵'
-  url ='https://bbs-api.miyoushe.com/post/wapi/userPost?size=10&uid='+urls[i]
+  name= i=='gs' ? '原神' : i=='sr' ? '崩坏星穹铁道' : i =='zzz' ? '绝区零' : i =='bh3' ? '崩坏3' : i =='by' ? '崩坏因缘精灵' : '星布谷地'
+  url ='https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid='+urls[i]
   res = await fetch(url).then(res => res.json())
   list=res.data.list
   ti = await redis.get(`xhh_vid:${i}`)
-  //遍历最新发的10个帖子
+  //遍历最新发的20个帖子
   for (let n in list) {
     vod_list = list[n].vod_list[0]?.resolutions
   //发布是否为视频
@@ -108,7 +111,8 @@ async function vid(e) {
     //QQ不支持直接发https://upload-bbs.miyoushe.com/
     if(img.includes('https://upload-bbs.miyoushe.com/')){
     path=`./plugins/xhh/temp/${name}视频封面.jpg`
-    await common.downFile(img+'?x-oss-process=image//resize,p_30', path)
+    if(getother().cover) await common.downFile(img, path)
+    else await common.downFile(img+'?x-oss-process=image//resize,p_30', path)
     }
     img=segment.image(path)
     //我们合体(˃ ⌑ ˂
