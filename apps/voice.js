@@ -213,7 +213,7 @@ export class voice extends plugin {
   async fsyy(e) {
     if (!e.source && !e.reply_id) return false
     if(!config().all_voice) return false
-    if (Number(e.source.user_id) !== Number(Bot.uin))  return false
+    if (e.source && (Number(e.source.user_id) !== Number(Bot.uin)))  return false
     // if (!/^\[图片]$/.test(e.source.message)) return false
     let source={}
     if(e.source){
