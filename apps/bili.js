@@ -75,12 +75,14 @@ export class bilibili extends plugin {
     if (handleBilibiliLink(e)) return true
 
     //引用回复
-    if (!e.source) return false
+    if (!e.source && !e.reply_id) return false
 
-    let source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory(e.source?.time , 1)).pop()
+    let source = {}
+     if (e.source) source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory(e.source?.time , 1)).pop()
+    else source.message_id=e.reply_id
     source.message_id=source.message_id.toString().replace(/\//g, '')
     // if (source.message.length!=1&&(source.message[0]?.type!='image'||source.message[0]?.type!='json'))  return false
-    if (source.message[0]?.type != 'image' && source.message[0]?.type != 'json') return false
+    if (e.source && (source.message[0]?.type != 'image' && source.message[0]?.type != 'json')) return false
 
     if (source.message[0].type == 'image') {
       //展开评论区
