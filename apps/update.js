@@ -18,11 +18,11 @@ export class update extends plugin {
             priority: 10,
             rule: [
                 {
-                    reg: '^#*小花火(插件)?(强制)?更新$',
+                    reg: '^#*(小花火|xhh)(插件)?(强制)?更新$',
                     fnc: 'update'
                 },
                 {
-                    reg: '^#*小花火(插件)?更新日志$',
+                    reg: '^#*(小花火|xhh)(插件)?更新日志$',
                     fnc: 'updateLog'
                 }
             ]
