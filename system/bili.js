@@ -844,7 +844,7 @@ class bili {
   //处理评论信息
   getpl(data, no_zpl = true) {
     let pls = []
-    if (data.length != 0) {
+    if (data && data.length != 0) {
       //如果不是子评论区，由评论点赞数从高到低重新排序
       if (no_zpl) {
         data = data.sort(compare('like'))
