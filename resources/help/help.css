@@ -1,12 +1,12 @@
 @font-face {
-  font-family: "粗";
-  src: url("../font/粗.ttf");
+  font-family: '粗';
+  src: url('../font/粗.ttf');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
-  font-family: "宋";
-  src: url("../font/宋.ttf");
+  font-family: '宋';
+  src: url('../font/宋.ttf');
   font-weight: normal;
   font-style: normal;
 }
@@ -31,9 +31,9 @@ body {
   background-color: #f5f6fb;
 }
 .head_box {
-  background:url('./bg.png');
+  background: url('./bg.png');
   background-size: 100% 100%;
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
   border-bottom-left-radius: 15px;
@@ -63,7 +63,6 @@ body {
 }
 
 .data_box {
-  
   border-radius: 15px;
   margin-top: 20px;
   margin-bottom: 15px;
@@ -101,7 +100,7 @@ body {
   margin-top: 3px;
 }
 
-.list{
+.list {
   display: flex;
   justify-content: flex-start;
   flex-wrap: wrap;
@@ -126,23 +125,23 @@ body {
   margin: 0 0px 10px 10px;
 }
 /*.list .item .icon{*/
-  /*width: 24px;*/
-  /*height: 24px;*/
-  /*background-repeat: no-repeat;*/
-  /*background-size: 100% 100%;*/
-  /*position: relative;*/
-  /*flex-shrink: 0;*/
+/*width: 24px;*/
+/*height: 24px;*/
+/*background-repeat: no-repeat;*/
+/*background-size: 100% 100%;*/
+/*position: relative;*/
+/*flex-shrink: 0;*/
 /*}*/
-.title{
+.title {
   font-size: 16px;
   margin-left: 6px;
   line-height: 20px;
 }
- .title .text{
-  font-family:'粗';
-} 
- .title .dec{
- font-family:'宋';
+.title .text {
+  font-family: '粗';
+}
+.title .dec {
+  font-family: '宋';
   font-size: 12px;
   color: #999;
   font-weight: 800;
@@ -150,7 +149,7 @@ body {
 }
 .logo {
   font-size: 14px;
-  font-family: "宋";
+  font-family: '宋';
   text-align: center;
   color: #7994a7;
 }
