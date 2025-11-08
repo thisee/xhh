@@ -25,14 +25,14 @@
     - title: 'xx图鉴'
       desc: '例如：可莉图鉴,可莉专武图鉴,海瑟音专武图鉴,圣遗物图鉴,光锥图鉴等等.... '
     - title: '体力'
-      desc: '原神,星铁,绝区零的小组件体力（需要用到用户stoken）' 
+      desc: '原神,星铁,绝区零的小组件体力（需要用到用户stoken）'
     - title: '扫码绑定'
       desc: '扫码绑定原神,星铁,绝区零的账号'
     - title: '删除stoken'
       desc: '删除扫码绑定获取的stoken（连同xiaoyao-cvs一并删除）'
     - title: '签到'
       desc: '原神,星铁,绝区零的米游社签到'
-      
+
 - group: bilibili命令
   list:
     - title: '小花火b站登录'

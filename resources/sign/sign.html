@@ -1,40 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}sign/qd.css" />
+    <link rel="shortcut icon" href="#" />
+  </head>
 
-<head>
-  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-  <link rel="stylesheet" type="text/css" href="{{ppath}}sign/qd.css" />
-  <link rel="shortcut icon" href="#" />
-</head>
-
-<body {{sys.scale}}>
-  <div class="container" id="container">
+  <body {{sys.scale}}>
+    <div class="container" id="container">
       <div class="xkl_box">
-        
         <div class="tou">
-        <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg">
-        <div class="t_box">
-        <p class="name">{{name ?? qq}}</p>
-        <hr>
-        <p>米游社签到</p>
-        <img class="mianju" src="{{ppath}}sign/mianju.png">
+          <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg" />
+          <div class="t_box">
+            <p class="name">{{name ?? qq}}</p>
+            <hr />
+            <p>米游社签到</p>
+            <img class="mianju" src="{{ppath}}sign/mianju.png" />
+          </div>
         </div>
+        {{each msgs s}}
+        <div class="_box_">
+          <img
+            class="{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz'}}"
+            src="{{ppath}}sign/{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz'}}.png"
+          />
+          <p>{{s.game}}uid：{{s.uid}}</p>
+          <p>{{s.tip}}</p>
+          {{if s.icon}}
+          <p class="jiang">第{{s.day}}天奖励：</p>
+          <img class="jiangli" src="{{s.icon}}" />
+          <p class="jiang_">x{{s.cnt}}</p>
+          {{/if}}
         </div>
-     {{each msgs s}}
-     <div class="_box_">
-      <img class="{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz'}}" src="{{ppath}}sign/{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz'}}.png">
-      <p> {{s.game}}uid：{{s.uid}}</p>
-      <p>{{s.tip}}</p>
-      {{if s.icon}}
-      <p class="jiang">第{{s.day}}天奖励：</p><img class="jiangli" src="{{s.icon}}"><p class="jiang_">x{{s.cnt}}</p>
-      {{/if}}
+        {{/each}}
       </div>
-      {{/each}}
-        
-      </div>
-     
-    <div class="logo">from 小花火</div>
-  </div>
-</body>
 
+      <div class="logo">from 小花火</div>
+    </div>
+  </body>
 </html>

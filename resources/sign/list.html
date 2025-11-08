@@ -1,26 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-  <link rel="stylesheet" type="text/css" href="{{ppath}}sign/list.css" />
-</head>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}sign/list.css" />
+  </head>
 
-<body {{sys.scale}}>
-  <div class="container" id="container">
-    <div class="colorful-embossed">
-      <div class="title">
-      </div>
-       <div class="content">
-        <div class="qd"><strong>本群开始签到</strong></div>
-        <p>当前群聊共<span>{{qqs.length}}</span>个用户，预计签到<span>{{qqs.length*3}}</span>个游戏账号</p>
-        <div class="qqs">
-          {{each qqs qq}}
-          <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg">
-          {{/each}}
+  <body {{sys.scale}}>
+    <div class="container" id="container">
+      <div class="colorful-embossed">
+        <div class="title"></div>
+        <div class="content">
+          <div class="qd"><strong>本群开始签到</strong></div>
+          <p>
+            当前群聊共<span>{{qqs.length}}</span>个用户，预计签到<span>{{qqs.length*3}}</span>个游戏账号
+          </p>
+          <div class="qqs">
+            {{each qqs qq}}
+            <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg" />
+            {{/each}}
+          </div>
         </div>
       </div>
-      </div>
-    <div class="logo">from 小花火</div>
-  </div>
-</body>
+      <div class="logo">from 小花火</div>
+    </div>
+  </body>
 </html>

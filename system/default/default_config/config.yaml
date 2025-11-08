@@ -46,10 +46,9 @@ sm_cd: 60
 sign: false
 
 #米哈游视频播报(米游社)：QQ群号 (更多设置在other.yaml文件)
-      # - 123456789
-      # - 987654321
+# - 123456789
+# - 987654321
 groups: []
-
 
 #是否启用bilibili相关功能：true开，false关 (注意：如果是首次启用，记得发送：b站登录，你得让bot有个B站账号吧)
 bilibili: false
