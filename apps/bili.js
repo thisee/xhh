@@ -75,7 +75,7 @@ export class bilibili extends plugin {
     if (handleBilibiliLink(e)) return true
 
     //引用回复
-    if (!e.source && !e.reply_id) return false
+    if (!e.source ) return false  //&& !e.reply_id
 
     let source = {}
      if (e.source) source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory(e.source?.time , 1)).pop()

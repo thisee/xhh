@@ -1,6 +1,7 @@
 import gsCfg from '../../genshin/model/gsCfg.js'
 import fs from 'fs'
 import { uploadRecord, yyjson, yaml, render, mys, config } from '#xhh'
+
 const path = process.cwd();
 
 export class voice extends plugin {
