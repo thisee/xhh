@@ -1,28 +1,31 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
+  <head>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/yq_syw.css" />
-</head>
+  </head>
 
-<body {{sys.scale}}>
+  <body {{sys.scale}}>
     <div class="container" id="container">
-        <div class="box">
-            <table>
-                <tr>
-                    <td colspan="2"><div class="pic_"><img src="{{icon}}" /><p>{{name}}</p></div></td>
-                </tr>
-                {{each table t}}
-                <tr>
-                    <td class="key">{{t.key}}</td>
-                    <td>{{t.value}}</td>
-                </tr>
-                {{/each}}
-            </table>
-        </div>
-        <div class="logo">from 小花火</div>
+      <div class="box">
+        <table>
+          <tr>
+            <td colspan="2">
+              <div class="pic_">
+                <img src="{{icon}}" />
+                <p>{{name}}</p>
+              </div>
+            </td>
+          </tr>
+          {{each table t}}
+          <tr>
+            <td class="key">{{t.key}}</td>
+            <td>{{t.value}}</td>
+          </tr>
+          {{/each}}
+        </table>
+      </div>
+      <div class="logo">from 小花火</div>
     </div>
-</body>
-
+  </body>
 </html>

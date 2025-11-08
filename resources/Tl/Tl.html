@@ -1,271 +1,324 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
+  <head>
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="{{ppath}}Tl/tl.css" />
-</head>
+  </head>
 
-<body {{sys.scale}}>
-    <div class="container" id="container" style="background-image: url({{ppath}}Tl/imgs/{{bg}}.jpg)">
-        <div class="xhh_box">
-            <div class="one_box">
-                <div class="tx">
-                    <img class="qq_tx" src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg">
-                    <img class="tx_xhh" src="{{ppath}}Tl/imgs/txk.png">
-                </div>
-                <div class="zi">
-                    <p class="name">{{qqname}}</p>
-                    <hr>
-                    <div class="zi_">
-                    <p class="game_list">游戏列表：</p>
-                    {{if gs_data}}
-                    <p>原神</p>
-                    {{/if}}
-                    {{if sr_data}}
-                    <p>崩坏星穹铁道</p>
-                    {{/if}}
-                    {{if zzz_data}}
-                    <p>绝区零</p>
-                    {{/if}}
-                    <img class="xhh" src="{{ppath}}Tl/imgs/小花火.png">
-                    <br>
-                    <p class="n_time">获取时间：</p>
-                    <p class="n_time_">{{time}}</p>
-                    </div>
-                </div>
+  <body {{sys.scale}}>
+    <div
+      class="container"
+      id="container"
+      style="background-image: url({{ppath}}Tl/imgs/{{bg}}.jpg)"
+    >
+      <div class="xhh_box">
+        <div class="one_box">
+          <div class="tx">
+            <img
+              class="qq_tx"
+              src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg"
+            />
+            <img class="tx_xhh" src="{{ppath}}Tl/imgs/txk.png" />
+          </div>
+          <div class="zi">
+            <p class="name">{{qqname}}</p>
+            <hr />
+            <div class="zi_">
+              <p class="game_list">游戏列表：</p>
+              {{if gs_data}}
+              <p>原神</p>
+              {{/if}} {{if sr_data}}
+              <p>崩坏星穹铁道</p>
+              {{/if}} {{if zzz_data}}
+              <p>绝区零</p>
+              {{/if}}
+              <img class="xhh" src="{{ppath}}Tl/imgs/小花火.png" />
+              <br />
+              <p class="n_time">获取时间：</p>
+              <p class="n_time_">{{time}}</p>
             </div>
-
-
-            {{if gs_data}}
-            <div class="__box">
-                <div class="game">
-                    <img src="{{ppath}}Tl/imgs/原神.jpg">
-                    <p>UID：{{gs_data.uid}}</p>
-                    <p>{{gs_data.level}}级</p>
-                    <p>昵称：{{gs_data.name}}</p>
-                    
-                    <div class="sign">
-                    <img src="{{ppath}}Tl/imgs/签到.png">
-                    <span class="{{gs_data.has_signed  ?  '' :  'red'}}">{{gs_data.has_signed ? '今日已签' : '没有签到'}}</span>
-                    </div>
-                    
-                </div>
-                <div class="_box">
-                    <div class="left_box">
-                        <div class="top_box">
-                            <img class="tl" src="{{ppath}}Tl/imgs/树脂.png">
-                            <div class="k">
-                                <p>原粹树脂</p>
-                                <div class="k_">
-                                    <span class="{{gs_data.current_resin>160 ? 'red' : 'blue'}}">{{gs_data.current_resin}}</span><span>/{{gs_data.max_resin}}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <strong class="huifu">预计恢复时间</strong>
-                        <strong class="huifu_time">{{gs_data.time}}</strong>
-                    </div>
-                    <div class="right_box">
-
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/冒险委托.png">
-                            <p>冒险委托</p>
-                            <div class="right_">
-                                <p class="{{gs_data.finished_task_num<gs_data.total_task_num ? 'red' : 'blue'}}">{{gs_data.finished_task_num}}</p>/{{gs_data.total_task_num}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/冒险委托.png">
-                            <p>委托奖励</p>
-                            <div class="right_">
-                                <p class="{{gs_data.is_extra_task_reward_received ? 'blue' : 'red' }}">{{gs_data.is_extra_task_reward_received ? '已' : '未'}}领取</p>
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/洞天宝钱.png">
-                            <p>洞天财瓮</p>
-                            <div class="right_">
-                                <p class="{{gs_data.current_home_coin>2000 ? 'red' : 'blue'}}">{{gs_data.current_home_coin}}</p>/{{gs_data.max_home_coin}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/探索派遣.png">
-                            <p>探索派遣</p>
-                            <div class="right_">{{gs_data.current_expedition_num}}/{{gs_data.max_expedition_num}}</div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/探索派遣.png">
-                            <p>派遣是否全部完成</p>
-                            <div class="right_">
-                                <p class="{{gs_data.expeditions_ ? 'red' : ''}}">{{gs_data.expeditions_ ?  '已全部完成' : '还有角色未完成'}}</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            {{/if}}
-
-            {{if sr_data}}
-            <div class="__box">
-                <div class="game">
-                    <img src="{{ppath}}Tl/imgs/星铁.jpg">
-                    <p>UID：{{sr_data.uid}}</p>
-                    <p>{{sr_data.level}}级</p>
-                    <p>昵称：{{sr_data.name}}</p>
-                      <div class="sign">
-                    <img src="{{ppath}}Tl/imgs/签到.png">
-                    <span class="{{sr_data.has_signed  ?  '' :  'red'}}">{{sr_data.has_signed ? '今日已签' : '没有签到'}}</span>
-                    </div>
-                </div>
-                <div class="_box">
-                    <div class="left_box">
-                        <div class="top_box">
-                            <img class="tl" src="{{ppath}}Tl/imgs/开拓力.png">
-                            <div class="k">
-                                <p>开拓力</p>
-                                <div class="k_">
-                                    <span class="{{sr_data.current_stamina>260 ? 'red' : 'blue'}}">{{sr_data.current_stamina}}</span><span>/{{sr_data.max_stamina}}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <strong class="huifu">预计恢复时间</strong>
-                        <strong class="huifu_time">{{sr_data.time}}</strong>
-                    </div>
-                    <div class="right_box">
-
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/每日实训.png">
-                            <p>每日实训</p>
-                            <div class="right_">
-                                <p class="{{sr_data.current_train_score<sr_data.max_train_score ? 'red' : 'blue'}}">{{sr_data.current_train_score}}</p>/{{sr_data.max_train_score}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/每周宇宙.png">
-                            <p>每周宇宙</p>
-                            <div class="right_">
-                                <p class="{{sr_data.current_rogue_score<sr_data.max_rogue_score ? 'red' : 'blue' }}">{{sr_data.current_rogue_score}}</p>/{{sr_data.max_rogue_score}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/委托执行.png">
-                            <p>委托执行</p>
-                            <div class="right_">
-                                {{sr_data.accepted_expedition_num}}/{{sr_data.total_expedition_num}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/委托执行.png">
-                            <p>委托是否全部完成</p>
-                            <div class="right_">
-                                <p class="{{sr_data.expeditions_ ? 'red' : ''}}">{{sr_data.expeditions_ ?  '已全部完成' : '还有委托未完成'}}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/后备开拓力.png">
-                            <p>后备开拓力</p>
-                            <div class="right_">
-                                <p>{{sr_data.current_reserve_stamina}}</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            {{/if}}
-
-            {{if zzz_data}}
-            <div class="__box">
-                <div class="game">
-                    <img src="{{ppath}}Tl/imgs/绝区零.jpg">
-                    <p>UID：{{zzz_data.uid}}</p>
-                    <p>{{zzz_data.level}}级</p>
-                    <p>昵称：{{zzz_data.name}}</p>
-                      <div class="sign">
-                    <img src="{{ppath}}Tl/imgs/签到.png">
-                    <span class="{{zzz_data.has_signed  ?  '' :  'red'}}">{{zzz_data.has_signed ? '今日已签' : '没有签到'}}</span>
-                    </div>
-                </div>
-                <div class="_box">
-                    <div class="left_box">
-                        <div class="top_box">
-                            <img class="tl" src="{{ppath}}Tl/imgs/电池.png">
-                            <div class="k">
-                                <p>电量</p>
-                                <div class="k_">
-                                    <span class="{{zzz_data.energy.progress.current>200 ? 'red' : 'blue'}}">{{zzz_data.energy.progress.current}}</span><span>/{{zzz_data.energy.progress.max}}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <strong class="huifu">预计恢复时间</strong>
-                        <strong class="huifu_time">{{zzz_data.time}}</strong>
-                    </div>
-                    <div class="right_box">
-                       <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/活跃度.png">
-                            <p>今日活跃度</p>
-                            <div class="right_">
-                                <p class="{{zzz_data.vitality.current<zzz_data.vitality.max ? 'red' : 'blue'}}">{{zzz_data.vitality.current}}</p>/{{zzz_data.vitality.max}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/zzz.png">
-                            <p>占卜/刮刮卡</p>
-                            <div class="right_">
-                                <p class="{{zzz_data.card_sign=='CardSignDone' ? 'blue' : 'red' }}">{{zzz_data.card_sign=='CardSignDone' ? '已' : '未'}}完成</p>
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/zzz.png">
-                            <p>录像店经营</p>
-                            <div class="right_">
-              {{zzz_data.vhs_sale.sale_state=='SaleStateDoing' ? '正在营业' : '待结算'}}
-                            </div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/zzz.png">
-                            <p>悬赏委托</p>
-                            <div class="right_">
-                            <p class="{{zzz_data.s2_bounty_commission.num<zzz_data.s2_bounty_commission.total ? 'red' : '' }}">{{zzz_data.s2_bounty_commission.num}}</p>/{{zzz_data.s2_bounty_commission.total}}</div>
-                        </div>
-                        
-                        <div class="_box_">
-                            <img src="{{ppath}}Tl/imgs/zzz.png">
-                            <p>丽都周纪积分</p>
-                            <div class="right_">
-                     {{if zzz_data.weekly_task}}<p class="{{zzz_data.weekly_task.cur_point<800 ? 'red' : 'blue' }}">{{zzz_data.weekly_task.cur_point}}</p>/{{zzz_data.weekly_task.max_point}}{{else}}未解锁{{/if}}
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            {{/if}}
-
-
-
-
-
-
-        <img class="mianju" src="{{ppath}}Tl/imgs/面具.png">
+          </div>
         </div>
-        <div class="logo">from 小花火</div>
-    </div>
-</body>
 
+        {{if gs_data}}
+        <div class="__box">
+          <div class="game">
+            <img src="{{ppath}}Tl/imgs/原神.jpg" />
+            <p>UID：{{gs_data.uid}}</p>
+            <p>{{gs_data.level}}级</p>
+            <p>昵称：{{gs_data.name}}</p>
+
+            <div class="sign">
+              <img src="{{ppath}}Tl/imgs/签到.png" />
+              <span class="{{gs_data.has_signed  ?  '' :  'red'}}"
+                >{{gs_data.has_signed ? '今日已签' : '没有签到'}}</span
+              >
+            </div>
+          </div>
+          <div class="_box">
+            <div class="left_box">
+              <div class="top_box">
+                <img class="tl" src="{{ppath}}Tl/imgs/树脂.png" />
+                <div class="k">
+                  <p>原粹树脂</p>
+                  <div class="k_">
+                    <span class="{{gs_data.current_resin>160 ? 'red' : 'blue'}}"
+                      >{{gs_data.current_resin}}</span
+                    ><span>/{{gs_data.max_resin}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <strong class="huifu">预计恢复时间</strong>
+              <strong class="huifu_time">{{gs_data.time}}</strong>
+            </div>
+            <div class="right_box">
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/冒险委托.png" />
+                <p>冒险委托</p>
+                <div class="right_">
+                  <p
+                    class="{{gs_data.finished_task_num<gs_data.total_task_num ? 'red' : 'blue'}}"
+                  >
+                    {{gs_data.finished_task_num}}
+                  </p>
+                  /{{gs_data.total_task_num}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/冒险委托.png" />
+                <p>委托奖励</p>
+                <div class="right_">
+                  <p
+                    class="{{gs_data.is_extra_task_reward_received ? 'blue' : 'red' }}"
+                  >
+                    {{gs_data.is_extra_task_reward_received ? '已' : '未'}}领取
+                  </p>
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/洞天宝钱.png" />
+                <p>洞天财瓮</p>
+                <div class="right_">
+                  <p
+                    class="{{gs_data.current_home_coin>2000 ? 'red' : 'blue'}}"
+                  >
+                    {{gs_data.current_home_coin}}
+                  </p>
+                  /{{gs_data.max_home_coin}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/探索派遣.png" />
+                <p>探索派遣</p>
+                <div class="right_">
+                  {{gs_data.current_expedition_num}}/{{gs_data.max_expedition_num}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/探索派遣.png" />
+                <p>派遣是否全部完成</p>
+                <div class="right_">
+                  <p class="{{gs_data.expeditions_ ? 'red' : ''}}">
+                    {{gs_data.expeditions_ ? '已全部完成' : '还有角色未完成'}}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{/if}} {{if sr_data}}
+        <div class="__box">
+          <div class="game">
+            <img src="{{ppath}}Tl/imgs/星铁.jpg" />
+            <p>UID：{{sr_data.uid}}</p>
+            <p>{{sr_data.level}}级</p>
+            <p>昵称：{{sr_data.name}}</p>
+            <div class="sign">
+              <img src="{{ppath}}Tl/imgs/签到.png" />
+              <span class="{{sr_data.has_signed  ?  '' :  'red'}}"
+                >{{sr_data.has_signed ? '今日已签' : '没有签到'}}</span
+              >
+            </div>
+          </div>
+          <div class="_box">
+            <div class="left_box">
+              <div class="top_box">
+                <img class="tl" src="{{ppath}}Tl/imgs/开拓力.png" />
+                <div class="k">
+                  <p>开拓力</p>
+                  <div class="k_">
+                    <span
+                      class="{{sr_data.current_stamina>260 ? 'red' : 'blue'}}"
+                      >{{sr_data.current_stamina}}</span
+                    ><span>/{{sr_data.max_stamina}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <strong class="huifu">预计恢复时间</strong>
+              <strong class="huifu_time">{{sr_data.time}}</strong>
+            </div>
+            <div class="right_box">
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/每日实训.png" />
+                <p>每日实训</p>
+                <div class="right_">
+                  <p
+                    class="{{sr_data.current_train_score<sr_data.max_train_score ? 'red' : 'blue'}}"
+                  >
+                    {{sr_data.current_train_score}}
+                  </p>
+                  /{{sr_data.max_train_score}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/每周宇宙.png" />
+                <p>每周宇宙</p>
+                <div class="right_">
+                  <p
+                    class="{{sr_data.current_rogue_score<sr_data.max_rogue_score ? 'red' : 'blue' }}"
+                  >
+                    {{sr_data.current_rogue_score}}
+                  </p>
+                  /{{sr_data.max_rogue_score}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/委托执行.png" />
+                <p>委托执行</p>
+                <div class="right_">
+                  {{sr_data.accepted_expedition_num}}/{{sr_data.total_expedition_num}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/委托执行.png" />
+                <p>委托是否全部完成</p>
+                <div class="right_">
+                  <p class="{{sr_data.expeditions_ ? 'red' : ''}}">
+                    {{sr_data.expeditions_ ? '已全部完成' : '还有委托未完成'}}
+                  </p>
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/后备开拓力.png" />
+                <p>后备开拓力</p>
+                <div class="right_">
+                  <p>{{sr_data.current_reserve_stamina}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{/if}} {{if zzz_data}}
+        <div class="__box">
+          <div class="game">
+            <img src="{{ppath}}Tl/imgs/绝区零.jpg" />
+            <p>UID：{{zzz_data.uid}}</p>
+            <p>{{zzz_data.level}}级</p>
+            <p>昵称：{{zzz_data.name}}</p>
+            <div class="sign">
+              <img src="{{ppath}}Tl/imgs/签到.png" />
+              <span class="{{zzz_data.has_signed  ?  '' :  'red'}}"
+                >{{zzz_data.has_signed ? '今日已签' : '没有签到'}}</span
+              >
+            </div>
+          </div>
+          <div class="_box">
+            <div class="left_box">
+              <div class="top_box">
+                <img class="tl" src="{{ppath}}Tl/imgs/电池.png" />
+                <div class="k">
+                  <p>电量</p>
+                  <div class="k_">
+                    <span
+                      class="{{zzz_data.energy.progress.current>200 ? 'red' : 'blue'}}"
+                      >{{zzz_data.energy.progress.current}}</span
+                    ><span>/{{zzz_data.energy.progress.max}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <strong class="huifu">预计恢复时间</strong>
+              <strong class="huifu_time">{{zzz_data.time}}</strong>
+            </div>
+            <div class="right_box">
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/活跃度.png" />
+                <p>今日活跃度</p>
+                <div class="right_">
+                  <p
+                    class="{{zzz_data.vitality.current<zzz_data.vitality.max ? 'red' : 'blue'}}"
+                  >
+                    {{zzz_data.vitality.current}}
+                  </p>
+                  /{{zzz_data.vitality.max}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/zzz.png" />
+                <p>占卜/刮刮卡</p>
+                <div class="right_">
+                  <p
+                    class="{{zzz_data.card_sign=='CardSignDone' ? 'blue' : 'red' }}"
+                  >
+                    {{zzz_data.card_sign=='CardSignDone' ? '已' : '未'}}完成
+                  </p>
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/zzz.png" />
+                <p>录像店经营</p>
+                <div class="right_">
+                  {{zzz_data.vhs_sale.sale_state=='SaleStateDoing' ? '正在营业'
+                  : '待结算'}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/zzz.png" />
+                <p>悬赏委托</p>
+                <div class="right_">
+                  <p
+                    class="{{zzz_data.s2_bounty_commission.num<zzz_data.s2_bounty_commission.total ? 'red' : '' }}"
+                  >
+                    {{zzz_data.s2_bounty_commission.num}}
+                  </p>
+                  /{{zzz_data.s2_bounty_commission.total}}
+                </div>
+              </div>
+
+              <div class="_box_">
+                <img src="{{ppath}}Tl/imgs/zzz.png" />
+                <p>丽都周纪积分</p>
+                <div class="right_">
+                  {{if zzz_data.weekly_task}}
+                  <p
+                    class="{{zzz_data.weekly_task.cur_point<800 ? 'red' : 'blue' }}"
+                  >
+                    {{zzz_data.weekly_task.cur_point}}
+                  </p>
+                  /{{zzz_data.weekly_task.max_point}}{{else}}未解锁{{/if}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{/if}}
+
+        <img class="mianju" src="{{ppath}}Tl/imgs/面具.png" />
+      </div>
+      <div class="logo">from 小花火</div>
+    </div>
+  </body>
 </html>

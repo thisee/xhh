@@ -1,53 +1,59 @@
 <!doctype html>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html;charset=utf-8">
-        <link rel="stylesheet" type="text/css" href="{{ppath}}bilibili/video.css">
-        <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
-        {{if emoji}}
-        <script>
-              document.addEventListener('DOMContentLoaded', function () {
-                twemoji.parse(document.body, {
-                  folder: 'svg',
-                  ext: '.svg'
-                });
-              })
-        </script>
-        {{/if}}
-    </head>
-    <body {{sys.scale}}>
-        <div class="container" id="container">
-            <div class="box" style="background-image: url({{pic}});"><img src="{{ppath}}bilibili/imgs/bf.png"> <img src="{{ppath}}bilibili/imgs/d71.png">
-            <p class="time">{{time}} {{size}}</p>
-                <div class="h_box"><img src="{{ppath}}bilibili/imgs/Bf_.png">
-                    <p>{{view}}</p> <img class="Dm" src="{{ppath}}bilibili/imgs/DM.png">
-                    <p>{{danmaku}}</p> <img class="g" src="{{ppath}}bilibili/imgs/g.png">
-                    <p>{{online}}人正在看</p>
-                </div>
-            </div>
-            <div class="up_box"><img src="{{tx}}">
-                <div class="t_box">
-                    <p>{{title}}</p>
-                </div>
-                 <div class="xx_box">
-                  <div class="l_box">
-                  <p>{{name}}</p>
-                  <p>等级：{{ lv_6&&lv==6 ? lv+'s' : lv }}</p>
-                  <p>粉丝：{{fans}}</p>
-                  <p>{{pubdate}}</p>
-                </div>
-                
-                  <div class="jj_box">
-                  <div class="tab">简介</div>
-                  <p>{{desc}}</p>
-                </div>
-                </div>
- 
-            </div>
-
-            <div class="logo">
-                from 小花火
-            </div>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}bilibili/video.css" />
+    <script
+      src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js"
+      crossorigin="anonymous"
+    ></script>
+    {{if emoji}}
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        twemoji.parse(document.body, {
+          folder: 'svg',
+          ext: '.svg',
+        });
+      });
+    </script>
+    {{/if}}
+  </head>
+  <body {{sys.scale}}>
+    <div class="container" id="container">
+      <div class="box" style="background-image: url({{pic}});">
+        <img src="{{ppath}}bilibili/imgs/bf.png" />
+        <img src="{{ppath}}bilibili/imgs/d71.png" />
+        <p class="time">{{time}} {{size}}</p>
+        <div class="h_box">
+          <img src="{{ppath}}bilibili/imgs/Bf_.png" />
+          <p>{{view}}</p>
+          <img class="Dm" src="{{ppath}}bilibili/imgs/DM.png" />
+          <p>{{danmaku}}</p>
+          <img class="g" src="{{ppath}}bilibili/imgs/g.png" />
+          <p>{{online}}人正在看</p>
         </div>
-    </body>
+      </div>
+      <div class="up_box">
+        <img src="{{tx}}" />
+        <div class="t_box">
+          <p>{{title}}</p>
+        </div>
+        <div class="xx_box">
+          <div class="l_box">
+            <p>{{name}}</p>
+            <p>等级：{{ lv_6&&lv==6 ? lv+'s' : lv }}</p>
+            <p>粉丝：{{fans}}</p>
+            <p>{{pubdate}}</p>
+          </div>
+
+          <div class="jj_box">
+            <div class="tab">简介</div>
+            <p>{{desc}}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="logo">from 小花火</div>
+    </div>
+  </body>
 </html>
