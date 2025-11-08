@@ -1,108 +1,108 @@
 @font-face {
-    font-family: "yuan";
-    src: url("../font/yuan.ttf");
+  font-family: 'yuan';
+  src: url('../font/yuan.ttf');
 }
 
 @font-face {
-    font-family: '宋';
-    src: url("../font/宋.ttf");
+  font-family: '宋';
+  src: url('../font/宋.ttf');
 }
 
 @font-face {
-    font-family: "i";
-    src: url("../font/i.ttf");
+  font-family: 'i';
+  src: url('../font/i.ttf');
 }
 
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-size: 16px;
-    font-family: "yuan";
-    width: 500px;
-    transform-origin: 0 0;
+  font-size: 16px;
+  font-family: 'yuan';
+  width: 500px;
+  transform-origin: 0 0;
 }
 
 .container {
-    /* background: #add8e6; */
-    background-image: url("./imgs/bg.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    padding: 10px;
-    width: 600px;
+  /* background: #add8e6; */
+  background-image: url('./imgs/bg.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 10px;
+  width: 600px;
 }
 .box {
-    min-height: 40px;
-    margin-top: 15px;
-    display: flex;
-    gap: 5px 32px;
-    flex-wrap: wrap;
-    border: 4px solid #e2e8f0;
-    outline: 1px solid #8ebde3;
-    outline-offset: -6px;
-    padding: 3px 3px 15px 3px;
-    background: #f3ddb0dc;
-    position: relative;
-    color: #464c3d;
-    box-shadow: 2px 6px 6px 0px rgba(49, 48, 48, 0.4);
-    /* text-shadow:  0.5px 0.5px 1px #2d2c2c; */
+  min-height: 40px;
+  margin-top: 15px;
+  display: flex;
+  gap: 5px 32px;
+  flex-wrap: wrap;
+  border: 4px solid #e2e8f0;
+  outline: 1px solid #8ebde3;
+  outline-offset: -6px;
+  padding: 3px 3px 15px 3px;
+  background: #f3ddb0dc;
+  position: relative;
+  color: #464c3d;
+  box-shadow: 2px 6px 6px 0px rgba(49, 48, 48, 0.4);
+  /* text-shadow:  0.5px 0.5px 1px #2d2c2c; */
 }
 
 .box_ {
-    /* height: 100px; */
-    width: 90px;
-    font-size: 10px;
-    text-align: center;
+  /* height: 100px; */
+  width: 90px;
+  font-size: 10px;
+  text-align: center;
 }
 
-.box_ p{
-    background: #b4f6ee;
-    border-radius: 12px;
+.box_ p {
+  background: #b4f6ee;
+  border-radius: 12px;
 }
 
 .box_ img {
-    width: 90px;
-    height: 90px;
+  width: 90px;
+  height: 90px;
 }
 
-
-
 .tab {
-    position: absolute;
-    left: -5px;
-    top: -22px;
-    padding: 2px;
-    background: #b4f6ee;
-    border-radius: 8px 0px 8px 0px;
-    color: rgb(81, 6, 232);
-    font-size: 14px;
-    box-shadow: 0 8px 32px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
+  position: absolute;
+  left: -5px;
+  top: -22px;
+  padding: 2px;
+  background: #b4f6ee;
+  border-radius: 8px 0px 8px 0px;
+  color: rgb(81, 6, 232);
+  font-size: 14px;
+  box-shadow:
+    0 8px 32px 0 rgba(51, 51, 52, 0.5),
+    inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
 }
 
 .tab_right {
-    position: absolute;
-    right: -5px;
-    top: -17px;
-    padding: 2px;
-    background: #b4f6ee;
-    border-radius: 0px 8px 0px 8px;
-    color: rgb(81, 6, 232);
-    font-size: 14px;
-    box-shadow: 0 8px 32px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
+  position: absolute;
+  right: -5px;
+  top: -17px;
+  padding: 2px;
+  background: #b4f6ee;
+  border-radius: 0px 8px 0px 8px;
+  color: rgb(81, 6, 232);
+  font-size: 14px;
+  box-shadow:
+    0 8px 32px 0 rgba(51, 51, 52, 0.5),
+    inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
 }
 
-
-
 .logo {
-    font-size: 18px;
-    text-align: center;
-    text-shadow: 0.5px 0.5px 1px #2d2c2c;
-    padding-left: 20px;
-    color: #ee8e8ef8;
+  font-size: 18px;
+  text-align: center;
+  text-shadow: 0.5px 0.5px 1px #2d2c2c;
+  padding-left: 20px;
+  color: #ee8e8ef8;
 }

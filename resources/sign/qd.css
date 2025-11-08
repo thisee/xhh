@@ -1,16 +1,16 @@
 @font-face {
-  font-family: "主";
-  src: url("../font/主.ttf");
+  font-family: '主';
+  src: url('../font/主.ttf');
 }
 
 @font-face {
-  font-family: "正";
-  src: url("../font/yuan.ttf");
+  font-family: '正';
+  src: url('../font/yuan.ttf');
 }
 
 @font-face {
-  font-family: "宋";
-  src: url("../font/宋.ttf");
+  font-family: '宋';
+  src: url('../font/宋.ttf');
 }
 
 * {
@@ -45,7 +45,9 @@ body {
   font-weight: bolder;
   font-size: 18px;
   display: flex;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -87,18 +89,24 @@ body {
 }
 
 ._box_ {
-  background: linear-gradient(to right bottom, rgba(255, 155, 180, 0.5), rgba(255, 255, 255, 0.7));
+  background: linear-gradient(
+    to right bottom,
+    rgba(255, 155, 180, 0.5),
+    rgba(255, 255, 255, 0.7)
+  );
   border-radius: 15px;
   position: relative;
   font-family: '正';
   font-weight: bolder;
   font-size: 22px;
-  color: #A1F78C;
+  color: #a1f78c;
   display: flex;
   margin-top: 10px;
   padding: 10px 0 0px 10px;
   text-shadow: 2px 2px 4px #3e3e3e;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -152,7 +160,6 @@ body {
   margin-top: 10px;
 }
 
-
 hr {
   width: 95%;
 }
@@ -163,10 +170,9 @@ hr {
   font-size: 24px;
 }
 
-
 .logo {
   font-size: 18px;
-  font-family: "正";
+  font-family: '正';
   text-align: center;
   text-shadow: 0.5px 0.5px 1px #999;
   font-weight: bolder;

@@ -1,6 +1,6 @@
 @font-face {
-  font-family: "yuan";
-  src: url("../font/yuan.ttf");
+  font-family: 'yuan';
+  src: url('../font/yuan.ttf');
 }
 
 * {
@@ -10,7 +10,7 @@
 
 body {
   font-size: 16px;
-  font-family: "yuan";
+  font-family: 'yuan';
   width: 620px;
   transform-origin: 0 0;
 }
@@ -28,13 +28,13 @@ body {
   width: 580px;
   padding: 10px 20px 5px 20px;
   background: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 8px 32px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 8px 32px 0 rgba(51, 51, 52, 0.5),
+    inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   border-radius: 30px;
 }
-
-
 
 .one_box {
   display: flex;
@@ -78,7 +78,9 @@ body {
 }
 
 .zi_ p {
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
@@ -121,7 +123,9 @@ body {
   border-radius: 35px;
   padding: 2px;
   border: 1px solid #add8e6;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -145,7 +149,9 @@ body {
   padding: 2px;
   height: 20px;
   display: inline-block;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   top: 5px;
@@ -162,7 +168,9 @@ body {
   border-radius: 5px;
   padding: 2px;
   height: 20px;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   text-align: bottom;
@@ -183,7 +191,9 @@ body {
   height: 160px;
   padding-top: 20px;
   border-radius: 35px;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -243,7 +253,9 @@ strong {
   margin-left: 5px;
   padding: 5px 15px 10px 15px;
   border-radius: 35px;
-  box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
@@ -267,9 +279,6 @@ strong {
   display: flex;
   text-shadow: 0.5px 0.5px 1px #000000;
 }
-
-
-
 
 .xhh_box .mianju {
   position: absolute;
@@ -302,5 +311,5 @@ strong {
 }
 
 .blue {
-  color:#51b7b7;
+  color: #51b7b7;
 }

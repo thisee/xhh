@@ -7,8 +7,15 @@
   "imports": {
     "#xhh": "./system/index.js"
   },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
   "dependencies": {
-    "qrcode": "^1.5.4",
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
   }
 }

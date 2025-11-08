@@ -1,33 +1,34 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-  <link rel="stylesheet" type="text/css" href="{{ppath}}sign/list.css" />
-</head>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}sign/list.css" />
+  </head>
 
-<body {{sys.scale}}>
-  <div class="container" id="container">
-    <div class="colorful-embossed">
-      <div class="title">
-      </div>
-       <div class="content">
-        <div class="qd"><strong>本群签到完成</strong></div>
-        <p>共<span>{{z_num}}</span>个游戏账号参与签到，成功了<span>{{num}}</span>个</p>
-        <div class="qqs">
-          <div class="tag">签到成功的用户</div>
-          {{each cg_qqs qq}}
-          <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg">
-          {{/each}}
+  <body {{sys.scale}}>
+    <div class="container" id="container">
+      <div class="colorful-embossed">
+        <div class="title"></div>
+        <div class="content">
+          <div class="qd"><strong>本群签到完成</strong></div>
+          <p>
+            共<span>{{z_num}}</span>个游戏账号参与签到，成功了<span>{{num}}</span>个
+          </p>
+          <div class="qqs">
+            <div class="tag">签到成功的用户</div>
+            {{each cg_qqs qq}}
+            <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg" />
+            {{/each}}
+          </div>
+          <div class="qqs">
+            <div class="tag"><p class="red">签到失败的用户</p></div>
+            {{each sbai_qqs qq}}
+            <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg" />
+            {{/each}}
+          </div>
         </div>
-        <div class="qqs">
-          <div class="tag"><p class="red">签到失败的用户</p></div>
-          {{each sbai_qqs qq}}
-          <img src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg">
-          {{/each}}
-        </div>
       </div>
-      </div>
-    <div class="logo">from 小花火</div>
-  </div>
-</body>
+      <div class="logo">from 小花火</div>
+    </div>
+  </body>
 </html>

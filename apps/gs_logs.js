@@ -1,7 +1,7 @@
-import { yaml, makeForwardMsg, config } from '#xhh'
+import { yaml, makeForwardMsg, config } from '#xhh';
 
-const path = './plugins/xhh/system/default/gslogs.yaml'
-import common from '../../../lib/common/common.js'
+const path = './plugins/xhh/system/default/gslogs.yaml';
+import common from '../../../lib/common/common.js';
 
 export class gs_logs extends plugin {
   constructor() {
@@ -10,159 +10,155 @@ export class gs_logs extends plugin {
       dsc: '',
       event: 'message',
       priority: -99,
-      rule: [{
-        reg: '^#*(.*)卡池$',
-        fnc: 'gslogs'
-      }, {
-        reg: '^#*(原神)?卡池(剩余|剩下)?时间$',
-        fnc: 'time'
-      }
-      ]
-    })
+      rule: [
+        {
+          reg: '^#*(.*)卡池$',
+          fnc: 'gslogs',
+        },
+        {
+          reg: '^#*(原神)?卡池(剩余|剩下)?时间$',
+          fnc: 'time',
+        },
+      ],
+    });
   }
   async gslogs(e) {
-    if(!config().gs_logs) return false
-    let type = e.msg.replace(/#|卡池/g, '').trim()
+    if (!config().gs_logs) return false;
+    let type = e.msg.replace(/#|卡池/g, '').trim();
     if (!type.includes('.')) {
-      let m = 0
-      let gsnames = yaml.get('./plugins/xhh/system/default/gs_js_names.yaml', 'utf-8')
+      let m = 0;
+      let gsnames = yaml.get(
+        './plugins/xhh/system/default/gs_js_names.yaml',
+        'utf-8'
+      );
       for (let i in gsnames) {
         if (gsnames[i].includes(type)) {
-          type = i
-          m = 1
-          break
+          type = i;
+          m = 1;
+          break;
         }
       }
 
       if (!m) {
-        var wqnames = await yaml.get('./plugins/xhh/system/default/wqname.yaml')
+        var wqnames = await yaml.get(
+          './plugins/xhh/system/default/wqname.yaml'
+        );
         for (let wqname in wqnames) {
           for (let wq of wqnames[wqname]) {
-            if (wq == type) type = wqname
+            if (wq == type) type = wqname;
           }
         }
       }
     }
-    let msg = []
+    let msg = [];
     //特殊处理1.3版本
     if (type == '1.3上半' || type == '1.3下半') {
-      var type2 = type + '②'
-      let a = await this.getmsg(type2)
-      var type1 = type + '①'
-      let b = await this.getmsg(type1)
-      msg = a.concat(b)
+      var type2 = type + '②';
+      let a = await this.getmsg(type2);
+      var type1 = type + '①';
+      let b = await this.getmsg(type1);
+      msg = a.concat(b);
     } else {
-      msg = await this.getmsg(type)
+      msg = await this.getmsg(type);
     }
-    if (!msg.length) return false
-    if (msg.length > 10) msg = await makeForwardMsg(e, msg, type + '卡池')
-    return e.reply(msg)
+    if (!msg.length) return false;
+    if (msg.length > 10) msg = await makeForwardMsg(e, msg, type + '卡池');
+    return e.reply(msg);
   }
 
   async time(e) {
-    if(!config().sr_strategy) return false
-    let data = await yaml.get(path)
-    let date_list = Object.keys(data.date)
-    let _date = date_list[0]
-    let type = _date.match('【(.*)】')[1]
-    let msg
-    msg = await this.getmsg(type)
+    if (!config().sr_strategy) return false;
+    let data = await yaml.get(path);
+    let date_list = Object.keys(data.date);
+    let _date = date_list[0];
+    let type = _date.match('【(.*)】')[1];
+    let msg;
+    msg = await this.getmsg(type);
     //计算时间
-    let time = _date.split('~')[1]
-    let ptime = new Date().getTime()
-    let ftime = new Date(time).getTime()
-    let datec = ftime - ptime
+    let time = _date.split('~')[1];
+    let ptime = new Date().getTime();
+    let ftime = new Date(time).getTime();
+    let datec = ftime - ptime;
     var dayDiff = Math.floor(datec / (24 * 3600 * 1000)) + 1; //计算出相差天数
-    let days = '卡池剩余时间：' + dayDiff + "天 "
-    if (dayDiff == '0') days = '该卡池即将结束'
-    msg.push(days)
-    e.reply(msg)
+    let days = '卡池剩余时间：' + dayDiff + '天 ';
+    if (dayDiff == '0') days = '该卡池即将结束';
+    msg.push(days);
+    e.reply(msg);
   }
 
   async getmsg(type) {
-    let data = await yaml.get(path)
-    let date_list = Object.keys(data.date)
-    let ver = Object.keys(data.ver)
-    let date_name = []
-    date_list.map((val) => {
-      date_name.push(val.match('【(.*)】')[1])
-    })
-    let n
-    let list
-    let name
-    let imgname
-    let wq_hc = []
-    let msg = []
-
-
-
+    let data = await yaml.get(path);
+    let date_list = Object.keys(data.date);
+    let ver = Object.keys(data.ver);
+    let date_name = [];
+    date_list.map(val => {
+      date_name.push(val.match('【(.*)】')[1]);
+    });
+    let n;
+    let list;
+    let name;
+    let imgname;
+    let wq_hc = [];
+    let msg = [];
 
     //判断[[x.x上半/下半],[4-6].[0-8]]
     for (var val of date_name) {
-      n = date_name.indexOf(val)
-      list = data.imgs[`【${val}】`]
+      n = date_name.indexOf(val);
+      list = data.imgs[`【${val}】`];
       if (val == type || String(val.match(/[4-6]\.[0-8]/g)) == type) {
-        msg.push(date_list[n])
+        msg.push(date_list[n]);
         for (var img of list) {
-          msg.push(segment.image(img))
+          msg.push(segment.image(img));
         }
       }
     }
-    if (msg.length) return msg
-
-
+    if (msg.length) return msg;
 
     //判断[1-3].[0-8]
     for (var val of ver) {
-      let tu
+      let tu;
       if (val == type) {
-        tu = data.ver[type]
+        tu = data.ver[type];
 
         //QQ不支持发https://upload-bbs.miyoushe.com/
         if (tu?.includes('https://upload-bbs.miyoushe.com/')) {
-          let tupath = `./plugins/xhh/temp/[1-3].[0-8]卡池.jpg`
-          await common.downFile(tu, tupath)
-          msg.push(segment.image(tupath))
+          let tupath = `./plugins/xhh/temp/[1-3].[0-8]卡池.jpg`;
+          await common.downFile(tu, tupath);
+          msg.push(segment.image(tupath));
         } else {
-          msg.push(segment.image(tu))
+          msg.push(segment.image(tu));
         }
-
       } else if (val + '.0' == type) {
-        type = type.replace(/.0/g, '')
-        tu = data.ver[type]
+        type = type.replace(/.0/g, '');
+        tu = data.ver[type];
 
         //QQ不支持发https://upload-bbs.miyoushe.com/
         if (tu?.includes('https://upload-bbs.miyoushe.com/')) {
-          let tupath = `./plugins/xhh/temp/[1-3].[0-8]卡池.jpg`
-          await common.downFile(tu, tupath)
-          msg.push(segment.image(tupath))
+          let tupath = `./plugins/xhh/temp/[1-3].[0-8]卡池.jpg`;
+          await common.downFile(tu, tupath);
+          msg.push(segment.image(tupath));
         } else {
-          msg.push(segment.image(tu))
+          msg.push(segment.image(tu));
         }
-
       }
     }
-    if (msg.length) return msg
-
-
-
-
+    if (msg.length) return msg;
 
     //判断xx角色卡池,xx武器卡池
     for (var val of date_list) {
-      n = date_list.indexOf(val)
-      imgname = val.match('【(.*)】')[0]
-      list = data.imgs[imgname]
-      name = data.date[val]
+      n = date_list.indexOf(val);
+      imgname = val.match('【(.*)】')[0];
+      list = data.imgs[imgname];
+      name = data.date[val];
       name.map((value, i) => {
         //
         if (value.includes(',')) {
-          wq_hc = value.split(',')
+          wq_hc = value.split(',');
           for (var v of wq_hc) {
             if (v == type) {
-              msg.push(date_list[n])
-              msg.push(segment.image(list[i]))
-              break
+              msg.push(date_list[n]);
+              msg.push(segment.image(list[i]));
+              break;
             }
           }
         }
@@ -171,8 +167,8 @@ export class gs_logs extends plugin {
         //   msg.push(date_list[n])
         //   msg.push(segment.image(list[i]))
         // }
-      })
+      });
     }
-    return msg
+    return msg;
   }
 }
