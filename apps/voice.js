@@ -198,6 +198,7 @@ export class voice extends plugin {
     if (img) {
       let f = await e.reply(img)
       await this.temp()
+      if(f.data?.message_id) f.message_id = f.data.message_id  //onebot
       f.message_id = f.message_id.toString().replace(/\//g, '')
       fs.writeFileSync(`./plugins/xhh/temp/yy_pic/${f.message_id}.json`, JSON.stringify(data), 'utf-8')
       return true
@@ -210,17 +211,21 @@ export class voice extends plugin {
 
 
   async fsyy(e) {
-    if (!e.source) return false
+    if (!e.source && !e.reply_id) return false
     if(!config().all_voice) return false
     if (Number(e.source.user_id) !== Number(Bot.uin))  return false
     // if (!/^\[图片]$/.test(e.source.message)) return false
-    let source
+    let source={}
+    if(e.source){
     if (e.isGroup) {
       source = (await e.group.getChatHistory(e.source?.seq, 1)).pop()
     } else {
       source = (await e.friend.getChatHistory(e.source?.time, 1)).pop()
     }
     if (source.message.length != 1 && source.message[0]?.type != 'image') return false
+   }else{
+    source.message_id=e.reply_id
+   }
     if (e.msg && e.msg.length > 5) return false
     let xh = (/\d+/).exec(e.msg)
     if (!xh) return false
