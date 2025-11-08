@@ -1,6 +1,7 @@
 import gsCfg from '../../genshin/model/gsCfg.js'
 import fs from 'fs'
 import { uploadRecord, yyjson, yaml, render, mys, config } from '#xhh'
+import {execSync } from 'child_process'
 
 const path = process.cwd();
 
@@ -293,6 +294,7 @@ export class voice extends plugin {
     let kg = await this.check()
     if (table[n].content == '？？？') return logger.error('[小花火]相关语言暂未公布')
     logger.mark(`\x1B[36m${yy}\x1B[0m`)
+    if (!ffmpeg()) return false
     let vo
     if (e.isGroup) {
       if (kg.voice) vo = await uploadRecord(yy, 0, false)
@@ -325,3 +327,15 @@ export class voice extends plugin {
 }
 
 
+function ffmpeg () {
+    try {
+      const ret = execSync('ffmpeg -version').toString()
+      if (!ret.includes('version')) {
+        logger.error('未安装 ffmpeg 无法发送语音')
+        return false
+      }
+      return true
+    } catch (error) {
+      return false
+    }
+  }
