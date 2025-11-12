@@ -83,10 +83,8 @@ async function vid(e) {
             : i == 'bh3'
               ? '崩坏3'
               : i == 'by'
-                ? '崩坏因缘精灵'
-                : '星布谷地';
-    url =
-      'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=' + urls[i];
+                ? '崩坏因缘精灵' : '星布谷地';
+    url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=' + urls[i];
     res = await fetch(url).then(res => res.json());
     list = res.data.list;
     ti = await redis.get(`xhh_vid:${i}`);

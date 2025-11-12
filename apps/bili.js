@@ -56,10 +56,7 @@ export class bilibili extends plugin {
     let msg, url, data, res, bv, user_id, id, dt_id, pl_id, pl_type;
     //卡片分享
     if (e.raw_message == '[json消息]' || e.message[0]?.type == 'json') {
-      id = await this.json_bv(
-        e.msg.replace(/当前QQ版本不支持此应用，请升级/g, ''),
-        e
-      );
+      id = await this.json_bv(e.msg.replace(/当前QQ版本不支持此应用，请升级/g, ''),e);
       if (!id) return false;
       if (id.bv) return bili.video(e, id.bv, false, true, true);
       if (id.dt_id) return bili.dt(id.dt_id, e);
@@ -79,22 +76,15 @@ export class bilibili extends plugin {
     if (handleBilibiliLink(e)) return true;
 
     //引用回复
-    if (!e.source) return false; //&& !e.reply_id
+    if (!e.source&& !e.reply_id) return false;
 
     let source = {};
-    if (e.source)
-      source = e.isGroup
-        ? (await e.group.getChatHistory(e.source?.seq, 1)).pop()
-        : (await e.friend.getChatHistory(e.source?.time, 1)).pop();
-    else source.message_id = e.reply_id;
+    if (e.source) source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory(e.source?.time, 1)).pop();
+    else source=await e.getReply();  //无e.source的情况
+
     source.message_id = source.message_id.toString().replace(/\//g, '');
     // if (source.message.length!=1&&(source.message[0]?.type!='image'||source.message[0]?.type!='json'))  return false
-    if (
-      e.source &&
-      source.message[0]?.type != 'image' &&
-      source.message[0]?.type != 'json'
-    )
-      return false;
+    if (source.message[0]?.type != 'image' && source.message[0]?.type != 'json') return false;
 
     if (source.message[0].type == 'image') {
       //展开评论区

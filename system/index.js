@@ -11,11 +11,10 @@ import { MysSign, zd_MysSign } from './sign.js';
 import { Version } from '../../miao-plugin/components/index.js';
 
 const isTrss = Version.name == 'TRSS-Yunzai' ? true : false;
+
 //撤回消息
 const recallMsg = (e, id) => {
-  e.isGroup
-    ? e.group.recallMsg(id || e.message_id)
-    : e.friend.recallMsg(id || e.message_id);
+  e.isGroup ? e.group.recallMsg(id || e.message_id) : e.friend.recallMsg(id || e.message_id);
 };
 //延时撤回
 const reply_recallMsg = async (e, message, time, is_quote_reply = false) => {
@@ -38,7 +37,7 @@ async function makeForwardMsg(e, msg = [], dec = '') {
     try {
       let info = await e.bot.getGroupMemberInfo(e.group_id, id);
       name = info.card || info.nickname;
-    } catch (err) {}
+    } catch (err) { }
   }
   let userInfo = {
     user_id: id,
@@ -55,11 +54,7 @@ async function makeForwardMsg(e, msg = [], dec = '') {
     });
   }
   let msg_ = false;
-  try {
-    msg_ = await Bot.makeForwardMsg(forwardMsg);
-  } catch (err) {
-    msg_ = false;
-  }
+
 
   if (!msg_ || !msg_.data) {
     if (e?.group?.makeForwardMsg) {
@@ -67,14 +62,20 @@ async function makeForwardMsg(e, msg = [], dec = '') {
     } else if (e?.friend?.makeForwardMsg) {
       msg_ = await e.friend.makeForwardMsg(forwardMsg);
     } else {
-      return msg.join('\n');
+      try {
+        msg_ = await Bot.makeForwardMsg(forwardMsg);
+      } catch (err) {
+        return msg.join('\n');
+      }
     }
   }
 
   if (dec && msg_.data) {
-    if (!isTrss && msg_.data.meta?.detail)
+    if (!isTrss && msg_.data.meta?.detail) {
       msg_.data.meta.detail.news = [{ text: dec }];
-    else msg_.data.unshift({ ...userInfo, message: dec });
+    }else{
+    if(Array.isArray(msg_.data)) msg_.data.unshift({ ...userInfo, message: dec });
+    }
   }
   return msg_;
 }

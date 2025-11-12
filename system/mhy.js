@@ -3,7 +3,7 @@ import md5 from 'md5';
 import lodash from 'lodash';
 import fs from 'fs';
 import YAML from 'yaml';
-import { yaml, api } from '#xhh';
+import { yaml, api,config } from '#xhh';
 
 class mhy {
   constructor() {
@@ -152,7 +152,7 @@ class mhy {
       if (res.data?.cookie_token) Cookie = res.data?.cookie_token;
       if (res.data?.ltoken) ltoken = res.data?.ltoken;
     }
-    e.no_reply = e.reply;
+    if(!e.no_reply) e.no_reply = e.reply;
     let sendMsg = [];
     e.reply = msg => {
       sendMsg.push(msg);
@@ -167,6 +167,7 @@ class mhy {
     ).default;
     e.ck = e.msg;
     await new userck(e).bing();
+    if(config().hbxx) sendMsg=[sendMsg[0]]
     return { sendMsg, ltoken };
   }
 
@@ -248,18 +249,7 @@ class mhy {
       return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     }
     return (
-      S4() +
-      S4() +
-      '-' +
-      S4() +
-      '-' +
-      S4() +
-      '-' +
-      S4() +
-      '-' +
-      S4() +
-      S4() +
-      S4()
+      S4() +S4() +'-' +S4() +'-' +S4() +'-' +S4() +'-' +S4() +S4() +S4()
     );
   }
   getDs(salt = this.mysSalt) {
@@ -292,8 +282,7 @@ class mhy {
     let randomStr = '';
     for (let i = 0; i < length; i++) {
       randomStr += lodash.sample(
-        os
-          ? '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+        os ? '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
           : 'abcdefghijklmnopqrstuvwxyz0123456789'
       );
     }

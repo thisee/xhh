@@ -196,7 +196,7 @@ p img.emoji-svg {
   width: 730px;
   min-height: 170px;
   border-radius: 15px;
-  padding: 20px;
+  padding: 5px 20px 20px 20px;
 }
 
 .r_box p {
