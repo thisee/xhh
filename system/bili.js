@@ -1,6 +1,6 @@
 import fs from 'fs';
 import fetch from 'node-fetch';
-import { QR, render, yaml, sleep, makeForwardMsg } from '#xhh';
+import { QR, render, yaml, sleep, makeForwardMsg,config } from '#xhh';
 import moment from 'moment';
 import crypto from 'node:crypto';
 import md5 from 'md5';
@@ -294,6 +294,7 @@ class bili {
     if (res.code == 0) {
       data['size'] = Math.ceil(res.data.durl[0].size / 1048576) + 'MB';
       //dow是否需要下载视频，_re是否需要回复链接消息
+      if(!config().b_lj) _re=false //链接设置
       if (dow && dow_) {
         this.Download_(e, bv, res, _re);
       }
@@ -798,7 +799,7 @@ class bili {
       e.reply(
         `[bilibili]${like == 1 ? '点赞' : like == 2 ? '取消点赞' : like == 3 ? '点赞+投币(' + n + '个)' : like == 4 ? '收藏' : like == 5 ? '取消收藏' : '三连'}成功！`
       );
-      await sleep(2000);
+      await sleep(3500); //等待3.5秒
       return this.video(e, bv);
     }
     if (res.code == 65006 && like == 1)

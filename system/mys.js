@@ -136,7 +136,7 @@ js,gz,yq 角色,光锥,遗器
         }
       }
       // 图鉴别名补缺
-      //  const pa='./plugins/xhh/system/default/yiqi.yaml'
+      //  const pa='./plugins/xhh/system/default/gz_names.yaml'
       //  const _data=yaml.get(pa)
       //  names.map(v=>{
       //    if(!_data[v]) _data[v]=[v]

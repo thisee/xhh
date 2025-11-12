@@ -1,159 +1,131 @@
 <!doctype html>
 <html>
-  <head>
-    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-    <link rel="stylesheet" type="text/css" href="{{ppath}}bilibili/video.css" />
-    <script
-      src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js"
-      crossorigin="anonymous"
-    ></script>
-    {{if emoji}}
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        twemoji.parse(document.body, {
-          folder: 'svg',
-          ext: '.svg',
-        });
-      });
-    </script>
-    {{/if}}
-  </head>
-  <body {{sys.scale}}>
-    <div class="container" id="container">
-      <div class="box" style="background-image: url({{pic}});">
-        <img src="{{ppath}}bilibili/imgs/bf.png" />
-        <img src="{{ppath}}bilibili/imgs/d71.png" />
-        <p class="time">{{time}} {{size}}</p>
-        <div class="h_box">
-          <img src="{{ppath}}bilibili/imgs/Bf_.png" />
-          <p>{{view}}</p>
-          <img class="Dm" src="{{ppath}}bilibili/imgs/DM.png" />
-          <p>{{danmaku}}</p>
-          <img class="g" src="{{ppath}}bilibili/imgs/g.png" />
-          <p>{{online}}人正在看</p>
-        </div>
-      </div>
-      <div class="up_box">
-        <img src="{{tx}}" />
-        <div class="t_box">
-          <p>{{title}}</p>
-        </div>
-        <div class="xx_box">
-          <div class="x_box">
-            <img
-              src="{{ppath}}bilibili/imgs/{{is_like ? 'like' : '_like'}}.png"
-            />
-            <p>{{like}}</p>
-          </div>
-          <div class="x_box">
-            <img src="{{ppath}}bilibili/imgs/{{is_coin ? 'tb' : '_tb'}}.png" />
-            <p>{{coin}}</p>
-          </div>
-          <div class="x_box">
-            <img src="{{ppath}}bilibili/imgs/{{is_sc ? 'sc' : '_sc'}}.png" />
-            <p>{{favorite}}</p>
-          </div>
-          <div class="x_box">
-            <img src="{{ppath}}bilibili/imgs/zf.png" />
-            <p>{{share}}</p>
-          </div>
-          <div class="bili">
-            <img src="{{ppath}}bilibili/imgs/bili.png" />
-          </div>
-
-          <div class="l_box">
-            <p>{{name}}</p>
-            <p>等级：{{ lv_6&&lv==6 ? lv+'s' : lv }}</p>
-            <p>粉丝：{{fans}}</p>
-            <p>{{pubdate}}</p>
-          </div>
-
-          <div class="r_box">
-            <div class="tab">简介</div>
-            <div class="is_gz">{{is_gz ? '已关注' : '未关注'}}</div>
-            <p>{{desc}}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="pl">
-        <div class="pl_tab">评论区 {{reply}}</div>
-        <div class="pl_tab_">
-          回复该图片：展开(+序号)，获取完整评论内容和评论的回复
-        </div>
-        {{if reply != 0 }} {{each pls k}}
-        <div class="re">
-          <img class="re_tx" src="{{k.tx}}" />
-          <p>{{k.name}}</p>
-          <p>{{k.time}}</p>
-          <p>{{k.ip}}</p>
-          {{if k.lv==6&&k.lv_6 }}
-          <div class="lv7_">
-            <img class="lv7" src="{{ppath}}bilibili/imgs/7.png" />
-          </div>
-          {{else}}
-          <img class="lv" src="{{ppath}}bilibili/imgs/{{k.lv}}.png" />
-          {{/if}}
-          <p class="xh">{{k.xh}}</p>
-          <hr />
-          <div class="re_p">
-            {{if k.zhiding}}<img
-              class="zhiding"
-              src="{{ppath}}bilibili/imgs/zhiding.png"
-            />{{/if}}{{if typeof(k.msg)=='String'}}{{k.msg}}{{else}}{{each k.msg
-            msg}}{{if msg.includes('hdslb.com\/bfs\/')}}<img
-              class="face"
-              src="{{msg}}"
-            />{{else if msg.includes('[图片]')}} {{each k.pic i}}<img
-              class="pic_"
-              src="{{i}}"
-            />{{/each}}{{else}}{{msg}}{{/if}}{{/each}}{{/if}}
-          </div>
-
-          <div class="re_w">
-            <img class="dianzan" src="{{ppath}}bilibili/imgs/redz.png" />
-            <div class="_num">{{k.num}}</div>
-            {{if k.reply_num}}
-            <p class="reply_num">{{k.reply_num}}</p>
-            {{/if}}
-          </div>
-        </div>
-        {{/each}} {{else}}
-        <img
-          class="kong"
-          src="{{ppath}}bilibili/imgs/kong.png"
-          align="middle"
-        />
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8">
+        <link rel="stylesheet" type="text/css" href="{{ppath}}bilibili/video.css">
+        <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+        {{if emoji}}
+        <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                twemoji.parse(document.body, {
+                  folder: 'svg',
+                  ext: '.svg'
+                });
+              })
+        </script>
         {{/if}}
-      </div>
-      <div class="pl">
-        <div class="pl_tab">可引用该图片回复的命令</div>
-        <div class="yy">
-          <p class="fr">限制：无</p>
-          <p>展开(+序号)</p>
-          <p>简介</p>
-          <p>点赞</p>
-          <p>取消点赞</p>
-          <p>下载封面</p>
-          <p>下载视频</p>
-          <hr />
-          <p class="fr">限制：仅管理、群主、主人</p>
-          <p>开启推送</p>
-          <p>关闭推送</p>
-          <hr />
-          <p class="fr">限制：仅主人</p>
-          <p>关注</p>
-          <p>取消关注</p>
-          <p>拉黑</p>
-          <p>取消拉黑</p>
-          <p>评论(+评论文本)</p>
-          <p>三连</p>
-          <p>投币(可+投币数)</p>
-          <p>收藏</p>
-          <p>取消收藏</p>
+    </head>
+    <body {{sys.scale}}>
+        <div class="container" id="container">
+            <div class="box" style="background-image: url({{pic}});"><img src="{{ppath}}bilibili/imgs/bf.png"> <img src="{{ppath}}bilibili/imgs/d71.png">
+            <p class="time">{{time}} {{size}}</p>    
+                <div class="h_box"><img src="{{ppath}}bilibili/imgs/Bf_.png">
+                    <p>{{view}}</p> <img class="Dm" src="{{ppath}}bilibili/imgs/DM.png">
+                    <p>{{danmaku}}</p> <img class="g" src="{{ppath}}bilibili/imgs/g.png">
+                    <p>{{online}}人正在看</p>
+                </div>
+            </div>
+            <div class="up_box"><img src="{{tx}}">
+                <div class="t_box">
+                    <p>{{title}}</p>
+                </div>
+                <div class="xx_box">
+                    <div class="x_box"><img src="{{ppath}}bilibili/imgs/{{is_like ? 'like' : '_like'}}.png">
+                        <p>{{like}}</p>
+                    </div>
+                    <div class="x_box"><img src="{{ppath}}bilibili/imgs/{{is_coin ? 'tb' : '_tb'}}.png">
+                        <p>{{coin}}</p>
+                    </div>
+                    <div class="x_box"><img src="{{ppath}}bilibili/imgs/{{is_sc ? 'sc' : '_sc'}}.png">
+                        <p>{{favorite}}</p>
+                    </div>
+                    <div class="x_box"><img src="{{ppath}}bilibili/imgs/zf.png">
+                        <p>{{share}}</p>
+                    </div>
+                    <div class="bili">
+                    <img src="{{ppath}}bilibili/imgs/bili.png">
+                    </div>
+                    
+                    
+                  <div class="l_box">
+                  <p>{{name}}</p>
+                  <p>等级：{{ lv_6&&lv==6 ? lv+'s' : lv }}</p>
+                  <p>粉丝：{{fans}}</p>
+                  <p>{{pubdate}}</p>
+                </div>
+                
+                  <div class="r_box">
+                  <div class="tab">简介</div>
+                  <div class="is_gz">{{is_gz ? '已关注' : '未关注'}}</div>
+                  <p>{{desc}}</p>
+                </div>
+                </div>
+ 
+            </div>
+            
+            <div class="pl">
+              <div class="pl_tab">评论区 {{reply}}</div>
+            <div class="pl_tab_">回复该图片：展开(+序号)，获取完整评论内容和评论的回复</div>
+              {{if reply != 0 }}
+              {{each pls k}}
+              <div class="re">
+                <img class="re_tx" src="{{k.tx}}">
+                <p>{{k.name}}</p>
+                <p>{{k.time}}</p>
+                <p>{{k.ip}}</p>
+                {{if k.lv==6&&k.lv_6 }}
+                <div class='lv7_'>
+               <img class="lv7" src="{{ppath}}bilibili/imgs/7.png">
+               </div>
+               {{else}}
+               <img class="lv" src="{{ppath}}bilibili/imgs/{{k.lv}}.png">
+               {{/if}}
+               <p class='xh'>{{k.xh}}</p>
+               <hr>
+               <div class="re_p">{{if k.zhiding}}<img class="zhiding" src="{{ppath}}bilibili/imgs/zhiding.png">{{/if}}{{if typeof(k.msg)=='String'}}{{k.msg}}{{else}}{{each k.msg msg}}{{if msg.includes('hdslb.com\/bfs\/')}}<img class="face" src="{{msg}}">{{else if msg.includes('[图片]')}}
+{{each k.pic i}}<img class="pic_" src="{{i}}">{{/each}}{{else}}{{msg}}{{/if}}{{/each}}{{/if}}</div>
+               
+               <div class="re_w">
+              <img class="dianzan" src="{{ppath}}bilibili/imgs/redz.png">
+             <div class="_num">{{k.num}}</div>
+             {{if k.reply_num}}<p class="reply_num">{{k.reply_num}}</p>{{/if}}
+              </div>
+              </div>
+              {{/each}}
+              {{else}}
+              <img class="kong" src="{{ppath}}bilibili/imgs/kong.png"align="middle">
+              {{/if}}
+            </div>
+            <div class="pl">
+           <div class="pl_tab">可引用该图片回复的命令</div>
+           <div class="yy">
+                <p class="fr">限制：无</p>
+                <p>展开(+序号)</p>
+                <p>简介</p>
+                <p>点赞</p>
+                <p>取消点赞</p>
+                <p>下载封面</p>
+                <p>下载视频</p>
+                <hr>
+                <p class="fr">限制：仅管理、群主、主人</p>
+                <p>开启推送</p>
+                <p>关闭推送</p>
+                <hr>
+                <p class="fr">限制：仅主人</p>
+                <p>关注</p>
+                <p>取消关注</p>
+                <p>拉黑</p>
+                <p>取消拉黑</p>
+                <p>评论(+评论文本)</p>
+                <p>三连</p>
+                <p>投币(可+投币数)</p>
+                <p>收藏</p>
+                <p>取消收藏</p>
+           </div>
+            </div>
+            <div class="logo">
+                from 小花火
+            </div>
         </div>
-      </div>
-      <div class="logo">from 小花火</div>
-    </div>
-  </body>
+    </body>
 </html>

@@ -203,7 +203,7 @@ export class voice extends plugin {
     if (img) {
       let f = await e.reply(img);
       await this.temp();
-      if (f.data?.message_id) f.message_id = f.data.message_id; //onebot
+      if (f.data?.message_id) f.message_id = f.data.message_id; // trss的onebot????
       f.message_id = f.message_id.toString().replace(/\//g, '');
       fs.writeFileSync(
         `./plugins/xhh/temp/yy_pic/${f.message_id}.json`,
@@ -227,11 +227,12 @@ export class voice extends plugin {
       } else {
         source = (await e.friend.getChatHistory(e.source?.time, 1)).pop();
       }
-      if (source.message.length != 1 && source.message[0]?.type != 'image')
-        return false;
     } else {
-      source.message_id = e.reply_id;
+      source = await e.getReply();  // trss的onebot?????  无e.source的情况
     }
+
+    if (source.message.length != 1 && source.message[0]?.type != 'image') return false;
+
     if (e.msg && e.msg.length > 5) return false;
     let xh = /\d+/.exec(e.msg);
     if (!xh) return false;
@@ -325,7 +326,7 @@ export class voice extends plugin {
   async qc(e) {
     try {
       fs.rmSync('./plugins/xhh/temp/yy_pic/', { recursive: true });
-    } catch (err) {}
+    } catch (err) { }
     if (e) return e.reply('已清空语音列表图片缓存');
   }
 
