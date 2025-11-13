@@ -10,6 +10,7 @@ import api from './api.js';
 import { MysSign, zd_MysSign } from './sign.js';
 import { Version } from '../../miao-plugin/components/index.js';
 
+
 const isTrss = Version.name == 'TRSS-Yunzai' ? true : false;
 
 //撤回消息
@@ -29,9 +30,9 @@ function sleep(ms) {
 }
 
 //合并转发消息
-async function makeForwardMsg(e, msg = [], dec = '') {
+async function makeForwardMsg(e, msg = [], dec = '', Id = '', isGroup = true) {
   let name = Bot.nickname;
-  let id = Bot.uin;
+  let id = Number(Bot.uin);
   if (typeof msg == 'string') msg = [msg];
   if (e?.isGroup) {
     try {
@@ -55,26 +56,28 @@ async function makeForwardMsg(e, msg = [], dec = '') {
   }
   let msg_ = false;
 
-
   if (!msg_ || !msg_.data) {
     if (e?.group?.makeForwardMsg) {
       msg_ = await e.group.makeForwardMsg(forwardMsg);
     } else if (e?.friend?.makeForwardMsg) {
       msg_ = await e.friend.makeForwardMsg(forwardMsg);
-    } else {
+    } else if(Id) {
       try {
-        msg_ = await Bot.makeForwardMsg(forwardMsg);
+        //兼容napcat-adapter，解决napcat-adapter的Bot.makeForwardMsg发不出去的bug
+        msg_ = isGroup ? await Bot.pickGroup(Id).makeForwardMsg(forwardMsg) : await Bot.pickFriend(Id).makeForwardMsg(forwardMsg);
       } catch (err) {
-        return msg.join('\n');
+        msg_ = await Bot.makeForwardMsg(forwardMsg);
       }
+    }else {
+    return msg.join('\n');
     }
   }
 
   if (dec && msg_.data) {
-    if (!isTrss && msg_.data.meta?.detail) {
+    if (msg_.data.meta?.detail) {
       msg_.data.meta.detail.news = [{ text: dec }];
-    }else{
-    if(Array.isArray(msg_.data)) msg_.data.unshift({ ...userInfo, message: dec });
+    } else {
+      if (Array.isArray(msg_.data)) msg_.data.unshift({ ...userInfo, message: dec });
     }
   }
   return msg_;

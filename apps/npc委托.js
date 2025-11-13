@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { yaml,makeForwardMsg } from '#xhh';
+import { yaml, makeForwardMsg } from '#xhh';
 
 export class Npcwt extends plugin {
   constructor(e) {
@@ -30,21 +30,23 @@ export class Npcwt extends plugin {
     let data = JSON.parse(
       fs.readFileSync('./plugins/xhh/system/default/NPCwt.json', 'utf-8')
     );
-    let name_, msg;
-    data.map(v => {
-      name_ = v.name
+    for (let i = 0; i < data.length; i++) {
+      let v = data[i];
+      let name_ = v.name
         .replace(/#|＃|？|。|,|，|·|!|！|—|《|》|…|「|」|『|』|、|\.|\?/g, '')
         .trim();
       if (name == name_) {
+        let msg;
         if (v.miaosu) {
           msg = `委托名：${v.name}\n地区：${v.diqu}\n\n成就名：${v.cj}\n\n重点描述：\n${v.miaosu}\n\n影月月：${v.yueyue}`;
-          msg = makeForwardMsg(e, msg, `成就：${v.cj}`);
+          msg = await makeForwardMsg(e, msg, `成就：${v.cj}`);
         } else {
           msg = `${v.diqu}委托，${v.cj}`;
         }
-        return e.reply(msg);
+        e.reply(msg);
+        break; 
       }
-    });
+    }
     return false;
   }
 }
