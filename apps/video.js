@@ -198,17 +198,19 @@ async function vid(e) {
 
   //制作合并转发消息
   const dec = `${names}发布了新视频，一起来看看吧！`;
-  let msg = await makeForwardMsg('', msgs, dec);
+  let msg
   if (e?.reply) {
+    msg = await makeForwardMsg('', msgs, dec, e.group_id);
     e.reply(msg);
-    return true;
   } else {
     for (let group of groups) {
+      msg = await makeForwardMsg('', msgs, dec, group);
       Bot.pickGroup(group).sendMsg(msg);
       //多个群，随机延迟10~20秒发送
       await sleep(lodash.random(10000, 20000));
     }
   }
+  return true;
 }
 
 function getother() {
