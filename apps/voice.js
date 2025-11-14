@@ -225,7 +225,7 @@ export class voice extends plugin {
       if (e.isGroup) {
         source = (await e.group.getChatHistory(e.source?.seq, 1)).pop();
       } else {
-        source = (await e.friend.getChatHistory(e.source?.time, 1)).pop();
+        source = (await e.friend.getChatHistory((e.source?.time+1), 1)).pop();
       }
     } else {
       source = await e.getReply();  // trss的onebot?????  无e.source的情况
