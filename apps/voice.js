@@ -203,7 +203,7 @@ export class voice extends plugin {
     if (img) {
       let f = await e.reply(img);
       await this.temp();
-      if (f.data?.message_id) f.message_id = f.data.message_id; // trss的onebot????
+      if (f.data?.message_id) f.message_id = f.data.message_id;
       f.message_id = f.message_id.toString().replace(/\//g, '');
       fs.writeFileSync(
         `./plugins/xhh/temp/yy_pic/${f.message_id}.json`,
@@ -222,17 +222,11 @@ export class voice extends plugin {
     // if (!/^\[图片]$/.test(e.source.message)) return false
     let source = {};
     if (e.source) {
-      if (e.isGroup) {
-        source = (await e.group.getChatHistory(e.source?.seq, 1)).pop();
-      } else {
-        source = (await e.friend.getChatHistory((e.source?.time+1), 1)).pop();
-      }
+      source = await Bot.getMsg(e.source.message_id);
     } else {
-      source = await e.getReply();  // trss的onebot?????  无e.source的情况
+      source = await e.getReply();  //无e.source的情况
     }
-    
-    if (source=='undefined') return false;
-    
+
     if (source.message.length != 1 && source.message[0]?.type != 'image') return false;
 
     if (e.msg && e.msg.length > 5) return false;
@@ -310,14 +304,13 @@ export class voice extends plugin {
     if (table[n].content == '？？？')
       return logger.error('[小花火]相关语言暂未公布');
     logger.mark(`\x1B[36m${yy}\x1B[0m`);
+    
     if (!ffmpeg()) return false;
+
     let vo;
-    if (e.isGroup) {
-      if (kg.voice) vo = await uploadRecord(yy, 0, false);
-      else vo = segment.record(yy);
-    } else {
-      vo = await uploadRecord(yy, 0, false);
-    }
+    if (kg.voice) vo = await uploadRecord(yy, 0, false);
+    else vo = segment.record(yy);
+   
     await e.reply(
       `[简述]:${table[n].name}\n[内容]:${table[n].content.replace(/\n| /g, '')}`
     );

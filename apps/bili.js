@@ -79,14 +79,12 @@ export class bilibili extends plugin {
     if (!e.source&& !e.reply_id) return false;
 
     let source = {};
-    
-    if (e.source) source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time+1), 1)).pop();
+
+    if (e.source) source = await Bot.getMsg(e.source.message_id);
     else source=await e.getReply();  //无e.source的情况
     
-    if (source=='undefined') return false;
-
-    source.message_id = source.message_id.toString().replace(/\//g, '');
-    // if (source.message.length!=1&&(source.message[0]?.type!='image'||source.message[0]?.type!='json'))  return false
+    source.message_id = source.message_id.toString().replace(/\//g, ''); //防止有/的情况
+    
     if (source.message[0]?.type != 'image' && source.message[0]?.type != 'json') return false;
 
     if (source.message[0].type == 'image') { 
