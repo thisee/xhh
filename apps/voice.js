@@ -222,10 +222,16 @@ export class voice extends plugin {
     // if (!/^\[图片]$/.test(e.source.message)) return false
     let source = {};
     if (e.source) {
-      source = await Bot.getMsg(e.source.message_id);
+      source =
+        e.source.message_id ?
+          await Bot.getMsg(e.source.message_id) : e.isGroup ?
+            (await e.group.getChatHistory(e.source?.seq, 1)).pop()
+            : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
     } else {
       source = await e.getReply();  //无e.source的情况
     }
+
+    if (!source) return false;
 
     if (source.message.length != 1 && source.message[0]?.type != 'image') return false;
 
@@ -304,13 +310,13 @@ export class voice extends plugin {
     if (table[n].content == '？？？')
       return logger.error('[小花火]相关语言暂未公布');
     logger.mark(`\x1B[36m${yy}\x1B[0m`);
-    
+
     if (!ffmpeg()) return false;
 
     let vo;
     if (kg.voice) vo = await uploadRecord(yy, 0, false);
     else vo = segment.record(yy);
-   
+
     await e.reply(
       `[简述]:${table[n].name}\n[内容]:${table[n].content.replace(/\n| /g, '')}`
     );
