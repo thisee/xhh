@@ -230,7 +230,9 @@ export class voice extends plugin {
     } else {
       source = await e.getReply();  // trss的onebot?????  无e.source的情况
     }
-
+    
+    if (source=='undefined') return false;
+    
     if (source.message.length != 1 && source.message[0]?.type != 'image') return false;
 
     if (e.msg && e.msg.length > 5) return false;

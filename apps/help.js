@@ -9,7 +9,7 @@ export class help extends plugin {
       priority: 100,
       rule: [
         {
-          reg: '^#*小花火(命令|帮助|菜单|help|说明|功能|指令|使用说明)$',
+          reg: '^#*(小花火|xhh)(命令|帮助|菜单|help|说明|功能|指令|使用说明)$',
           fnc: 'help',
         },
       ],
