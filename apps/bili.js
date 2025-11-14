@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { bili, config } from '#xhh';
 import fetch from 'node-fetch';
-import { logger } from 'sequelize/lib/utils/logger';
 
 export class bilibili extends plugin {
   constructor(e) {
