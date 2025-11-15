@@ -1,6 +1,6 @@
 import fs from 'fs';
 import fetch from 'node-fetch';
-import { QR, render, yaml, sleep, makeForwardMsg,config } from '#xhh';
+import { QR, render, yaml, sleep, makeForwardMsg, config, splitImage } from '#xhh';
 import moment from 'moment';
 import crypto from 'node:crypto';
 import md5 from 'md5';
@@ -51,7 +51,7 @@ class bili {
       await sleep(1000);
       res = await fetch(
         'https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key=' +
-          qrcode_key,
+        qrcode_key,
         {
           method: 'get',
           headers,
@@ -294,7 +294,7 @@ class bili {
     if (res.code == 0) {
       data['size'] = Math.ceil(res.data.durl[0].size / 1048576) + 'MB';
       //dow是否需要下载视频，_re是否需要回复链接消息
-      if(!config().b_lj) _re=false //链接设置
+      if (!config().b_lj) _re = false //链接设置
       if (dow && dow_) {
         this.Download_(e, bv, res, _re);
       }
@@ -620,9 +620,16 @@ class bili {
 
     if (send && pics.length) {
       var pic_ = [];
-      pics.map(v => {
-        pic_.push(segment.image(v));
-      });
+      // pics.map(v => {
+      //   pic_.push(segment.image(v));
+      // });
+
+      //处理过长图片
+      for (const t of pics) {
+        pic_.push(...(await splitImage(t)));
+      }
+      pic_ = pic_.map(item => segment.image(item))
+      
       var msg_ = await makeForwardMsg(e, pic_, '发布的图片');
       e.reply(msg_);
     }

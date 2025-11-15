@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "jsdom": "^26.1.0",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "sharp": "0.34.5"
   },
   "devDependencies": {
     "prettier": "^3.6.2"
