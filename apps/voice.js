@@ -216,18 +216,23 @@ export class voice extends plugin {
   }
 
   async fsyy(e) {
-    if (!e.source && !e.reply_id) return false;
+    if (!e.source && !e.getReply) return false;
     if (!config().all_voice) return false;
     if (e.source && Number(e.source.user_id) !== Number(Bot.uin)) return false;
     // if (!/^\[图片]$/.test(e.source.message)) return false
     let source = {};
+
     if (e.source) {
-      source =
-        e.source.message_id ?
-          await Bot.getMsg(e.source.message_id) : e.isGroup ?
-            (await e.group.getChatHistory(e.source?.seq, 1)).pop()
-            : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
-    } else {
+        if(e.source.message_id){
+           try {
+              source=await Bot.getMsg(e.source.message_id);
+           } catch (error) {
+              source=await e.bot.getMsg(e.source.message_id);
+           }
+        }else{
+            source= e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
+        }
+    }else {
       source = await e.getReply();  //无e.source的情况
     }
 

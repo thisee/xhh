@@ -76,20 +76,26 @@ export class bilibili extends plugin {
     if (handleBilibiliLink(e)) return true;
 
     //引用回复
-    if (!e.source && !e.reply_id) return false;
+    if (!e.source && !e.getReply) return false;
 
     let source = {};
 
-    if (e.source) source =
-      e.source.message_id ?
-       await Bot.getMsg(e.source.message_id)  : e.isGroup ?
-          (await e.group.getChatHistory(e.source?.seq, 1)).pop()
-          : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
-
-    else source = await e.getReply();  //无e.source的情况
+    if (e.source) {
+        if(e.source.message_id){
+           try {
+              source=await Bot.getMsg(e.source.message_id);
+           } catch (error) {
+              source=await e.bot.getMsg(e.source.message_id);
+           }
+        }else{
+            source= e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
+        }
+    }else {
+      source = await e.getReply();  //无e.source的情况
+    }
 
     if (!source) return false;
-    
+
     source.message_id = source.message_id.toString().replace(/\//g, ''); //防止有/的情况
 
     if (source.message[0]?.type != 'image' && source.message[0]?.type != 'json') return false;
