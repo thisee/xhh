@@ -1,12 +1,10 @@
-import gsCfg from '../../genshin/model/gsCfg.js';
 import { yaml, config } from '#xhh';
 import common from '../../../lib/common/common.js';
 import fetch from 'node-fetch';
 import _ from 'lodash';
 import fs from 'fs';
 
-let u =
-  'https://bbs-api.mihoyo.com/post/wapi/getPostFullInCollection?order_type=2&collection_id=';
+let u = 'https://bbs-api.mihoyo.com/post/wapi/getPostFullInCollection?order_type=2&collection_id=';
 let path = './plugins/xhh/resources/srstrategy';
 
 let url_;
@@ -75,18 +73,24 @@ export class sr_strategy extends plugin {
     ) {
       //不处理
     } else {
-      let _name = gsCfg.getRole(name);
-      if (_name.game == 'sr' && _name.name != undefined) {
-        name = _name.name;
-      } else {
-        return false;
+      let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
+      for (let i in srnames) {
+        if (srnames[i].includes(name)) {
+          name = i;
+          break;
+        }
       }
+      if (!Object.keys(srnames).includes(name)) return false;
     }
     let name_;
     //特殊处理
-    if (name == '丹恒•饮月') name = '饮月';
-    if (name == '阮•梅') name = '阮';
-    if (name == '托帕&账账') name = '托帕';
+    const SPECIAL_NAME_MAP = {
+      '丹恒•饮月': '饮月',
+      '阮•梅': '阮',
+      '托帕&账账': '托帕',
+      '丹恒•腾荒': '腾荒',
+    }
+    name = SPECIAL_NAME_MAP[name] || name;
     let imgs = [];
     //紫喵Azunya
     let url = u + '2145977';
@@ -148,19 +152,25 @@ export class sr_strategy extends plugin {
     ) {
       //不处理
     } else {
-      let _name = gsCfg.getRole(name);
-      if (_name.game == 'sr' && _name.name != undefined) {
-        name = _name.name;
-      } else {
-        return false;
+      let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
+      for (let i in srnames) {
+        if (srnames[i].includes(name)) {
+          name = i;
+          break;
+        }
       }
+      if (!Object.keys(srnames).includes(name)) return false;
     }
     this.msg_ = true;
     let name_;
     //特殊处理
-    if (name == '丹恒•饮月') name = '饮月';
-    if (name == '阮•梅') name = '阮';
-    if (name == '托帕&账账') name = '托帕';
+    const SPECIAL_NAME_MAP = {
+      '丹恒•饮月': '饮月',
+      '阮•梅': '阮',
+      '托帕&账账': '托帕',
+      '丹恒•腾荒': '腾荒',
+    }
+    name = SPECIAL_NAME_MAP[name] || name;
     let imgs = [];
 
     //紫喵Azunya
@@ -277,7 +287,7 @@ export class sr_strategy extends plugin {
     //降低质量下载，保护内存，人人有责(●'◡'●)
     await common.downFile(
       img +
-        `?x-oss-process=image//resize,s_1800/quality,q_${q_}/auto-orient,0/interlace,1/format,jpg`,
+      `?x-oss-process=image//resize,s_1800/quality,q_${q_}/auto-orient,0/interlace,1/format,jpg`,
       sfPath
     );
     return true;

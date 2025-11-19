@@ -1,4 +1,3 @@
-import gsCfg from '../../genshin/model/gsCfg.js';
 import fs from 'fs';
 import { uploadRecord, yyjson, yaml, render, mys, config } from '#xhh';
 import { execSync } from 'child_process';
@@ -146,10 +145,7 @@ export class voice extends plugin {
     }
 
     //调用小花火原神别名
-    let gsnames = yaml.get(
-      './plugins/xhh/system/default/gs_js_names.yaml',
-      'utf-8'
-    );
+    let gsnames = yaml.get('./plugins/xhh/system/default/gs_js_names.yaml');
     for (let i in gsnames) {
       if (gsnames[i].includes(name)) {
         name = i;
@@ -174,12 +170,14 @@ export class voice extends plugin {
     }
 
     //非原神查星铁
-    //调用喵崽别名
     if (def) {
       if (!sr_id) {
-        let _name = gsCfg.getRole(name);
-        if ((_name.name != undefined) & (_name.name != '主角')) {
-          name = _name.name;
+        let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
+        for (let i in srnames) {
+          if (srnames[i].includes(name)) {
+            name = i;
+            break;
+          }
         }
         sr_id = (await mys.data(name, 'js', true)).id;
       }
@@ -223,16 +221,16 @@ export class voice extends plugin {
     let source = {};
 
     if (e.source) {
-        if(e.source.message_id){
-           try {
-              source=await Bot.getMsg(e.source.message_id);
-           } catch (error) {
-              source=await e.bot.getMsg(e.source.message_id);
-           }
-        }else{
-            source= e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
+      if (e.source.message_id) {
+        try {
+          source = await Bot.getMsg(e.source.message_id);
+        } catch (error) {
+          source = await e.bot.getMsg(e.source.message_id);
         }
-    }else {
+      } else {
+        source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
+      }
+    } else {
       source = await e.getReply();  //无e.source的情况
     }
 

@@ -25,12 +25,6 @@ export class Wiki extends plugin {
     if (!config().wiki) return false;
     const isSr = e.msg.includes('星铁');
     const name = e.msg.replace(/#|星铁|图鉴/g, '').trim();
-    if (
-      /角色|武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓|光锥|圣遗物|遗器/.test(
-        name
-      )
-    )
-      return this.list(e, name, isSr);
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
       { method: 'role', args: [e, name] },
@@ -47,80 +41,100 @@ export class Wiki extends plugin {
         if (await this[method](...args, true)) return true;
       }
     }
+    //最后查总列表
+    if (/角色|武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓|光锥|圣遗物|遗器/.test(name)) return this.list(e, name, isSr);
     return false;
   }
 
   async list(e, name, isSr = false) {
-    if (
-      /光锥|遗器|虚无|巡猎|物理|量子|虚数|毁灭|智识|同谐|存护|丰饶|记忆/.test(
-        name
-      )
-    )
-      isSr = true;
-    let type;
-    if (name.includes('遗器')) type = 'yq';
-    if (name.includes('圣遗物')) type = 'syw';
-    if (/武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓/.test(name)) type = 'wq';
-    if (name.includes('光锥')) type = 'gz';
-    if (name.includes('角色')) type = 'js';
+    if (/光锥|遗器|虚无|巡猎|物理|量子|虚数|毁灭|智识|同谐|存护|丰饶|记忆/.test(name)) isSr = true;
+
+    let type, _name
+    
+    if (name=='遗器') type = 'yq', _name = '遗器';
+    if (name=='圣遗物') type = 'syw', _name = '圣遗物';
+    if (/武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓/.test(name)) type = 'wq', _name = '武器';
+    if (name.includes('光锥')) type = 'gz', _name = '光锥';
+    if (name.includes('角色')) type = 'js', _name = '角色';
+
+    if(!_name) return false;
+    
     let data = await mys.data('', type, isSr);
-    let condition = name.replace(/角色|武器|光锥|圣遗物|遗器/g, '');
+
+    let condition = name.replace(/角色|武器|光锥/g, '');
+
     if (!isSr) {
       switch (condition) {
         case '五星':
         case '5星':
           data = data.filter(item => item.ji === '五星');
+          _name = '五星角色';
+          if (type = 'wq') _name = '五星武器';
           break;
         case '四星':
         case '4星':
           data = data.filter(item => item.ji === '四星');
+          _name = '四星角色';
+          if (type = 'wq') _name = '四星武器';
           break;
         case '水系':
         case '水':
           data = data.filter(item => item.yuanshu === '水');
+          _name = '水系角色';
           break;
         case '火系':
         case '火':
           data = data.filter(item => item.yuanshu === '火');
+          _name = '火系角色';
           break;
         case '冰系':
         case '冰':
           data = data.filter(item => item.yuanshu === '冰');
+          _name = '冰系角色';
           break;
         case '雷系':
         case '雷':
           data = data.filter(item => item.yuanshu === '雷');
+          _name = '雷系角色';
           break;
         case '风系':
         case '风':
           data = data.filter(item => item.yuanshu === '风');
+          _name = '风系角色';
           break;
         case '岩系':
         case '岩':
           data = data.filter(item => item.yuanshu === '岩');
+          _name = '岩系角色';
           break;
         case '草系':
         case '草':
           data = data.filter(item => item.yuanshu === '草');
+          _name = '草系角色';
           break;
         case '单手剑':
           data = data.filter(item => item.wuqi === '单手剑');
+          _name = '单手剑武器';
           break;
         case '双手剑':
         case '大剑':
           data = data.filter(item => item.wuqi === '双手剑');
+          _name = '双手剑武器';
           break;
         case '长柄':
         case '长枪':
           data = data.filter(item => item.wuqi === '长柄武器');
+          _name = '长柄武器';
           break;
         case '弓系':
         case '弓箭':
         case '弓':
           data = data.filter(item => item.wuqi === '弓');
+          _name = '弓武器';
           break;
         case '法器':
           data = data.filter(item => item.wuqi === '法器');
+          _name = '法器武器';
           break;
       }
     } else {
@@ -128,70 +142,95 @@ export class Wiki extends plugin {
         case '五星':
         case '5星':
           data = data.filter(item => item.ji === '五星');
+          _name = '五星角色';
+          if (type = 'gz') _name = '五星光锥';
           break;
         case '四星':
         case '4星':
           data = data.filter(item => item.ji === '四星');
+          _name = '四星角色';
+          if (type = 'gz') _name = '四星光锥';
           break;
         case '物理系':
         case '物理':
           data = data.filter(item => item.shuxing === '物理');
+          _name = '物理角色';
           break;
         case '火系':
         case '火':
           data = data.filter(item => item.shuxing === '火');
+          _name = '火系角色';
           break;
         case '冰系':
         case '冰':
           data = data.filter(item => item.shuxing === '冰');
+          _name = '冰系角色';
           break;
         case '雷系':
         case '雷':
           data = data.filter(item => item.shuxing === '雷');
+          _name = '雷系角色';
           break;
         case '风系':
         case '风':
           data = data.filter(item => item.shuxing === '风');
+          _name = '风系角色';
           break;
         case '量子系':
         case '量子':
           data = data.filter(item => item.shuxing === '量子');
+          _name = '量子角色';
           break;
         case '虚数系':
         case '虚数':
           data = data.filter(item => item.shuxing === '虚数');
+          _name = '虚数角色';
           break;
         case '记忆系':
         case '记忆':
           data = data.filter(item => item.mingtu === '记忆');
+          _name = '记忆角色';
+          if (type = 'gz') _name = '记忆光锥';
           break;
         case '丰饶系':
         case '丰饶':
           data = data.filter(item => item.mingtu === '丰饶');
+          _name = '丰饶角色';
+          if (type = 'gz') _name = '丰饶光锥';
           break;
         case '存护系':
         case '存护':
           data = data.filter(item => item.mingtu === '存护');
+          _name = '存护角色';
+          if (type = 'gz') _name = '存护光锥';
           break;
         case '巡猎系':
         case '巡猎':
           data = data.filter(item => item.mingtu === '巡猎');
+          _name = '巡猎角色';
+          if (type = 'gz') _name = '巡猎光锥';
           break;
         case '虚无系':
         case '虚无':
           data = data.filter(item => item.mingtu === '虚无');
+          _name = '虚无角色';
+          if (type = 'gz') _name = '虚无光锥';
           break;
         case '同谐系':
         case '同谐':
           data = data.filter(item => item.mingtu === '同谐');
+          _name = '同谐角色';
+          if (type = 'gz') _name = '同谐光锥';
           break;
         case '智识系':
         case '智识':
           data = data.filter(item => item.mingtu === '智识');
+          _name = '智识角色';
           break;
         case '毁灭系':
         case '毁灭':
           data = data.filter(item => item.mingtu === '毁灭');
+          _name = '毁灭角色';
           break;
       }
     }
@@ -204,10 +243,11 @@ export class Wiki extends plugin {
     data = data.filter(
       (item, index, self) => index === self.findIndex(t => t.name === item.name)
     );
+
     if (data.length > 50)
-      reply_recallMsg(e, `正在获取${name}列表中,请等待...`, 30);
+      reply_recallMsg(e, `正在获取${_name}列表中,请等待...`, 30);
     data = {
-      name: name,
+      name: _name,
       data: data,
     };
     return render('wiki/list', data, { e, ret: true });
@@ -424,9 +464,9 @@ export class Wiki extends plugin {
     png_names[1] += ' x66';
     png_names[2] += ' x93';
     const weeks = {
-      '周一/四/日': ['自由', '繁荣', '浮世', '诤言', '公平', '角逐'],
-      '周二/五/日': ['抗争', '勤劳', '风雅', '巧思', '正义', '焚燔'],
-      '周三/六/日': ['诗文', '黄金', '天光', '笃行', '秩序', '纷争'],
+      '周一/四/日': ['自由', '繁荣', '浮世', '诤言', '公平', '角逐', '月光'],
+      '周二/五/日': ['抗争', '勤劳', '风雅', '巧思', '正义', '焚燔', '乐园'],
+      '周三/六/日': ['诗文', '黄金', '天光', '笃行', '秩序', '纷争', '浪迹'],
     };
     let week;
     for (const k in weeks) {
@@ -502,11 +542,11 @@ export class Wiki extends plugin {
     const arr = numeric_
       .match(/<p>(.*?)<\/p>/g)
       .map(m => m.replace(/<p>|<\/p>/g, ''));
-    const atk = arr[0].replace(/基础攻击力: /g, '');
+    const atk = arr[0].replace(/基础攻击力/g, '').replace(/:|：/g, '')
 
     const attr_ = {
-      key: arr[1].split(':')[0],
-      value: arr[1].split(': ')[1],
+      key: arr[1].split(/[:：]/)[0],
+      value: arr[1].split(/[:：]/)[1],
     };
     //材料周几
     const weeks = {
@@ -517,6 +557,7 @@ export class Wiki extends plugin {
         '谧林涓露',
         '悠古弦音',
         '贡祭炽心',
+        '奇巧秘器'
       ],
       '周二/五/日': [
         '凛风奔狼',
@@ -525,6 +566,7 @@ export class Wiki extends plugin {
         '绿洲花园',
         '纯圣露滴',
         '谵妄圣主',
+        '长夜燧火'
       ],
       '周三/六/日': [
         '狮牙斗士',
@@ -533,6 +575,7 @@ export class Wiki extends plugin {
         '烈日威权',
         '无垢之海',
         '神合秘烟',
+        '终北遗嗣'
       ],
     };
     let week;
