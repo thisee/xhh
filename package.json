@@ -2,14 +2,12 @@
   "name": "xhh",
   "version": "1.0.0",
   "author": "额.",
-  "description": "自用的乱写的作用于喵崽的插件",
+  "description": "小花火插件",
   "type": "module",
   "imports": {
     "#xhh": "./system/index.js"
   },
   "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
   },
   "dependencies": {
     "jsdom": "^26.1.0",
@@ -17,6 +15,5 @@
     "sharp": "0.34.5"
   },
   "devDependencies": {
-    "prettier": "^3.6.2"
   }
 }

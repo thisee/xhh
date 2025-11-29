@@ -186,7 +186,7 @@ export class config extends plugin {
       '添加播报群(+群号)',
       '删除播报群(+群号)\n',
 
-      '更多设置请查看config/config.yaml文件',
+      '更多设置请查看xhh/config/config.yaml文件',
     ].join('\n');
     msg = [msg, msg_];
     msg = await makeForwardMsg(e, msg, '小花火设置');

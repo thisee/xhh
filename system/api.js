@@ -1,3 +1,4 @@
+import { mhy } from '#xhh';
 async function api(e, data = {}) {
   let signActId = {
     gs: 'e202311201442471',
@@ -6,28 +7,26 @@ async function api(e, data = {}) {
   };
   const game = data.game;
   const uid = data.uid;
-  const server = getServer(uid, game);
+  const server = data.server || mhy.getServer(uid, game);
+  
   const api_list = {
     //账号游戏信息
     GameRoles: {
       url: 'https://api-takumi.miyoushe.com/binding/api/getUserGameRolesByStoken',
       obj: {
         method: 'GET',
-        headers: data.headers,
       },
     },
     createVerification: {
       url: `https://bbs-api.miyoushe.com/misc/wapi/createVerification?gids=2&is_high=false'`,
       obj: {
         method: 'GET',
-        headers: data.headers,
       },
     },
     verifyVerification: {
       url: `https://bbs-api.miyoushe.com/misc/wapi/verifyVerfication`,
       obj: {
         method: 'POST',
-        headers: data.headers,
         body: JSON.stringify(data.body),
       },
     },
@@ -35,21 +34,18 @@ async function api(e, data = {}) {
       url: `https://api-takumi.mihoyo.com/event/luna/info?act_id=${signActId[game]}&region=${server}&uid=${uid}&lang=zh-cn`,
       obj: {
         method: 'GET',
-        headers: data.headers,
       },
     },
     sign_home: {
       url: `https://api-takumi.mihoyo.com/event/luna/home?act_id=${signActId[game]}&region=${server}&uid=${uid}&lang=zh-cn`,
       obj: {
         method: 'GET',
-        headers: data.headers,
       },
     },
     sign: {
       url: 'https://api-takumi.mihoyo.com/event/luna/sign',
       obj: {
         method: 'POST',
-        headers: data.headers,
         body: JSON.stringify({
           act_id: signActId[game],
           region: server,
@@ -58,11 +54,21 @@ async function api(e, data = {}) {
         }),
       },
     },
+    //货币战争
+    huobi: {
+      url: `https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/grid_fight?server=${server}&role_id=${uid}`,
+      obj: {
+        method: 'GET',
+      }
+    }
   };
 
   const { url, obj } = api_list[data.type];
 
-  let res = false;
+  obj.headers = data.headers;
+
+  let res
+
   try {
     res = await fetch(url, obj).then(res => res.json());
   } catch (error) {
@@ -119,22 +125,6 @@ function api_err(e, res, uid, type) {
   }
   e.reply(msg);
   return true;
-}
-
-function getServer(uid, game) {
-  if (game === 'zzz') {
-    return 'prod_gf_cn';
-  }
-  const isSr = game === 'sr';
-  switch (String(uid)[0]) {
-    case '1':
-    case '2':
-    case '3':
-      return isSr ? 'prod_gf_cn' : 'cn_gf01'; // 官服
-    case '5':
-      return isSr ? 'prod_qd_cn' : 'cn_qd01'; // B服
-  }
-  return 'prod_gf_cn';
 }
 
 export default api;

@@ -10,6 +10,7 @@ class mhy {
     this.fp_url = 'https://public-data-api.mihoyo.com/device-fp/api/getFp';
     this.mysSalt = 'rtvTthKxEyreVXQCnhluFgLXPOFKPHlA'; //k2 2.71.1
     this.mysSalt2 = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'; //6x
+    this.mysSalt3 = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs'; //4x
   }
 
   async shebei(e, info) {
@@ -117,7 +118,7 @@ class mhy {
     return {
       Origin: 'https://app.mihoyo.com',
       'User-Agent': `Mozilla/5.0 (Linux; Android 13; ${info?.deviceModel || 'Mi 10'} Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.186 Mobile Safari/537.36 miHoYoBBS/2.71.1`,
-      'Content-Type': 'application/json;charset\u003dUTF-8',
+      'Content-Type': 'application/json, text/plain, */*',
       Referer: 'https://app.mihoyo.com',
       'X-Requested-With': 'com.mihoyo.hyperion',
       'x-rpc-app_version': '2.71.1',
@@ -255,11 +256,12 @@ class mhy {
   getDs(salt = this.mysSalt) {
     const randomStr = this.randomString(6);
     const timestamp = Math.floor(Date.now() / 1000);
-    let sign = md5(`salt=${salt}&t=${timestamp}&r=${randomStr}`);
-    return `${timestamp},${randomStr},${sign}`;
+    let Ds = md5(`salt=${salt}&t=${timestamp}&r=${randomStr}`);
+    return `${timestamp},${randomStr},${Ds}`;
   }
 
   getDs2(query = '', body = '', salt = this.mysSalt2) {
+    if(salt==4) salt=this.mysSalt3
     let t = Math.round(new Date().getTime() / 1000);
     let r = Math.floor(Math.random() * 900000 + 100000);
     let DS = md5(`salt=${salt}&t=${t}&r=${r}&b=${body}&q=${query}`);
@@ -288,6 +290,26 @@ class mhy {
     }
     return randomStr;
   }
+
+  getServer(uid, game) {
+  if (game === 'zzz') {
+    return 'prod_gf_cn';
+  }
+  const isSr = game === 'sr';
+  switch (String(uid)[0]) {
+    case '1':
+    case '2':
+    case '3':
+      return isSr ? 'prod_gf_cn' : 'cn_gf01'; // 官服
+    case '5':
+      return isSr ? 'prod_qd_cn' : 'cn_qd01'; // B服
+  }
+  return 'prod_gf_cn';
 }
+
+}
+
+
+
 
 export default new mhy();
