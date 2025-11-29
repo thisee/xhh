@@ -94,6 +94,7 @@ export class config extends plugin {
     }
     group_id = Number(group_id);
     let groups = (await yaml.get(path)).groups;
+    if (!groups) groups = []
     if (e.msg.includes('添加')) {
       try {
         if (!Bot.pickGroup(group_id, true))
@@ -136,6 +137,9 @@ export class config extends plugin {
         '米哈游视频播报群号：\n',
       ].join('\n')
     );
+
+    if (!data.groups) data.groups = []
+
     for (let group of data.groups) {
       try {
         Bot.pickGroup(group, true);
@@ -158,7 +162,7 @@ export class config extends plugin {
         segment.image(`https://p.qlogo.cn/gh/${group}/${group}/100`),
         gname,
         group.toString(),
-        '\n' + '订阅：'+dy(group),
+        '\n' + '订阅：' + dy(group),
       );
     }
     let msg_ = [
@@ -216,7 +220,8 @@ function getother() {
 //处理订阅显示
 function dy(group) {
   //获取群号屏蔽设置
-  const group_config = getother().group_config
+  let group_config = getother().group_config
+  if (!group_config) group_config = {}
   //获取该群的屏蔽游戏列表
   const games = group_config[group]
   let arr_game = ['原神', '崩铁', '绝区零', '崩坏3', '崩缘', '星布谷地']
@@ -231,9 +236,11 @@ function dy(group) {
       }
     }
   });
-  for (const game of games) {
-    const index = arr_game.indexOf(name_list[game]);
-    arr_game.splice(index, 1);
+  if (games) {
+    for (const game of games) {
+      const index = arr_game.indexOf(name_list[game]);
+      arr_game.splice(index, 1);
+    }
   }
   const msg = arr_game.join('、')
   return msg

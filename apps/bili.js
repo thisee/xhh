@@ -1,34 +1,7 @@
 import fs from 'fs';
 import { bili, config } from '#xhh';
 import fetch from 'node-fetch';
-
-// --- 新增：定义冷却缓存 Map 和 冷却时间 (3分钟 = 180000ms) ---
-const cooldownMap = new Map();
-const COOLDOWN_TIME = 3 * 60 * 1000;
-
-/**
- * 检查是否处于冷却时间
- * @param {string} id - 视频BV号或动态ID
- * @returns {boolean} - true表示需要冷却(跳过解析)，false表示通过
- */
-function checkCooldown(id) {
-  if (!id) return false;
-  const now = Date.now();
-  
-  // 清理过期的key，防止内存泄漏 (可选)
-  if (cooldownMap.has(id)) {
-    const lastTime = cooldownMap.get(id);
-    if (now - lastTime < COOLDOWN_TIME) {
-      // 处于冷却期，不进行解析
-      return true;
-    }
-  }
-  
-  // 记录新时间或更新时间
-  cooldownMap.set(id, now);
-  return false;
-}
-// ---------------------------------------------------------
+import moment from 'moment';
 
 export class bilibili extends plugin {
   constructor(e) {
@@ -82,16 +55,13 @@ export class bilibili extends plugin {
   async b(e) {
     if (!e.msg || !this.Check()) return false;
     let msg, url, data, res, bv, user_id, id, dt_id, pl_id, pl_type;
-    
+
     //卡片分享
     if (e.raw_message == '[json消息]' || e.message[0]?.type == 'json') {
       id = await this.json_bv(e.msg.replace(/当前QQ版本不支持此应用，请升级/g, ''), e);
       if (!id) return false;
-
-      // --- 新增：检查冷却 ---
-      if (checkCooldown(id.bv || id.dt_id)) return false;
-      // --------------------
-
+      //检cd
+      if (await checkCooldown(id.bv || id.dt_id)) return false;
       if (id.bv) return bili.video(e, id.bv, false, true, true);
       if (id.dt_id) return bili.dt(id.dt_id, e);
     }
@@ -102,12 +72,8 @@ export class bilibili extends plugin {
       url = url[0];
       id = await this.getbv(url);
       if (!id) return false;
-
-      // --- 新增：检查冷却 ---
-      // getbv已经获取到了跳转后的真实ID，此时检查最准确
-      if (checkCooldown(id.bv || id.dt_id)) return false;
-      // --------------------
-
+      //检cd
+      if (await checkCooldown(id.bv || id.dt_id)) return false;
       if (id.bv) return bili.video(e, id.bv, false, true);
       if (id.dt_id) return bili.dt(id.dt_id, e);
     }
@@ -121,16 +87,16 @@ export class bilibili extends plugin {
     let source = {};
 
     if (e.source) {
-        if(e.source.message_id){
-           try {
-              source=await Bot.getMsg(e.source.message_id);
-           } catch (error) {
-              source=await e.bot.getMsg(e.source.message_id);
-           }
-        }else{
-            source= e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
+      if (e.source.message_id) {
+        try {
+          source = await Bot.getMsg(e.source.message_id);
+        } catch (error) {
+          source = await e.bot.getMsg(e.source.message_id);
         }
-    }else {
+      } else {
+        source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
+      }
+    } else {
       source = await e.getReply();  //无e.source的情况
     }
 
@@ -172,25 +138,15 @@ export class bilibili extends plugin {
       msg = source.message[0].data;
       id = await this.json_bv(msg);
       if (!id) return false;
-      
-      // 注意：引用回复里的操作通常是针对已解析的内容进行互动，
-      // 这里是否加冷却取决于你是否希望引用回复触发解析（通常不需要加，因为是用户主动指令）
-      
       bv = id.bv;
       dt_id = id.dt_id;
       if (['下载封面', '封面下载', '获取封面', '封面'].includes(e.msg) && bv)
         return bili.fm(e, false, bv);
     }
 
-    if (['下载视频', '视频下载', '获取视频'].includes(e.msg) && bv)
-      return bili.Download(e, bv);
+    if (['下载视频', '视频下载', '获取视频'].includes(e.msg) && bv) return bili.Download(e, bv);
 
-    if (
-      ['点赞', '赞', '取消点赞', '点赞取消', '取消赞', '赞取消'].includes(
-        e.msg
-      ) &&
-      bv
-    )
+    if (['点赞', '赞', '取消点赞', '点赞取消', '取消赞', '赞取消'].includes(e.msg) && bv)
       return bili.dz(e, bv);
     //去(#)
     msg = e.msg.replace(/#|b站|B站|哔哩哔哩|bili|bilibili/g, '');
@@ -356,16 +312,33 @@ function handleBilibiliLink(e) {
     const match = e.raw_message.match(pattern);
     if (match) {
       let id = match[1];
-      if (pattern.toString().includes('/BV[a-zA-Z0-9]{10}/')) id = match[0];
-      
-      // --- 新增：检查冷却 ---
+      if (pattern == '/BV[a-zA-Z0-9]{10}/') id = match[0];
+      // 检cd
       if (checkCooldown(id)) return false;
-      // --------------------
 
       if (!handler(id, e)) return false;
+
       return true;
     }
   }
 
+  return false;
+}
+
+
+
+
+
+async function checkCooldown(id) {
+  const CD = 3 * 60;
+  const last_time=await redis.get(`xhh_bili_jx:${id}_CD`);
+  let now_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+  if (last_time) {
+    const seconds = moment(now_time).diff(moment(last_time), 'seconds');
+    logger.error(`bili同一视频id或动态id解析CD中，剩余时间：${CD - seconds}秒`);
+    return true;
+  }
+  // 写入CD
+  await redis.set(`xhh_bili_jx:${id}_CD`, now_time, { EX: CD }); //进入CD
   return false;
 }
