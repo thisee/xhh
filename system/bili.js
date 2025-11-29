@@ -798,11 +798,6 @@ class bili {
     );
     if (res.code == 12002) return logger.mark('评论区已关闭');
     let data = res.data.replies;
-    fs.writeFileSync(
-      `./plugins/example/cs/cs_pl.json`,
-      JSON.stringify(data),
-      'utf-8'
-    );
     if (res.code != 0) {
       const ck = await this.getck();
       this.Check(ck);
