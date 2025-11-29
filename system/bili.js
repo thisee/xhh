@@ -373,6 +373,7 @@ class bili {
       msgs = [],
       title,
       desc_,
+      zhuanfa = {},
       zhuanlan;
     if (res.data?.item) {
       basic = res.data.item.basic; //comment_type类型，comment_id_str评论区id
@@ -402,7 +403,7 @@ class bili {
         //动态的emoji和一些需要改成蓝色的文本（@xx）
         let em = [],
           blue = [];
-        //可能需要改成蓝色的富文本节点类型
+        //可能需要改成蓝色的节点类型
         let types = [
           'RICH_TEXT_NODE_TYPE_AT',
           'RICH_TEXT_NODE_TYPE_LOTTERY',
@@ -446,24 +447,89 @@ class bili {
             msgs.push(v);
           });
         }
+
         //动态转发动态
         if (res.data.item.type == 'DYNAMIC_TYPE_FORWARD') {
+
           let orig = res.data.item.orig;
+
           msgs.push(`【蓝色》@${orig.modules.module_author.name}`);
-          let _msg = 'https:' + orig.basic.jump_url;
-          Bot.em('message.private.friend', {
-            self_id: e.self_id,
-            message_id: e.message_id,
-            user_id: e.user_id,
-            sender: e.sender,
-            friend: e.friend,
-            reply: e.reply.bind(e),
-            post_type: 'message',
-            message_type: 'private',
-            sub_type: 'friend',
-            message: [{ type: 'text', text: _msg }],
-            raw_message: _msg,
-          });
+
+          //转发的up名字和头像
+          zhuanfa.name = orig.modules.module_author.name
+          zhuanfa.face = orig.modules.module_author.face
+
+          //转发的投稿视频
+          if (orig.type == 'DYNAMIC_TYPE_AV') {
+            //视频封面
+            zhuanfa.cover = orig.modules.module_dynamic.major.archive.cover;
+            //视频标题
+            zhuanfa.title = orig.modules.module_dynamic.major.archive.title;
+            //视频播放数
+            zhuanfa.bf = orig.modules.module_dynamic.major.archive.stat.play
+            //视频弹幕数
+            zhuanfa.dm = orig.modules.module_dynamic.major.archive.stat.danmaku
+          }
+
+          //转发图文动态
+          else if (orig.type == 'DYNAMIC_TYPE_DRAW' || orig.type == 'DYNAMIC_TYPE_WORD') {
+            const pic_arr = orig.modules.module_dynamic.major.opus.pics
+            zhuanfa.pics = []
+            pic_arr.map(v => {
+              zhuanfa.pics.push(v.url) //图片数组
+            })
+            //动态的emoji和一些需要改成蓝色的文本（话题，tag，链接等等）
+            let em = [],
+              blue = [];
+            //可能需要改成蓝色的节点类型
+            let types = [
+              'RICH_TEXT_NODE_TYPE_AT',
+              'RICH_TEXT_NODE_TYPE_LOTTERY',
+              'RICH_TEXT_NODE_TYPE_VOTE',
+              'RICH_TEXT_NODE_TYPE_TOPIC',
+              'RICH_TEXT_NODE_TYPE_GOODS',
+              'RICH_TEXT_NODE_TYPE_BV',
+              'RICH_TEXT_NODE_TYPE_WEB',
+              'RICH_TEXT_NODE_TYPE_MAIL',
+              'RICH_TEXT_NODE_TYPE_OGV_SEASON',
+            ];
+            if (orig.modules.module_dynamic.major?.opus?.summary?.rich_text_nodes?.length) {
+              for (let v of orig.modules.module_dynamic.major?.opus?.summary?.rich_text_nodes) {
+                if (v.emoji) {
+                  em.push({
+                    text: v.emoji.text,
+                    url: v.emoji.icon_url,
+                  });
+                }
+                if (types.includes(v.type)) {
+                  blue.push(v.orig_text);
+                }
+              }
+            }
+            //转发动态的文本
+            let msg = orig.modules.module_dynamic.major.opus.summary.text;
+            if (em.length) {
+              em.map(v => {
+                msg = msg.replace(v.text, `❥【表情》${v.url}❥`);
+              });
+            }
+            if (blue.length) {
+              blue.map(v => {
+                msg = msg.replace(v, `❥【蓝色》${v}❥`);
+              });
+            }
+            zhuanfa.msg = msg.split('❥');
+            zhuanfa.msg.push('\n');
+            if (zhuanfa.pics.length) {
+              zhuanfa.pics.map(v => {
+                zhuanfa.msg.push(v);
+              });
+            }
+
+          } else if (orig.type == 'DYNAMIC_TYPE_ARTICLE') { //转发专栏动态简单处理了
+            zhuanfa.msg = orig.modules.module_dynamic.major.opus.summary.text + '......';
+          }
+
         }
       }
       //图文动态
@@ -481,7 +547,7 @@ class bili {
         //动态的emoji和一些需要改成蓝色的文本（话题，tag，链接等等）
         let em = [],
           blue = [];
-        //可能需要改成蓝色的富文本节点类型
+        //可能需要改成蓝色的节点类型
         let types = [
           'RICH_TEXT_NODE_TYPE_AT',
           'RICH_TEXT_NODE_TYPE_LOTTERY',
@@ -532,6 +598,11 @@ class bili {
         msgs.push(module_dynamic.major.opus.pics[0].url);
         msgs.push('\n' + module_dynamic.major.opus.summary.text + '......');
         zhuanlan = true;
+      }
+      //视频动态直接转成视频解析
+      else if (res.data.item.type == 'DYNAMIC_TYPE_AV') {
+        if (module_dynamic.major?.archive?.bvid) return this.video(e, module_dynamic.major.archive.bvid, false, true, true);
+        return false
       } else {
         return false;
       }
@@ -613,9 +684,12 @@ class bili {
       msg: msgs,
       pic: pics,
       pls: pinglun,
+      //转发？
+      zhuanfa,
       //是否为专栏
       zhuanlan: zhuanlan,
     };
+
     let img = await render('bilibili/dt', data, { e, ret: false });
 
     if (send && pics.length) {
@@ -629,8 +703,10 @@ class bili {
         pic_.push(...(await splitImage(t)));
       }
       pic_ = pic_.map(item => segment.image(item))
-      
-      var msg_ = await makeForwardMsg(e, pic_, '发布的图片');
+
+      let msg_
+      if (config().b_img_num > pic_.length) msg_ = pic_
+      else msg_ = await makeForwardMsg(e, pic_, '发布的图片');
       e.reply(msg_);
     }
 
@@ -722,6 +798,11 @@ class bili {
     );
     if (res.code == 12002) return logger.mark('评论区已关闭');
     let data = res.data.replies;
+    fs.writeFileSync(
+      `./plugins/example/cs/cs_pl.json`,
+      JSON.stringify(data),
+      'utf-8'
+    );
     if (res.code != 0) {
       const ck = await this.getck();
       this.Check(ck);
@@ -734,6 +815,13 @@ class bili {
       top.push(res.data.upper.top);
       top = await this.getpl(top);
       data = [...top, ...data];
+      //去除重复评论
+      data = data.filter((item, index, array) => {
+        // 查找当前rpid第一次出现的位置
+        const firstIndex = array.findIndex(element => element.rpid === item.rpid);
+        // 只保留第一次出现的元素
+        return index === firstIndex;
+      });
       data[0]['zhiding'] = true;
     }
     let n = 0;

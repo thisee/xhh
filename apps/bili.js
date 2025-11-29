@@ -253,8 +253,6 @@ export class bilibili extends plugin {
     } catch (err) {
       return false;
     }
-    // 清空内存冷却缓存 (可选)
-    cooldownMap.clear();
     if (e) return e.reply('已清空bilibili缓存');
   }
 
@@ -330,6 +328,7 @@ function handleBilibiliLink(e) {
 
 
 async function checkCooldown(id) {
+  if(!config().b_cd) return false;
   const CD = 3 * 60;
   const last_time=await redis.get(`xhh_bili_jx:${id}_CD`);
   let now_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');

@@ -48,13 +48,15 @@ p img.emoji-svg {
   border-radius: 0px;
 }
 .r_box .face_ {
-  height: 40px;
-  width: 40px;
-  top: 0px;
+  height: 25px;
+  width: 25px;
+  top: 7px;
   left: 0px;
   position: relative;
+  margin-top: -10px;
   border-style: none;
 }
+
 .up_box {
   padding: 10px;
   border-radius: 15px;
@@ -197,6 +199,100 @@ p img.emoji-svg {
   min-height: 170px;
   border-radius: 15px;
   padding: 10px 20px 20px 20px;
+}
+
+.r_box .zhuanfa {
+  padding: 3px;
+  border-radius: 10px;
+  background: #c1e1e1;
+}
+.zhuanfa_box_{
+  display: flex;
+}
+.zhuanfa_face{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  position: relative;
+}
+.r_box .zhuanfa_name{
+  position: relative;
+  top: 20px;
+  height: 28px;
+  font-size: 18px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  background-color: #efabc9;
+}
+
+.r_box .zhuanfa_title{
+  padding: 5px;
+  background-color: #cfecbdec;
+  border-radius: 5px;
+  font-size: 18px;
+  color: #5584bd;
+  text-shadow: 0.5px 0.5px 1px #fff;
+  text-overflow: -o-ellipsis-lastline;
+  overflow: hidden; /*溢出内容隐藏*/
+  text-overflow: ellipsis; /*文本溢出部分用省略号表示*/
+  display: -webkit-box; /*特别显示模式*/
+  -webkit-line-clamp: 1; /*行数*/ 
+  line-clamp: 1;
+  -webkit-box-orient: vertical; /*盒子中内容竖直排列*/
+}
+
+.r_box .zhuanfa_cover{
+  width: 685px;
+  border-radius: 15px;
+}
+
+.r_box .bf{
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 150px;
+    height: 135px;
+    background: url('./imgs/bf.png');
+    background-size: contain;
+    z-index: 1;
+}
+
+
+.h_box {
+  width: 250px;
+  height: 60px;
+  left: 35px;
+  bottom: 45px;
+  box-shadow: 5px 5px 5px 5px rgb(0 0 0 / 35%);
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 15px;
+  position: absolute;
+}
+.h_box img {
+  width: 60px;
+  height: 60px;
+  left: 20px;
+  position: relative;
+}
+.h_box img:first-child {
+  width: 58px;
+  height: 58px;
+  top: -14px;
+  left: 8px;
+}
+.h_box .Dm {
+  width: 70px;
+  height: 70px;
+  top: 0px;
+}
+
+.h_box p {
+  color: #0e1c2d;
+  text-shadow: 0.5px 0.5px 1px #abdbd9;
+  left: 10px;
+  top: -15px;
+  display: inline-block;
+  position: relative;
 }
 
 .r_box p {
