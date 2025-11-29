@@ -216,7 +216,7 @@ async function vid(e) {
     e.reply(msg);
   } else {
     for (let group of groups) {
-      const obj= MsgsByGroupConfig(dec, group, msgs, msgs_indexs)
+      const obj = MsgsByGroupConfig(dec, group, msgs, msgs_indexs)
       if (!obj.msgs.length) continue
       msg = await makeForwardMsg('', obj.msgs, obj.dec, group);
       Bot.pickGroup(group).sendMsg(msg);
@@ -237,6 +237,7 @@ function getother() {
 function MsgsByGroupConfig(dec, group, msgs, msgs_indexs) {
   //获取群号屏蔽设置
   const group_config = getother().group_config
+  if (!group_config) return { msgs, dec }
   //获取该群的屏蔽游戏列表
   const games = group_config[group]
   if (!games) return { msgs, dec }
