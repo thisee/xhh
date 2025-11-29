@@ -66,6 +66,12 @@ mlid_n: 1
 #解析bilibili视频分享卡片时弹出原B站链接：true是，false否
 b_lj: true
 
+#解析bili同一视频id或同一动态id时是否加入3分钟CD：true是，false否
+b_cd: false
+
+#bilibili自动下载图片时，小于几张图片时，不再合并消息：填数字 (0表示始终合并)
+b_img_num: 0
+
 #bilibili的Cookie(别手动加,首次获取请发送：b站登录)
 bili_ck: ''
 
