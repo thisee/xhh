@@ -27,7 +27,7 @@ cover: false
 #      456:
 #         - sr
 #         - by
-group_config: []
+group_config:
 
 
 #小花火图鉴优先级:
