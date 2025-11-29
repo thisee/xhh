@@ -2,7 +2,14 @@ import fetch from 'node-fetch';
 import common from '../../../lib/common/common.js';
 import lodash from 'lodash';
 import { yaml, makeForwardMsg, sleep } from '#xhh';
-
+const name_list = {
+  gs: '原神',
+  sr: '星铁',
+  zzz: '绝区零',
+  bh3: '崩坏3',
+  by: '崩坏因缘精灵',
+  xbgd: '星布谷地'
+}
 //手动触发，只回复当前聊天
 export class video extends plugin {
   constructor(e) {
@@ -67,23 +74,14 @@ async function vid(e) {
     name,
     ti,
     msgs = [],
+    msgs_indexs = {},
     names = '',
     path;
   //遍历游戏官号
   for (let i in urls) {
     let msg;
     //游戏名字
-    name =
-      i == 'gs'
-        ? '原神'
-        : i == 'sr'
-          ? '崩坏星穹铁道'
-          : i == 'zzz'
-            ? '绝区零'
-            : i == 'bh3'
-              ? '崩坏3'
-              : i == 'by'
-                ? '崩坏因缘精灵' : '星布谷地';
+    name = name_list[i];
     url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=' + urls[i];
     res = await fetch(url).then(res => res.json());
     list = res.data.list;
@@ -107,10 +105,7 @@ async function vid(e) {
         //画质
         p = vod_list[vod_list.length - 1].label;
         //大小
-        size =
-          '约' +
-          Math.ceil(Number(vod_list[vod_list.length - 1].size) / 1024 / 1024) +
-          'MB';
+        size = '约' + Math.ceil(Number(vod_list[vod_list.length - 1].size) / 1024 / 1024) + 'MB';
 
         // 转换时间戳为年月日时分秒
         const date = new Date(time * 1000);
@@ -141,6 +136,7 @@ async function vid(e) {
         //QQ不支持直接发https://upload-bbs.miyoushe.com/
         if (img.includes('https://upload-bbs.miyoushe.com/')) {
           path = `./plugins/xhh/temp/${name}视频封面.jpg`;
+          //封面图是否原图
           if (getother().cover) await common.downFile(img, path);
           else
             await common.downFile(
@@ -159,12 +155,17 @@ async function vid(e) {
           img,
           `\n\n视频链接(点击即可观看)：\n${vid_url}`,
         ];
+        //处理内容过长
+        msgs_indexs[i] = []
         if (content.length < 600) {
           msg.push(`\n文本内容：\n${content}`);
           msgs.push(msg);
+          msgs_indexs[i].push(msgs.length - 1)
         } else {
           msgs.push(msg);
+          msgs_indexs[i].push(msgs.length - 1)
           msgs.push([`${name}文本内容：\n${content}`]);
+          msgs_indexs[i].push(msgs.length - 1)
         }
         names = names + name + ' ';
         break;
@@ -176,6 +177,14 @@ async function vid(e) {
 
   if (!msgs.length) return;
 
+  //主动触发，直接处理群号屏蔽设置
+  if (e?.isGroup) {
+    const obj = MsgsByGroupConfig(names, e.group_id, msgs, msgs_indexs)
+    if (!obj.msgs.length) return;
+    msgs = obj.msgs
+    names = obj.dec
+  }
+
   //不制作合并转发消息
   if (!getother().forwardMsg) {
     if (e?.reply) {
@@ -185,7 +194,10 @@ async function vid(e) {
       }
     } else {
       for (let group of groups) {
-        for (const text of msgs) {
+        const obj = MsgsByGroupConfig(names, group, msgs, msgs_indexs)
+        const _msgs = obj.msgs
+        if (!_msgs.length) continue;
+        for (const text of _msgs) {
           Bot.pickGroup(group).sendMsg(text);
           await sleep(200);
         }
@@ -204,7 +216,9 @@ async function vid(e) {
     e.reply(msg);
   } else {
     for (let group of groups) {
-      msg = await makeForwardMsg('', msgs, dec, group);
+      const obj= MsgsByGroupConfig(dec, group, msgs, msgs_indexs)
+      if (!obj.msgs.length) continue
+      msg = await makeForwardMsg('', obj.msgs, obj.dec, group);
       Bot.pickGroup(group).sendMsg(msg);
       //多个群，随机延迟10~20秒发送
       await sleep(lodash.random(10000, 20000));
@@ -215,4 +229,48 @@ async function vid(e) {
 
 function getother() {
   return yaml.get('./plugins/xhh/config/other.yaml');
+}
+
+
+
+//处理消息数组，通过群号屏蔽设置，删掉对应的游戏消息，返回新的消息数组和新的合并消息描述
+function MsgsByGroupConfig(dec, group, msgs, msgs_indexs) {
+  //获取群号屏蔽设置
+  const group_config = getother().group_config
+  //获取该群的屏蔽游戏列表
+  const games = group_config[group]
+  if (!games) return { msgs, dec }
+  let indexArray = []
+  for (const game of games) {
+    if (msgs_indexs[game]) {
+      indexArray = indexArray.concat(msgs_indexs[game])
+      dec = dec.replace(name_list[game] + ' ', '')
+    }
+  }
+  msgs = removeElementsByIndex(msgs, indexArray)
+  return { msgs, dec }
+}
+
+
+
+
+/**
+ * 根据下标数组删除原数组中的对应元素
+ * @param {Array} sourceArray - 原始数组
+ * @param {Array} indexArray - 要删除的下标数组
+ * @returns {Array} 删除元素后的新数组
+ */
+function removeElementsByIndex(sourceArray, indexArray) {
+
+  // 将下标数组按降序排序，确保删除顺序正确
+  const sortedIndexes = [...indexArray].sort((a, b) => b - a);
+
+  // 从后往前删除，避免索引错乱
+  for (const index of sortedIndexes) {
+    // 检查下标是否有效
+    if (index >= 0 && index < sourceArray.length) {
+      sourceArray.splice(index, 1);
+    }
+  }
+  return sourceArray;
 }

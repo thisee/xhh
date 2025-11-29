@@ -46,6 +46,7 @@ sm_cd: 60
 sign: false
 
 #米哈游视频播报(米游社)：QQ群号 (更多设置在other.yaml文件)
+#groups:
 # - 123456789
 # - 987654321
 groups: []
@@ -71,7 +72,7 @@ bili_ck: ''
 #bilibili刷新ck需要用到的刷新口令(不要乱改，这是b站登录获取的)
 refresh_token: ''
 
-#（bilibili解析图片）旧版浏览器不支持emoji时，用cdn渲染emoji的表情：true开，false关
+#（bilibili解析图片）浏览器不支持emoji时，用cdn渲染emoji的表情：true开，false关
 emoji: false
 
 #解决扫码绑定和刷新ck最后的合并消息报错（解决某些适配器插件的合并消息内嵌合并消息会报错的bug)

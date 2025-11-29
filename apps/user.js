@@ -152,7 +152,7 @@ export class user extends plugin {
       60,
       true
     );
-
+    if (re.data?.message_id) re.message_id = re.data.message_id;
     await sleep(2000);
 
     url = 'https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/query'; //查询二维码状态
@@ -271,7 +271,7 @@ export class user extends plugin {
 
   //刷新ck
   async refresh_ck(e) {
-    let msgs = [],kg;
+    let msgs = [], kg;
     let data_ = await mhy.getSToken(e);
     if (!data_) return e.reply(`未绑定米游社，请发送[扫码绑定]`, true);
     const path = `./plugins/xhh/data/Stoken/${e.user_id}.yaml`;
@@ -299,8 +299,8 @@ export class user extends plugin {
     }
     if (kg) fs.writeFileSync(path, YAML.stringify(data), 'utf-8');
     if (e.no_reply) e.reply = e.no_reply;
-    msgs.map((v,i)=>{
-      if(typeof msgs[i] === 'string') msgs[i] = msgs[i].replace(/绑定Cookie/g, '刷新Cookie');
+    msgs.map((v, i) => {
+      if (typeof msgs[i] === 'string') msgs[i] = msgs[i].replace(/绑定Cookie/g, '刷新Cookie');
     })
     e.reply(await makeForwardMsg(e, msgs));
   }
