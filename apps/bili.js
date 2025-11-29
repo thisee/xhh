@@ -2,6 +2,34 @@ import fs from 'fs';
 import { bili, config } from '#xhh';
 import fetch from 'node-fetch';
 
+// --- 新增：定义冷却缓存 Map 和 冷却时间 (3分钟 = 180000ms) ---
+const cooldownMap = new Map();
+const COOLDOWN_TIME = 3 * 60 * 1000;
+
+/**
+ * 检查是否处于冷却时间
+ * @param {string} id - 视频BV号或动态ID
+ * @returns {boolean} - true表示需要冷却(跳过解析)，false表示通过
+ */
+function checkCooldown(id) {
+  if (!id) return false;
+  const now = Date.now();
+  
+  // 清理过期的key，防止内存泄漏 (可选)
+  if (cooldownMap.has(id)) {
+    const lastTime = cooldownMap.get(id);
+    if (now - lastTime < COOLDOWN_TIME) {
+      // 处于冷却期，不进行解析
+      return true;
+    }
+  }
+  
+  // 记录新时间或更新时间
+  cooldownMap.set(id, now);
+  return false;
+}
+// ---------------------------------------------------------
+
 export class bilibili extends plugin {
   constructor(e) {
     super({
@@ -54,10 +82,16 @@ export class bilibili extends plugin {
   async b(e) {
     if (!e.msg || !this.Check()) return false;
     let msg, url, data, res, bv, user_id, id, dt_id, pl_id, pl_type;
+    
     //卡片分享
     if (e.raw_message == '[json消息]' || e.message[0]?.type == 'json') {
       id = await this.json_bv(e.msg.replace(/当前QQ版本不支持此应用，请升级/g, ''), e);
       if (!id) return false;
+
+      // --- 新增：检查冷却 ---
+      if (checkCooldown(id.bv || id.dt_id)) return false;
+      // --------------------
+
       if (id.bv) return bili.video(e, id.bv, false, true, true);
       if (id.dt_id) return bili.dt(id.dt_id, e);
     }
@@ -68,6 +102,12 @@ export class bilibili extends plugin {
       url = url[0];
       id = await this.getbv(url);
       if (!id) return false;
+
+      // --- 新增：检查冷却 ---
+      // getbv已经获取到了跳转后的真实ID，此时检查最准确
+      if (checkCooldown(id.bv || id.dt_id)) return false;
+      // --------------------
+
       if (id.bv) return bili.video(e, id.bv, false, true);
       if (id.dt_id) return bili.dt(id.dt_id, e);
     }
@@ -132,6 +172,10 @@ export class bilibili extends plugin {
       msg = source.message[0].data;
       id = await this.json_bv(msg);
       if (!id) return false;
+      
+      // 注意：引用回复里的操作通常是针对已解析的内容进行互动，
+      // 这里是否加冷却取决于你是否希望引用回复触发解析（通常不需要加，因为是用户主动指令）
+      
       bv = id.bv;
       dt_id = id.dt_id;
       if (['下载封面', '封面下载', '获取封面', '封面'].includes(e.msg) && bv)
@@ -213,8 +257,8 @@ export class bilibili extends plugin {
    *
    * @param {string} url - 提供的Bilibili视频URL
    * @returns {Object} - 包含视频信息的对象，如果解析失败则返回false
-   *   - {string} bv - 视频的BV号
-   *   - {string} dt_id - 视频的AV号或OPUS号
+   * - {string} bv - 视频的BV号
+   * - {string} dt_id - 视频的AV号或OPUS号
    */
   async getbv(url) {
     let res = await fetch(url);
@@ -253,6 +297,8 @@ export class bilibili extends plugin {
     } catch (err) {
       return false;
     }
+    // 清空内存冷却缓存 (可选)
+    cooldownMap.clear();
     if (e) return e.reply('已清空bilibili缓存');
   }
 
@@ -310,7 +356,12 @@ function handleBilibiliLink(e) {
     const match = e.raw_message.match(pattern);
     if (match) {
       let id = match[1];
-      if (pattern == '/BV[a-zA-Z0-9]{10}/') id = match[0];
+      if (pattern.toString().includes('/BV[a-zA-Z0-9]{10}/')) id = match[0];
+      
+      // --- 新增：检查冷却 ---
+      if (checkCooldown(id)) return false;
+      // --------------------
+
       if (!handler(id, e)) return false;
       return true;
     }
