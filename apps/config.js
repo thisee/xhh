@@ -2,6 +2,16 @@ import { yaml, makeForwardMsg } from '#xhh';
 
 let xx = '小花火设置';
 let path = './plugins/xhh/config/config.yaml';
+
+const name_list = {
+  gs: '原神',
+  sr: '崩铁',
+  zzz: '绝区零',
+  bh3: '崩坏3',
+  by: '崩缘',
+  xbgd: '星布谷地'
+}
+
 export class config extends plugin {
   constructor() {
     super({
@@ -143,11 +153,12 @@ export class config extends plugin {
         logger.info(`检测到群号${group}已失效，已经自动删除`);
         continue;
       }
+
       msg.push(
         segment.image(`https://p.qlogo.cn/gh/${group}/${group}/100`),
-        '\n',
         gname,
-        group.toString()
+        group.toString(),
+        '\n' + '订阅：'+dy(group),
       );
     }
     let msg_ = [
@@ -192,4 +203,38 @@ export class config extends plugin {
     msg = await makeForwardMsg(e, msg, '小花火设置');
     return e.reply(msg);
   }
+}
+
+
+
+function getother() {
+  return yaml.get('./plugins/xhh/config/other.yaml');
+}
+
+
+
+//处理订阅显示
+function dy(group) {
+  //获取群号屏蔽设置
+  const group_config = getother().group_config
+  //获取该群的屏蔽游戏列表
+  const games = group_config[group]
+  let arr_game = ['原神', '崩铁', '绝区零', '崩坏3', '崩缘', '星布谷地']
+
+  const gamesToCheck = ['bh3', 'by', 'xbgd'];
+
+  gamesToCheck.forEach((k) => {
+    if (!getother()[k]) {
+      const index = arr_game.indexOf(name_list[k]);
+      if (index !== -1) {
+        arr_game.splice(index, 1);
+      }
+    }
+  });
+  for (const game of games) {
+    const index = arr_game.indexOf(name_list[game]);
+    arr_game.splice(index, 1);
+  }
+  const msg = arr_game.join('、')
+  return msg
 }

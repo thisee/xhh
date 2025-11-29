@@ -1,15 +1,14 @@
 import fs from 'fs';
-import fetch from 'node-fetch';
 import moment from 'moment';
-import common from '../../../lib/common/common.js';
 import lodash from 'lodash';
-import { bili, yaml } from '#xhh';
+import { bili, yaml, makeForwardMsg, sleep } from '#xhh';
 
 let path = './plugins/xhh/config/bili_group.yaml';
 
 if (!fs.existsSync(path)) {
   fs.writeFileSync(path, '');
 }
+
 export class bilibili_push extends plugin {
   constructor(e) {
     super({
@@ -21,10 +20,6 @@ export class bilibili_push extends plugin {
         {
           reg: '^#*(小花火)?(添加|开启|取消|删除|关闭)(b站|B站|哔哩哔哩|bili|bilibili)推送(\\d+)$',
           fnc: 'b',
-        },
-        {
-          reg: '^#*解(析)?$',
-          fnc: 'jx',
         },
         {
           reg: '^#*(小花火)?(b站|B站|哔哩哔哩|bili|bilibili)(视频)?推送列表$',
@@ -49,44 +44,6 @@ export class bilibili_push extends plugin {
     let mid = await /\d+/.exec(e.msg);
     if (!mid) return false;
     return bili.tuis(e, mid, e.group_id);
-  }
-
-  async jx(e) {
-    if (!e.source) return false;
-    if (!(await this.Check())) return false;
-    let source = (await e.group.getChatHistory(e.source?.seq, 1)).pop();
-    let msg = source.raw_message,
-      bv,
-      url;
-    if (msg.includes('https://b23.tv/')) {
-      url = msg.match('https://b23.tv/([\\w]+)');
-      url = url[0];
-      bv = await this.getbv(url);
-      if (!bv) return false;
-      return bili.video(e, bv);
-    }
-    if (msg.includes('https://www.bilibili.com/video/')) {
-      bv = msg.match('https://www.bilibili.com/video/([\\w]+)');
-      if (!bv) return false;
-      bv = bv[1];
-      return bili.video(e, bv);
-    }
-    if (msg.includes('https://m.bilibili.com/video/')) {
-      bv = msg.match('https://m.bilibili.com/video/([\\w]+)');
-      if (!bv) return false;
-      bv = bv[1];
-      return bili.video(e, bv);
-    }
-  }
-
-  async getbv(url) {
-    let res = await fetch(url);
-    if (res.status != 200) return false;
-    url = res.url;
-    let bv = url.match('https://www.bilibili.com/video/([\\w]+)');
-    if (!bv) return false;
-    bv = bv[1];
-    return bv;
   }
 
   async ccc() {
@@ -124,7 +81,7 @@ export class bilibili_push extends plugin {
         ];
         for (let group of groups) {
           Bot.pickGroup(group).sendMsg(msg);
-          await common.sleep(lodash.random(10000, 20000));
+          await sleep(lodash.random(10000, 20000));
         }
       }
     }
@@ -149,7 +106,7 @@ export class bilibili_push extends plugin {
       }
     }
     if (!msgs.length) return e.reply('本群当前没有up视频推送任务');
-    msgs = await common.makeForwardMsg(e, msgs, '本群b站视频推送up列表');
+    msgs = await makeForwardMsg(e, msgs, '本群b站视频推送up列表');
     e.reply(msgs);
     return;
   }
