@@ -4,10 +4,10 @@ import lodash from 'lodash';
 import { yaml, makeForwardMsg, sleep } from '#xhh';
 const name_list = {
   gs: '原神',
-  sr: '星铁',
+  sr: '崩铁',
   zzz: '绝区零',
   bh3: '崩坏3',
-  by: '崩坏因缘精灵',
+  by: '崩缘',
   xbgd: '星布谷地'
 }
 //手动触发，只回复当前聊天
