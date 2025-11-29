@@ -239,7 +239,7 @@ export class bilibili extends plugin {
       msg = JSON.parse(msg);
     }
     const url = msg.meta?.detail_1?.qqdocurl || msg.meta?.news?.jumpUrl;
-    if (!url?.includes('b23.tv')) return false;
+    if (!url?.includes('b23.tv') && !url?.includes('bilibili.com')) return false;
 
     let id = await this.getbv(url);
     return id;
