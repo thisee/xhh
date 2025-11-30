@@ -79,7 +79,7 @@ export class bilibili extends plugin {
     }
 
     //视频链接and动态链接
-    if (handleBilibiliLink(e)) return true;
+    if (await handleBilibiliLink(e)) return true;
 
     //引用回复
     if (!e.source && !e.getReply) return false;
@@ -274,7 +274,7 @@ export class bilibili extends plugin {
   }
 }
 
-function handleBilibiliLink(e) {
+async function handleBilibiliLink(e) {
   const urlPatterns = [
     {
       pattern: /https?:\/\/www\.bilibili\.com\/video\/([\w]+)/,
@@ -312,7 +312,7 @@ function handleBilibiliLink(e) {
       let id = match[1];
       if (pattern == '/BV[a-zA-Z0-9]{10}/') id = match[0];
       // 检cd
-      if (checkCooldown(id)) return false;
+      if (await checkCooldown(id)) return false;
 
       if (!handler(id, e)) return false;
 
