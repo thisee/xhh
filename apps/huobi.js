@@ -102,8 +102,8 @@ export class hbzz extends plugin {
                             n++
                             break
                         }
-                        if (n == 5) break //只显示5个
                     }
+                    if (n == 5) break //只显示5个
                 }
                 //以第一个伤害为100%计算后面的伤害比例
                 for (let i = 0; i < 5; i++) {
