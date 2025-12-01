@@ -113,12 +113,14 @@ export class hbzz extends plugin {
             list.push(item)
         }
 
+        if(!list.length) e.reply(`UID:${uid},未找到货币战争记录`)
+
         let num = config().huobi_num
         if (!num || num < 1 || num > 3) num = 2
 
 
         const data_ = {
-            uid: uid,
+            uid,
             qq,
             season_level,
             face,
