@@ -108,14 +108,14 @@ body {
   top: 20px;
   left: 5px;
   height: 50px;
-  padding-top: 10px;
+  padding-top: 5px;
   padding-left: 5px;
   display: flex;
 }
 
 .five {
   position: relative;
-  height: 40px;
+  height: 45px;
   width: 40px;
   margin-right: 10px;
   background: #ffe699;
@@ -125,7 +125,7 @@ body {
 
 .four {
   position: relative;
-  height: 40px;
+  height: 45px;
   width: 40px;
   margin-right: 10px;
   background: #d699ff;
@@ -134,7 +134,7 @@ body {
 }
 
 .n_box .js_box .face {
-  height: 40px;
+  height: 45px;
   width: 40px;
   border-radius: 5px;
   position: relative;
@@ -145,7 +145,7 @@ body {
   top: 30px;
   left: 5px;
   height: 50px;
-  padding-top: 7px;
+  padding-top: 12px;
   padding-left: 5px;
   display: flex;
 }

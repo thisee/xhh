@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ppath}}huobi/huobi.css" />
+</head>
+
+<body {{sys.scale}}>
+    <div class="container" id="container">
+        <div class="onebox">
+            <img class="sr_logo" src="{{ppath}}huobi/imgs/logo.png" />
+            <div class="sr">
+                <div class="title">货币战争</div>
+                <div class="content"><span>UID:</span><span>{{uid}}</span></div>
+                <div class="content"><span>职级:</span><span><img class="face" src="{{face}}">
+                        <div class="level">{{level}}</div>{{name}}
+                    </span></div>
+                <div class="content"><span>晋升等级:</span><span>{{season_level}}级</span></div>
+                <div class="content"><span>货币积分:</span><span>{{weekly_score_cur}}/{{weekly_score_max}}</span></div>
+            </div>
+            <img class="qq" src="https://q1.qlogo.cn/g?b=qq&s=0&nk={{qq}}.jpg">
+        </div>
+
+        <% for(let i=0;i<config_num;i++) {%>
+            <div class="twobox">
+                <div class="_box">
+                    <div class="_box_"><span class="level">A{{list[i].A}}</span><img class="icon"
+                            src='{{list[i].icon}}'>{{list[i].name}}<span class="by">{{list[i].type}}</span></div>
+                    <p class="time">{{list[i].time}}</p>
+                    <p class="rank">{{list[i].rank}}</p>
+                </div>
+                <div class="box">
+                    <div class="t_box">
+                        <!-- 第一个统计项 -->
+                        <div class="stat-item">
+                            <div class="stat-label">小队生命值</div>
+                            <div class="stat-value">
+                                <img class="icon" src="{{ppath}}huobi/imgs/心.png">
+                                <span>{{list[i].hp}}</span>
+                            </div>
+                        </div>
+
+                        <!-- 竖线分隔符 -->
+                        <div class="divider"></div>
+
+                        <!-- 第二个统计项 -->
+                        <div class="stat-item">
+                            <div class="stat-label">总经济</div>
+                            <div class="stat-value">
+                                <img class="icon" src="{{ppath}}huobi/imgs/钱.png">
+                                <span>{{list[i].coin}}</span>
+                            </div>
+                        </div>
+
+                        <!-- 竖线分隔符 -->
+                        <div class="divider"></div>
+
+                        <!-- 第三个统计项 -->
+                        <div class="stat-item">
+                            <div class="stat-label">阵容价值</div>
+                            <div class="stat-value">
+                                <img class="icon" src="{{ppath}}huobi/imgs/钱.png">
+                                <span>{{list[i].lineup_coin}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list_box">
+                        <div class="tag">
+                            <img src="{{ppath}}huobi/imgs/前台.png">
+                            前台
+                        </div>
+                        {{if list[i].front_roles.length>0}}
+                        {{each list[i].front_roles v}}
+                        <div class="js_box">
+                            <div class="js{{v.rarity}}">
+                                {{if v.is_trial}}
+                                <p class="trial">试用</p>
+                                {{/if}}
+                                <img class="role" src="{{v.icon}}">
+                                {{if v.star>0}}
+                                <div class="star">
+                                    <% for(let n=0;n<v.star;n++) { %>
+                                        <img src="{{ppath}}huobi/imgs/star.png">
+                                        <% } %>
+                                </div>
+                                {{/if}}
+                                <div class="card-bg-color-start{{v.rarity}}"></div>
+                            </div>
+                            {{if v.equip_list.length>0}}
+                            <div class="zb">
+                                {{each v.equip_list equip}}
+                                <div class="equip"
+                                    style="background-image: url('{{equip.icon}}'); background-size: cover;">
+                                    {{if equip.name.includes('白昼·')}}
+                                    <img src="{{ppath}}huobi/imgs/白昼边框.png">
+                                    {{else if equip.name.includes('·特权')}}
+                                    <img src="{{ppath}}huobi/imgs/特权边框.png">
+                                    {{else}}
+                                    <img src="{{ppath}}huobi/imgs/边框.png">
+                                    {{/if}}
+                                </div>
+                                {{/each}}
+                            </div>
+                            {{/if}}
+                        </div>
+                        {{/each}}
+                        {{/if}}
+                    </div>
+
+                    <div class="list_box">
+                        <div class="tag">
+                            <img src="{{ppath}}huobi/imgs/后台.png">
+                            后台
+                        </div>
+                        {{if list[i].back_roles.length>0}}
+                        {{each list[i].back_roles v}}
+                        <div class="js_box">
+                            <div class="js{{v.rarity}}">
+                                {{if v.is_trial}}
+                                <p class="trial">试用</p>
+                                {{/if}}
+                                <img class="role" src="{{v.icon}}">
+                                {{if v.star>0}}
+                                <div class="star">
+                                    <% for(let n=0;n<v.star;n++) { %>
+                                        <img src="{{ppath}}huobi/imgs/star.png">
+                                        <% } %>
+                                </div>
+                                {{/if}}
+                                <div class="card-bg-color-start{{v.rarity}}"></div>
+                            </div>
+                            {{if v.equip_list.length>0}}
+                            <div class="zb">
+                                {{each v.equip_list equip}}
+                                <div class="equip"
+                                    style="background-image: url('{{equip.icon}}'); background-size: cover;">
+                                    {{if equip.name.includes('白昼·')}}
+                                    <img src="{{ppath}}huobi/imgs/白昼边框.png">
+                                    {{else if equip.name.includes('·特权')}}
+                                    <img src="{{ppath}}huobi/imgs/特权边框.png">
+                                    {{else}}
+                                    <img src="{{ppath}}huobi/imgs/边框.png">
+                                    {{/if}}
+                                </div>
+                                {{/each}}
+                            </div>
+                            {{/if}}
+                        </div>
+                        {{/each}}
+                        {{/if}}
+                    </div>
+
+                    <div class="b_box">
+                        <img class="jiban" src="{{ppath}}huobi/imgs/羁绊.png">
+                        {{if list[i].trait_list.length>0}}
+                        <div class="flex">
+                            {{each list[i].trait_list v}}
+                            <div class="s_box">
+                                {{v.trait_name}}
+                                <div class="trait_icon"
+                                    style="background-image: url('{{ppath}}huobi/imgs/trait{{v.quality}}.png'); background-size: cover;">
+                                    <img src="{{v.icon}}"><span>{{v.trait_count}}</span>
+                                </div>
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{/if}}
+                    </div>
+
+                    <div class="b_box">
+                        <span class="title">投资环境</span>
+                        {{if list[i].portal_list.length>0}}
+                        <div class="flex">
+                            {{each list[i].portal_list v}}
+                            <div class="s_box">
+                                {{v.name }}
+                                <div class="portal_icon">
+                                    <img src="{{v.icon}}">
+                                </div>
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{/if}}
+                    </div>
+
+
+                    <div class="b_box">
+                        <span class="title">投资策略</span>
+                        {{if list[i].augment_list.length>0}}
+                        <div class="flex">
+                            {{each list[i].augment_list v}}
+                            <div class="s_box">
+                                {{v.name }}
+                                <div class="cl_icon"
+                                    style="background-image: url('{{ppath}}huobi/imgs/cl{{v.quality}}.png'); background-size: cover;">
+                                    <img src="{{v.icon}}">
+                                </div>
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{/if}}
+                    </div>
+
+
+                    <div class="b_box">
+                        <span class="title">伤害统计</span>
+                        {{if list[i].sh_list.length>0}}
+                        {{each list[i].sh_list v}}
+                        <div class="sh_box">
+                            <div class="sh_icon">
+                                <!-- 判断是角色打的伤害，还是羁绊打的伤害 -->
+                                {{if v.role_id}}
+                                <!-- 角色打的伤害 -->
+                                <div class="js_box">
+                                    <div class="js{{v.rarity}}">
+                                        {{if v.is_trial}}
+                                        <p class="trial">试用</p>
+                                        {{/if}}
+                                        <img class="role" src="{{v.icon}}">
+                                        {{if v.star>0}}
+                                        <div class="star">
+                                            <% for(let n=0;n<v.star;n++) { %>
+                                                <img src="{{ppath}}huobi/imgs/star.png">
+                                                <% } %>
+                                        </div>
+                                        {{/if}}
+                                        <div class="card-bg-color-start{{v.rarity}}"></div>
+                                    </div>
+                                    {{if v.equip_list.length>0}}
+                                    <div class="zb">
+                                        {{each v.equip_list equip}}
+                                        <div class="equip"
+                                            style="background-image: url('{{equip.icon}}'); background-size: cover;">
+                                            {{if equip.name.includes('白昼·')}}
+                                            <img src="{{ppath}}huobi/imgs/白昼边框.png">
+                                            {{else if equip.name.includes('·特权')}}
+                                            <img src="{{ppath}}huobi/imgs/特权边框.png">
+                                            {{else}}
+                                            <img src="{{ppath}}huobi/imgs/边框.png">
+                                            {{/if}}
+                                        </div>
+                                        {{/each}}
+                                    </div>
+                                    {{/if}}
+                                </div>
+                                {{else}}
+                                <!-- 羁绊打的伤害  -->
+                                <div class="sh_trait_icon"
+                                    style="background-image: url('{{ppath}}huobi/imgs/trait{{v.quality}}.png'); background-size: cover;">
+                                    <img src="{{v.icon}}"><span>{{v.trait_count}}</span>
+                                </div>
+                                {{/if}}
+                            </div>
+                            <!-- 伤害量化 -->
+                            <div class="sh_l">
+                                {{v.sh}}
+                                <hr
+                                    style="color:#fae100;background-color: #fae100; border-style: solid; height: 2px;width: {{v.sh_l}};">
+                            </div>
+                        </div>
+                        {{/each}}
+                        {{/if}}
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+                </div>
+            </div>
+            <% } %>
+
+
+
+
+
+
+
+
+
+
+
+                <div class="logo">from 小花火</div>
+    </div>
+</body>
+
+</html>

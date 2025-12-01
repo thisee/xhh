@@ -1,0 +1,544 @@
+@font-face {
+    font-family: 'yuan';
+    src: url('../font/yuan.ttf');
+}
+
+@font-face {
+    font-family: 's';
+    src: url('../font/s.ttf');
+}
+
+@font-face {
+    font-family: '主';
+    src: url('../font/主.ttf');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-size: 16px;
+    font-family: 'yuan';
+    width: 800px;
+    transform-origin: 0 0;
+}
+
+.container {
+    /*background-image: url(./imgs/bg.png);*/
+    padding: 10px;
+    background-color: #cae7ee;
+    width: 800px;
+}
+
+.onebox {
+    background-image: url(./imgs/h_bg.jpg);
+    background-size: cover;
+    border-radius: 10px;
+    height: 300px;
+    padding: 20px;
+}
+
+.sr_logo {
+    position: absolute;
+    right: -20px;
+    top: 80px;
+    height: 180px;
+}
+
+.sr {
+    /* background-color: #f8c1d5; */
+    /* height: 200px; */
+    width: 300px;
+}
+
+.sr .title {
+    font-size: 66px;
+    font-family: '主';
+    text-align: left;
+    color: #1ee8c0;
+    /* 字体间距 */
+    letter-spacing: 8px;
+}
+
+.sr .content {
+    display: flex;
+    background: rgba(199, 234, 243, 0.626);
+    /* letter-spacing: 2px; */
+    border-radius: 10px;
+    padding: 10px 5px;
+    margin-left: 20px;
+    margin-right: 30px;
+    box-shadow:
+        0 8px 32px 0 rgba(51, 51, 52, 0.5),
+        inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    /* 首尾布局 */
+    justify-content: space-between;
+}
+
+.sr .content span {
+    display: flex;
+}
+
+.sr .content .face {
+    height: 40px;
+    top: 2px;
+    left: 60px;
+    position: absolute;
+}
+
+.sr .content .level {
+    background: #0e355a;
+    color: rgb(173, 205, 247);
+    text-shadow: #808c8f 0.5px 0.5px 0.5px;
+    margin-right: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 0 2px;
+}
+
+.qq {
+    position: absolute;
+    top: 286px;
+    left: 10px;
+    width: 120px;
+    height: 120px;
+    transform: rotate(-5deg);
+    /* border-radius: 50%; */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #e0e0e0;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+        inset 1px 0 0 rgba(255, 255, 255, 0.8),
+        inset -1px 0 0 rgba(0, 0, 0, 0.1),
+        2px 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+
+.twobox {
+    /* background-image: url(./imgs/bg2.png); */
+    /* background-size: cover; */
+    border-image: url(./imgs/bg.png);
+    border-image-slice: 100 0 100 0 fill;
+    border-image-width: 10em 0em 5em 0em;
+    padding: 50px 20px;
+    color: rgba(240, 248, 255, 0.741);
+}
+
+.twobox ._box {
+    position: relative;
+    padding: 15px 30px;
+    background: linear-gradient(to bottom right, #b3e1ff89, #1e8fff81);
+    /* min-height: 100px; */
+    box-shadow: inset 10px 0 0 0 #0bd3ea;
+}
+
+._box ._box_ {
+    display: flex;
+    font-size: 22px;
+}
+
+._box ._box_ .level {
+    background: #134677;
+    color: rgb(173, 205, 247);
+    text-shadow: #929fa2 0.5px 0.5px 0.5px;
+    margin-right: 5px;
+    border-bottom-right-radius: 10px;
+    padding: 2px 4px;
+    font-size: 18px;
+}
+
+._box ._box_ .icon {
+    height: 30px;
+    margin-right: 3px;
+}
+
+._box ._box_ .by {
+    font-size: 16px;
+    color: #0bd3ea;
+    text-shadow: #4d4e4e 0.5px 0.5px 0.5px;
+    background: rgba(31, 100, 178, 0.229);
+    box-shadow: #525252 1px 1px 1px;
+    padding: 4px;
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+._box .time {
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+._box .rank {
+    position: absolute;
+    font-family: 's';
+    right: 30px;
+    top: 12px;
+    font-size: 48px;
+    color: #edb705;
+    font-weight: 900;
+    text-shadow:
+        0 0 5px rgba(255, 215, 0, 0.7),
+        0 0 10px rgba(255, 215, 0, 0.5),
+        0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.twobox .box {
+    box-shadow: inset 4px 4px 16px rgba(0, 0, 0, 0.466);
+    padding: 10px 30px;
+}
+
+.box .t_box {
+    box-shadow: inset 4px 4px 16px rgba(0, 0, 0, 0.586);
+    height: 80px;
+    padding: 10px 50px;
+    margin-bottom: 10px;
+    background: #6a939a;
+    display: flex;
+    justify-content: space-around;
+    /* 均匀分布三个项目 */
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #ffffff;
+    padding: 0 20px;
+}
+
+.stat-label {
+    font-size: 20px;
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+
+.stat-value {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
+/* 竖线分隔符 */
+.divider {
+    width: 1px;
+    height: 60px;
+    background-color: rgba(174, 168, 168, 0.821);
+}
+
+.stat-value .icon {
+    width: 20px;
+}
+
+.list_box {
+    border-top: 0.5px solid rgba(255, 255, 255, 0.248);
+    min-height: 20px;
+    position: relative;
+    margin-top: 30px;
+    padding: 10px 0;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.list_box .tag {
+    display: flex;
+    position: absolute;
+    top: -22px;
+    left: -2px;
+    padding: 2px;
+    text-shadow: #347777 0.5px 0.5px 0.5px;
+}
+
+.list_box .tag img {
+    height: 20px;
+    margin-right: 5px;
+}
+
+.js_box {
+    width: 89px;
+}
+
+.js_box .js1 {
+    position: relative;
+    background: #CDCDD8;
+    box-shadow: 1px 1px 4px rgba(27, 14, 1, 1);
+}
+
+.js_box .js2 {
+    position: relative;
+    background: #6EE0B6;
+    box-shadow: 1px 1px 4px rgba(27, 14, 1, 1);
+}
+
+.js_box .js3 {
+    position: relative;
+    background: #73B0F4;
+    box-shadow: 1px 1px 4px rgba(27, 14, 1, 1);
+}
+
+.js_box .js4 {
+    position: relative;
+    background: #c197ff;
+    box-shadow: 1px 1px 4px rgba(27, 14, 1, 1);
+}
+
+.js_box .js5 {
+    position: relative;
+    background: #FFCF70;
+    box-shadow: 1px 1px 4px rgba(27, 14, 1, 1);
+}
+
+.card-bg-color-start1 {
+    background: rgba(140, 140, 140, 1);
+    height: 6px;
+    width: 88px;
+    position: absolute;
+    bottom: 0px;
+    box-shadow: 0px -2px 4px rgba(27, 14, 1, 1);
+}
+
+.card-bg-color-start2 {
+    background: rgba(94, 156, 150, 1);
+    height: 6px;
+    width: 88px;
+    position: absolute;
+    bottom: 0px;
+    box-shadow: 0px -2px 4px rgba(27, 14, 1, 1);
+}
+
+.card-bg-color-start3 {
+    background: rgba(113, 128, 210, 1);
+    height: 6px;
+    width: 88px;
+    position: absolute;
+    bottom: 0px;
+    box-shadow: 0px -2px 4px rgba(27, 14, 1, 1);
+}
+
+.card-bg-color-start4 {
+    background: rgba(155, 123, 218, 1);
+    height: 6px;
+    width: 88px;
+    position: absolute;
+    bottom: 0px;
+    box-shadow: 0px -2px 4px rgba(27, 14, 1, 1);
+}
+
+.card-bg-color-start5 {
+    background: rgba(203, 158, 96, 1);
+    height: 6px;
+    width: 88px;
+    position: absolute;
+    bottom: 0px;
+    box-shadow: 0px -2px 4px rgba(27, 14, 1, 1);
+}
+
+.trial {
+    padding: 2px 4px;
+    font-size: 10px;
+    background-color: #ee5289;
+    color: #ffffff;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    border-bottom-right-radius: 10px;
+}
+
+.role {
+    height: 99px;
+    width: 89px;
+}
+
+.star {
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    bottom: 6px;
+    width: 89px;
+    background: rgba(68, 55, 43, 0.1);
+}
+
+.star img {
+    height: 24px;
+}
+
+.js_box .zb {
+    display: flex;
+    gap: 4px;
+    margin-top: 5px;
+    justify-content: center;
+}
+
+.js_box .zb .equip {
+    width: 27px;
+    height: 27px;
+}
+
+.js_box .zb .equip img {
+    width: 27px;
+}
+
+
+
+
+
+.b_box {
+    position: relative;
+    background: #0e295a;
+    box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.586);
+    padding: 10px 20px 15px 20px;
+    margin-bottom: 20px;
+}
+
+.jiban {
+    height: 50px;
+    position: relative;
+    top: -10px;
+    left: -20px;
+    margin-bottom: -10px;
+}
+
+.b_box .flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 30px;
+    margin-top: 10px;
+}
+
+.flex .s_box {
+    border-image: url(./imgs/bg4.png);
+    border-image-slice: 0 1 0 1 fill;
+    /* border-image-width: 0px; */
+    padding: 0px 40px 2px 30px;
+    font-size: 12px;
+    position: relative;
+}
+
+.s_box .trait_icon {
+    position: absolute;
+    top: -8px;
+    left: -5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.s_box .trait_icon img {
+    width: 18px;
+}
+
+.s_box .trait_icon span {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    padding: 0px 0.2px 6px 3px;
+    /* text-align: center; */
+    bottom: -2px;
+    left: 18px;
+    font-size: 10px;
+    background: #000000;
+    border-radius: 50%;
+    /* border: #fffefe 0.01px solid; */
+}
+
+
+.b_box .title {
+    font-size: 22px;
+}
+
+.portal_icon {
+    background: url(./imgs/投资环境.png);
+    background-size: cover;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: -4px;
+    left: -3px;
+}
+
+.portal_icon img {
+    width: 22px;
+}
+
+.cl_icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    top: -8px;
+    left: -5px;
+}
+
+.cl_icon img {
+    width: 24px;
+}
+
+
+.sh_box {
+    display: flex;
+    border: none;
+}
+
+.sh_box .sh_icon {
+    padding-top: 20px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    border-right: #77b1b1 1px solid;
+}
+
+.sh_trait_icon {
+    width: 89px;
+    height: 89px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sh_trait_icon img {
+    width: 58px;
+}
+
+.sh_trait_icon span {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    /* padding: 0px 0px 0px 0px; */
+    text-align: center;
+    /* text-align: center; */
+    bottom: 2px;
+    left: 54px;
+    font-size: 24px;
+    background: #000000;
+    border-radius: 50%;
+}
+
+.sh_l {
+    padding-top: 60px;
+    width: 600px;
+}
+
+.logo {
+    font-size: 18px;
+    text-align: center;
+    text-shadow: 0.5px 0.5px 1px #000000;
+    padding-left: 20px;
+    font-weight: bolder;
+    color: #f8c1d5;
+}
