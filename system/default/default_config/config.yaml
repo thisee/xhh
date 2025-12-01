@@ -33,6 +33,9 @@ gs_logs: true
 #星铁历史卡池功能: true开，false关
 sr_logs: true
 
+#星铁货币战争战绩显示数量：填数字 (取1-3，避免图太长)
+huobi_num: 2
+
 #小花火图鉴是否启用？：true是，false否 (优先级设置在other.yaml文件)
 wiki: false
 
