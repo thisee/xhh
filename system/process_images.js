@@ -7,6 +7,7 @@ import fetch from 'node-fetch';
 import sharp from 'sharp'
 import fs from 'fs';
 import common from '../../../lib/common/common.js';
+import { match } from 'assert';
 
 const _path = process.cwd();
 
@@ -59,7 +60,7 @@ async function splitImage(inputPath, chunkHeight = 12000) {
 
   // 逐块切割图片
 
-  chunkHeight = height / totalChunks; // 重新计算每块的高度，使其能够均匀切割
+  chunkHeight = Math.floor(height / totalChunks); // 重新计算每块的高度，使其能够均匀切割(需要整数)
 
   for (let i = 0; i < totalChunks; i++) {
     const startY = i * chunkHeight;
