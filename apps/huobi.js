@@ -1,5 +1,5 @@
 import { api, mhy, render, config } from '#xhh';
-
+import NoteUser from '../../genshin/model/mys/NoteUser.js';
 
 export class hbzz extends plugin {
     constructor(e) {
@@ -10,7 +10,7 @@ export class hbzz extends plugin {
             priority: 123,
             rule: [
                 {
-                    reg: '#*(星铁)?货币战争$',
+                    reg: '^#*(星铁)?货币战争$',
                     fnc: 'hb',
                 }
             ]
@@ -18,11 +18,23 @@ export class hbzz extends plugin {
     }
 
     async hb(e) {
-        //获取uid
-        const uid = e.user.getUid('sr');
-        //获取ck
-        const mys = e.user.getMysUser('sr');
-        const ck = mys.ck;
+        let qq, uid, ck
+        
+        if (e.message.length > 1) {
+            for (const message of e.message) {
+                if (message.type == 'at') qq = message.qq
+            }
+        }
+
+        if (qq) {
+            uid = (await NoteUser.create(qq)).getUid('sr');
+            ck = (await NoteUser.create(qq)).getMysUser('sr').ck
+        } else {
+            uid = e.user.getUid('sr');
+            const mys = e.user.getMysUser('sr');
+            ck = mys.ck;
+        }
+
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
 
         //获取headers
@@ -43,8 +55,6 @@ export class hbzz extends plugin {
         data = res.data
 
         if (!data?.grid_fight_brief?.season_level) return false
-        //qq
-        const qq = e.user_id
         //晋升等级
         const season_level = data.grid_fight_brief.season_level
         //职级
@@ -113,7 +123,7 @@ export class hbzz extends plugin {
             list.push(item)
         }
 
-        if(!list.length) e.reply(`UID:${uid},未找到货币战争记录`)
+        if (!list.length) return e.reply(`UID:${uid},未找到货币战争记录`)
 
         let num = config().huobi_num
         if (!num || num < 1 || num > 3) num = 2
