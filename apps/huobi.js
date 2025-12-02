@@ -33,6 +33,7 @@ export class hbzz extends plugin {
             uid = e.user.getUid('sr');
             const mys = e.user.getMysUser('sr');
             ck = mys.ck;
+            qq = e.user_id
         }
 
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
