@@ -22,7 +22,7 @@ export class hbzz extends plugin {
         
         if (e.message.length > 1) {
             for (const message of e.message) {
-                if (message.type == 'at') qq = message.qq
+                if (message.type == 'at' && message.qq != Number(Bot.uin)) qq = message.qq
             }
         }
 
