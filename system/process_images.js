@@ -7,7 +7,6 @@ import fetch from 'node-fetch';
 import sharp from 'sharp'
 import fs from 'fs';
 import common from '../../../lib/common/common.js';
-import { match } from 'assert';
 
 const _path = process.cwd();
 
