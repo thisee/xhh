@@ -35,8 +35,11 @@ export class hbzz extends plugin {
             ck = mys.ck;
             qq = e.user_id
         }
-
+        
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
+
+        //用于匹配用户设备信息
+        e.user_id = qq
 
         //获取headers
         let headers = mhy.getHeaders(e, ck);
