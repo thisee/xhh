@@ -14,12 +14,12 @@ const _path = process.cwd();
 const outputDir =_path+'/plugins/xhh/temp/bili/'
 
 /**
- * 按照高度阈值(12000像素)均匀切割图片
+ * 按照高度阈值(16800像素)均匀切割图片
  * @param {string} inputPath 输入图片路径
  * @param {number} chunkHeight 每块的高度，总长除以12000取整后即为切割块数，总长再除以块数得到每块高度，然后进行切割
  * @returns {Promise<Array<string>>} 返回切割后的图片路径数组
  */
-async function splitImage(inputPath, chunkHeight = 12000) {
+async function splitImage(inputPath, chunkHeight = 16800) {
   // 获取图片元数据
   let metadata
   if (inputPath.startsWith('http')) metadata = await (await fetch(inputPath)).arrayBuffer().then(b => sharp(b).metadata())
