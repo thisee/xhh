@@ -58,7 +58,8 @@ export class hbzz extends plugin {
 
         data = res.data
 
-        if (!data?.grid_fight_brief?.season_level) return false
+        if (!data?.grid_fight_brief?.season_level) return logger.mark(`UID${uid},未找到货币战争数据`)
+            
         //晋升等级
         const season_level = data.grid_fight_brief.season_level
         //职级
@@ -71,6 +72,7 @@ export class hbzz extends plugin {
         //战绩记录
         const grid_fight_archive_list = data.grid_fight_archive_list
         const list = []
+        if(grid_fight_archive_list.length) {
         for (const k of grid_fight_archive_list) {
             const item = {}
             //A几
@@ -126,8 +128,7 @@ export class hbzz extends plugin {
             }
             list.push(item)
         }
-
-        if (!list.length) return e.reply(`UID:${uid},未找到货币战争记录`)
+    }
 
         let num = config().huobi_num
         if (!num || num < 1 || num > 3) num = 2

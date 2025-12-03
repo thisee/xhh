@@ -23,6 +23,7 @@
         </div>
 
         <% for(let i=0;i<config_num;i++) {%>
+            {{if list[i]}}
             <div class="twobox">
                 <div class="_box">
                     <div class="_box_"><span class="level">A{{list[i].A}}</span><img class="icon"
@@ -277,6 +278,7 @@
 
                 </div>
             </div>
+            {{/if}}
             <% } %>
 
 
