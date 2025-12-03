@@ -1,4 +1,4 @@
-import { yaml, makeForwardMsg } from '#xhh';
+import { yaml, makeForwardMsg, config } from '#xhh';
 
 let xx = '小花火设置';
 let path = './plugins/xhh/config/config.yaml';
@@ -12,7 +12,7 @@ const name_list = {
   xbgd: '星布谷地'
 }
 
-export class config extends plugin {
+export class Config extends plugin {
   constructor() {
     super({
       name: '[小花火]配置',
@@ -26,12 +26,12 @@ export class config extends plugin {
           permission: 'master',
         },
         {
-          reg: `^#*${xx}(塔罗牌|自动更新|自动视频|星铁攻略(图)?|b站|B站|哔哩哔哩|bili|bilibili)?(开启|关闭)((查)?委托前缀)?$`,
+          reg: `^#*${xx}(塔罗牌|自动更新|星铁攻略(图)?|b站|B站|哔哩哔哩|bili|bilibili)?(开启|关闭)((查)?委托前缀)?$`,
           fnc: 'f2',
           permission: 'master',
         },
         {
-          reg: `^#*${xx}((塔罗牌(每日)?次数)|((图片)?渲染(精度)?))(\\d+)$`,
+          reg: `^#*${xx}((塔罗牌(每日)?次数)|((图片)?渲染(精度)?)|自动视频)(\\d+)$`,
           fnc: 'f3',
           permission: 'master',
         },
@@ -40,6 +40,11 @@ export class config extends plugin {
           fnc: 'f6',
           permission: 'master',
         },
+        {
+          reg: '^#*(小花火|xhh)*(设置)*播报群列表$',
+          fnc: 'list',
+          permission: 'master',
+        }
       ],
     });
   }
@@ -55,7 +60,6 @@ export class config extends plugin {
       委托前缀: 'wt',
       'b站|B站|哔哩哔哩|bili|bilibili': 'bilibili',
       自动更新: 'update',
-      自动视频: 'dow',
     };
 
     const type = e.msg.replace(CLEAN_REGEX, '');
@@ -77,12 +81,12 @@ export class config extends plugin {
 
   async f3(e) {
     let num = e.msg.replace(
-      /#|小花火设置|渲染|精度|图片|塔罗牌|次数|每日/g,
+      /#|小花火设置|渲染|精度|图片|塔罗牌|自动视频|次数|每日/g,
       ''
     );
     if (e.msg.includes('塔罗牌')) await yaml.set(path, 'tlpcs', Number(num));
-    else if (e.msg.includes('渲染'))
-      await yaml.set(path, 'img_quality', Number(num));
+    else if (e.msg.includes('渲染')) await yaml.set(path, 'img_quality', Number(num));
+    else if (e.msg.includes('自动视频')) await yaml.set(path, 'dow_size', Number(num));
     this.sz(e);
   }
 
@@ -93,7 +97,7 @@ export class config extends plugin {
       group_id = e.group_id;
     }
     group_id = Number(group_id);
-    let groups = (await yaml.get(path)).groups;
+    let groups = (config()).groups;
     if (!groups) groups = []
     if (e.msg.includes('添加')) {
       try {
@@ -110,41 +114,36 @@ export class config extends plugin {
       if (!groups.includes(group_id))
         return e.reply('这个群不在播报群列表中呀！！！', true);
       await yaml.del(path, 'groups', group_id);
+      e.reply('已删除播报群'+group_id, true);
     }
-    this.sz(e);
+    this.list(e);
   }
 
-  // async f8(e){
-  // let cd=await (/\d+/).exec(e.msg)
-  // await yaml.set(path,'mbCD',Number(cd))
-  // this.sz(e)
-  // }
 
-  async sz(e) {
-    let data = await yaml.get(path);
+  async list(e) {
+    let msg = this.group_msg(e);
+    if (!msg) return false
+    msg = await makeForwardMsg(e, [msg], '小花火播报群列表');
+    e.reply(msg);
+    return
+  }
+
+
+  group_msg(e) {
+    const data = config()
+    if (!data.groups?.length || !Array.isArray(data.groups)) {
+      if (e) {
+        e.reply('暂无播报群');
+        return false;
+      }
+      else data.groups = []
+    }
     let msg = [];
-    msg.push(
-      [
-        '--------小花火设置状态--------',
-        `塔罗牌：${data.tlp ? '已开启' : '已关闭'}`,
-        `塔罗牌每日次数：${data.tlpcs}次`,
-        `星铁攻略：${data.srstrategy ? '已开启' : '已关闭'}`,
-        `查委托必须带#前缀：${data.wt ? '已开启' : '已关闭'}`,
-        `b站相关功能：${data.bilibili ? '已开启' : '已关闭'}`,
-        `b站视频小于30MB自动下载：${data.dow ? '已开启' : '已关闭'}`,
-        `凌晨3:30自动更新xhh：${data.update ? '已开启' : '已关闭'}`,
-        `图片渲染精度：${data.img_quality}%`,
-        '米哈游视频播报群号：\n',
-      ].join('\n')
-    );
-
-    if (!data.groups) data.groups = []
-
     for (let group of data.groups) {
       try {
         Bot.pickGroup(group, true);
       } catch (err) {
-        await yaml.del(path, 'groups', group);
+        yaml.del(path, 'groups', group);
         logger.info(`检测到群号${group}已失效，已经自动删除`);
         continue;
       }
@@ -153,7 +152,7 @@ export class config extends plugin {
         Bot.pickGroup(group, true).group_name ||
         Bot.pickGroup(group, true).name;
       if (gname == undefined) {
-        await yaml.del(path, 'groups', group);
+        yaml.del(path, 'groups', group);
         logger.info(`检测到群号${group}已失效，已经自动删除`);
         continue;
       }
@@ -164,6 +163,32 @@ export class config extends plugin {
         group.toString(),
         '\n' + '订阅：' + dy(group),
       );
+    }
+    return msg
+  }
+
+  async sz(e) {
+    let data = config();
+    let msg = [];
+    msg.push(
+      [
+        '--------小花火设置状态--------',
+        `塔罗牌：${data.tlp ? '已开启' : '已关闭'}`,
+        `塔罗牌每日次数：${data.tlpcs}次`,
+        `星铁攻略：${data.srstrategy ? '已开启' : '已关闭'}`,
+        `查委托必须带#前缀：${data.wt ? '已开启' : '已关闭'}`,
+        `b站相关功能：${data.bilibili ? '已开启' : '已关闭'}`,
+        `b站视频小于多少MB自动下载：${data.dow_size}MB`,
+        `凌晨3:30自动更新xhh：${data.update ? '已开启' : '已关闭'}`,
+        `图片渲染精度：${data.img_quality}%`,
+        '米哈游视频播报群号：\n',
+      ].join('\n')
+    );
+
+    if (e.isGroup) {
+      msg.push('(为保护隐私，请单独发送：播报群列表)')
+    } else {
+      msg = [...msg, ...this.group_msg()]
     }
     let msg_ = [
       '--------设置指令列表--------',
@@ -186,9 +211,8 @@ export class config extends plugin {
       '小花火设置b站开启',
       '小花火设置b站关闭\n',
 
-      '6.b站视频小于30MB自动下载：',
-      '小花火设置自动视频开启',
-      '小花火设置自动视频关闭\n',
+      '6.b站视频小于多少MB自动下载：',
+      '小花火设置自动视频(+数字(最大90))\n',
 
       '7.小花火自动更新：',
       '小花火设置自动更新开启',
@@ -207,7 +231,12 @@ export class config extends plugin {
     msg = await makeForwardMsg(e, msg, '小花火设置');
     return e.reply(msg);
   }
+
 }
+
+
+
+
 
 
 

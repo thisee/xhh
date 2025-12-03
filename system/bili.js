@@ -4,6 +4,7 @@ import { QR, render, yaml, sleep, makeForwardMsg, config, splitImage } from '#xh
 import moment from 'moment';
 import crypto from 'node:crypto';
 import md5 from 'md5';
+import { execSync } from 'child_process';
 
 let path = './plugins/xhh/config/config.yaml';
 let path_ = './plugins/xhh/config/bili_group.yaml';
@@ -13,7 +14,27 @@ let headers = {
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
   Referer: 'https://www.bilibili.com/',
 };
+
 let Download = false;
+
+const qn_list = {
+  0: 16,
+  1: 32,
+  2: 64,
+  3: 80,
+  4: 112,
+  5: 120
+}
+
+const hz = {
+  16: '360p',
+  32: '480p',
+  64: '720P',
+  80: '1080p',
+  112: '1080P+ 高码率',
+  120: '4K 超清'
+}
+
 class bili {
   //扫码登录
   async sm(e) {
@@ -37,6 +58,7 @@ class bili {
     let re = await e.reply(['请在120秒内使用bilibili扫码登录', img], true, {
       recallMsg: 120,
     });
+    if (re.data?.message_id) re.message_id = re.data.message_id;
     //扫码状态
     let zt = false,
       s_ing;
@@ -60,6 +82,7 @@ class bili {
       let data = (await res.json()).data;
       if (data.code == 86090 && zt == false) {
         s_ing = await e.reply('二维码已被扫，请确定登录！');
+        if (s_ing.data?.message_id) s_ing.message_id = s_ing.data.message_id;
         e_.recallMsg(re.message_id);
         zt = true;
       }
@@ -237,7 +260,7 @@ class bili {
     let san = await this.san_(bv);
     if (!up_data || !san) return false;
 
-    let list_num = (await yaml.get(path)).list_num || 10;
+    let list_num = config().list_num || 10;
     let pls = (await this.pl(bv)).slice(0, list_num);
 
     let plsl = zh(data.stat.reply);
@@ -286,17 +309,51 @@ class bili {
       is_sc: san.favoured,
       pl_type: 1,
     };
+    //视频画质
+    let qn = config().qn
+    qn = qn_list[qn] || 80;
 
-    let dow_ = (await yaml.get(path)).dow; //是否开启自动下载视频
-    let url = `https://api.bilibili.com/x/player/wbi/playurl?bvid=${bv}&cid=${cid}&qn=80&fnval=1&fourk=0&platform=html5&high_quality=1`;
+    const params = {
+      bvid: bv,
+      cid,
+      fnval: 4048,
+      fourk: 1,
+      fnver: 0,
+    };
     headers = await this.getHeaders();
+    if (!headers) return false
+    let query = await WBI(headers, params);
+    let url = `https://api.bilibili.com/x/player/wbi/playurl?` + query;
     let res = await (await fetch(url, { method: 'get', headers })).json();
     if (res.code == 0) {
-      data['size'] = Math.ceil(res.data.durl[0].size / 1048576) + 'MB';
+      for (let v of res.data.dash.video) {
+        if (v.id == qn || (qn == 120 && v.id == 112) || (qn == 120 && v.id == 80) || (qn == 112 && v.id == 80)) {
+          url = v.baseUrl;
+          logger.mark('[小花火bili]选中画质：' + hz[v.id])
+          break;
+        }
+      }
+      const url1 = res.data.dash.audio[0].baseUrl;
+
+      //视频大小
+      const sp = await fetch(url, { method: 'get', headers })
+      const sp_size = parseInt(sp.headers.get('Content-Length'), 10)
+      logger.mark('[小花火bili]视频大小：' + sp_size)
+
+      //音频大小
+      const yp = await fetch(url1, { method: 'get', headers })
+      const yp_size = parseInt(yp.headers.get('Content-Length'), 10)
+      logger.mark('[小花火bili]音频大小：' + yp_size)
+
+      //总大小（实际有误差，但忽略不计）
+      const size = sp_size + yp_size
+      logger.mark('[小花火bili]总大小：约' + ((sp_size + yp_size) / 1048576) + 'MB')
+
+      data['size'] = Math.ceil(size / 1048576) + 'MB';
       //dow是否需要下载视频，_re是否需要回复链接消息
       if (!config().b_lj) _re = false //链接设置
-      if (dow && dow_) {
-        this.Download_(e, bv, res, _re);
+      if (dow) {
+        this.Download_(e, bv, res, _re, size);
       }
     }
     let img = await render('bilibili/video', data, { e, ret: false });
@@ -314,8 +371,8 @@ class bili {
   }
 
   //处理自动下载视频
-  async Download_(e, bv, res, _re) {
-    const kg = res.data.durl[0].size < 31457280 ? true : false; //判断视频大小是否小于30MB
+  async Download_(e, bv, res, _re, size) {
+    const kg = Number(size / 1048576) < Number(config().dow_size) //判断视频大小是否小于配置的自动下载大小
     let video;
     if (kg) video = await this.Download(e, bv, false, res, true);
     let msgs;
@@ -637,7 +694,7 @@ class bili {
     let pinglun = basic
       ? await this.pl(basic.comment_id_str, basic.comment_type)
       : await this.pl(desc_.rid, 11);
-    let list_num = (await yaml.get(path)).list_num || 10;
+    let list_num = config().list_num || 10;
     pinglun = pinglun.slice(0, list_num);
 
     if (_pl_) {
@@ -1154,7 +1211,7 @@ class bili {
 
   //拿收藏夹id
   async media_id() {
-    let n = (await yaml.get(path)).mlid_n || 1;
+    let n = config().mlid_n || 1;
     const ck = await this.getck();
     let mid = (await this.xx(ck)).mid; //用户id
     headers = await this.getHeaders();
@@ -1166,43 +1223,101 @@ class bili {
   }
 
   //下载视频
+  // vo：是否直接发送视频，send：是否回复消息，res：传入已有的视频信息
   async Download(e, bv, send = true, res, vo) {
     if (Download) {
       if (send) e.reply('有其他视频在下载中，请等待！', true);
       return false;
     }
-    // const  n = await (/\d+/).exec(e.msg) || 0
-    const cid = await this.player(bv, 0);
-    // const qn= (await yaml.get(path)).qn==0 ? 80 : (await yaml.get(path)).qn==1 ? 112 : 116
-    const qn = 80;
-    let url = `https://api.bilibili.com/x/player/wbi/playurl?bvid=${bv}&cid=${cid}&qn=${qn}&fnval=1&fourk=0&platform=html5&high_quality=1`;
-    headers = await this.getHeaders();
-    if (!headers) return false;
-    if (!res) res = await (await fetch(url, { method: 'get', headers })).json();
-    if (res.code != 0) return logger.error(res.message);
-    if (res.data.durl[0].size > 31457280 * 3) {
+    const headers = await this.getHeaders();
+    if (!headers) return false
+
+    if (!res) {
+      // const  n = await (/\d+/).exec(e.msg) || 0
+      const cid = await this.player(bv, 0);
+      const params = {
+        bvid: bv,
+        cid,
+        fnval: 4048,
+        fourk: 1,
+        fnver: 0,
+      };
+
+      let query = await WBI(headers, params);
+      const url = `https://api.bilibili.com/x/player/wbi/playurl?` + query;
+
+      res = await (await fetch(url, {
+        method: 'get',
+        headers
+      })).json();
+      if (res.code != 0) return logger.error(res.message);
+    }
+
+
+    //画质, 视频大小
+    let qn = config().qn
+    qn = qn_list[qn] || 80;
+    let url
+    for (let v of res.data.dash.video) {
+      if (v.id == qn || (qn == 120 && v.id == 112) || (qn == 120 && v.id == 80) || (qn == 112 && v.id == 80)) {
+        url = v.baseUrl;
+        break;
+      }
+    }
+    const url1 = res.data.dash.audio[0].baseUrl;
+    //视频大小
+    const sp = await fetch(url, { method: 'get', headers })
+    const sp_size = parseInt(sp.headers.get('Content-Length'), 10)
+    //音频大小
+    const yp = await fetch(url1, { method: 'get', headers })
+    const yp_size = parseInt(yp.headers.get('Content-Length'), 10)
+    //总大小（实际有误差，但忽略不计）
+    const size = sp_size + yp_size
+
+    if (size > 31457280 * 3) {
       if (send) e.reply('视频大于90MB,下不了一点！！！');
       return false;
     }
-    url = res.data.durl[0].url;
+
     Download = true;
     let re;
     if (send)
       re = await e.reply(
-        `开始下载bilibili视频，视频大小约为${Math.ceil(res.data.durl[0].size / 1048576)}MB，请稍等！`,
+        `开始下载bilibili视频，视频大小约为${Math.ceil(size / 1048576)}MB，请稍等！`,
         true
       );
-    const data = Buffer.from(await (await fetch(url)).arrayBuffer());
-    const v_path = './plugins/xhh/temp/bili/temp.mp4';
+    if (re?.data?.message_id) re.message_id = re.data.message_id
+
+    //下载ing
+    const v_path = './plugins/xhh/temp/bili/video.m4s'
+    const v_path1 = './plugins/xhh/temp/bili/audio.m4s'
+    const sp_path = './plugins/xhh/temp/bili/temp.mp4'
     await this.temp();
+    logger.mark('[小花火bili]:开始下载视频和音频');
+    const data = Buffer.from(await sp.arrayBuffer());
+    const data1 = Buffer.from(await yp.arrayBuffer());
     fs.writeFileSync(v_path, data);
+    fs.writeFileSync(v_path1, data1);
+    logger.mark('[小花火bili]:视频和音频下载完成');
+    logger.mark('[小花火bili]:合并视频和音频中');
+    execSync(`cd plugins/xhh/temp/bili/ && ffmpeg -i video.m4s -i audio.m4s -c:v copy -c:a copy -f mp4 -y -loglevel error temp.mp4`);
+    logger.mark('[小花火bili]:视频和音频合并完成');
     let v_re,
-      video = segment.video(v_path);
+      video = segment.video(sp_path);
     if (!vo) v_re = await e.reply(video);
-    //视频太大，发出去容易报错，故撤回重发一次
-    if (res.data.durl[0].size > 31457280) {
+    if (v_re?.data?.message_id) v_re.message_id = v_re.data.message_id
+
+    // icqq0.6.10：视频太大，发出去容易失效，故撤回重发一次
+    if (
+      size > 31457280 &&
+      (
+        (Bot.version?.name + Bot.version?.version) == 'ICQQv0.6.10' ||
+        (!Bot[Number(Bot.uin)].version && (Bot.pkg?.name + Bot.pkg?.version).includes('icqq0.6.10'))
+      )
+    ) {
       if (e.isGroup) e.group.recallMsg(v_re.message_id);
       else e.friend.recallMsg(v_re.message_id);
+      sleep(500)
       await e.reply(video);
     }
     if (send) {
@@ -1213,6 +1328,7 @@ class bili {
     if (vo) return video;
     return true;
   }
+
 
   //获取视频cid
   async player(bv, n = 0) {
@@ -1333,7 +1449,7 @@ class bili {
   }
   //获取ck
   async getck() {
-    let ck = (await yaml.get(path)).bili_ck;
+    let ck = config().bili_ck;
     if (!ck) {
       logger.mark('未配置b站ck，请发送：小花火b站登录');
       return false;
@@ -1380,7 +1496,7 @@ class bili {
     if (!headers) return false;
     let ck = await this.getck();
     let csrf = ck.match('bili_jct=([\\w]+);')[1];
-    let refresh_token = (await yaml.get(path)).refresh_token;
+    let refresh_token = config().refresh_token;
     //检查是否需要刷新ck
     let url =
       'https://passport.bilibili.com/x/passport-login/web/cookie/info?csrf=' +

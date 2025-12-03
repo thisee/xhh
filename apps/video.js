@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import common from '../../../lib/common/common.js';
 import lodash from 'lodash';
-import { yaml, makeForwardMsg, sleep } from '#xhh';
+import { yaml, makeForwardMsg, sleep, config } from '#xhh';
 const name_list = {
   gs: '原神',
   sr: '崩铁',
@@ -20,9 +20,9 @@ export class video extends plugin {
       priority: 1,
       rule: [
         {
-          reg: '#最新视频$',
+          reg: '^#最新视频$',
           fnc: 'video',
-        },
+        }
       ],
     });
     this.task = {
@@ -45,8 +45,8 @@ export class video extends plugin {
 }
 
 async function vid(e) {
-  let groups = (await yaml.get('./plugins/xhh/config/config.yaml')).groups;
-  if (!groups.length && !e?.reply) return true;
+  let groups = config().groups;
+  if ((!groups?.length || !Array.isArray(groups)) && !e?.reply) return true;
   //原神，星铁，绝区零
   let urls = {
     gs: 75276539,
