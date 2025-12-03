@@ -1274,8 +1274,8 @@ class bili {
     //总大小（实际有误差，但忽略不计）
     const size = sp_size + yp_size
 
-    if (size > 31457280 * 3) {
-      if (send) e.reply('视频大于90MB,下不了一点！！！');
+    if (size > 103809024) {
+      if (send) e.reply('视频大于99MB,下不了一点！！！');
       return false;
     }
 
