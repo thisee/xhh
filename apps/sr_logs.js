@@ -64,7 +64,6 @@ export class sr_logs extends plugin {
       for (let v of srlogs) {
         if (v.ver.includes('联动')) {
           data.push(this.v_(v));
-          break;
         }
       }
     } else if (e.msg.includes('*') || e.msg.includes('星铁')) {
@@ -73,7 +72,6 @@ export class sr_logs extends plugin {
         for (let v of srlogs) {
           if (v.ver == name) {
             data.push(this.v_(v));
-            break;
           }
         }
       } else {
@@ -82,7 +80,6 @@ export class sr_logs extends plugin {
             //根据版本
             data.push(this.v_(v));
           }
-          if (data.length == 2) break;
         }
       }
       name = name.replace(/上半|下半/g, '');
