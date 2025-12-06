@@ -327,7 +327,7 @@ class bili {
     let res = await (await fetch(url, { method: 'get', headers })).json();
     if (res.code == 0) {
       for (let v of res.data.dash.video) {
-        if (v.id == qn || (qn == 120 && v.id == 112) || (qn == 120 && v.id == 80) || (qn == 112 && v.id == 80)) {
+        if (v.id <= qn) {
           url = v.baseUrl;
           logger.mark('[小花火bili]选中画质：' + hz[v.id])
           break;
@@ -1259,7 +1259,7 @@ class bili {
     qn = qn_list[qn] || 80;
     let url
     for (let v of res.data.dash.video) {
-      if (v.id == qn || (qn == 120 && v.id == 112) || (qn == 120 && v.id == 80) || (qn == 112 && v.id == 80)) {
+      if (v.id <= qn) {
         url = v.baseUrl;
         break;
       }
