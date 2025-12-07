@@ -18,13 +18,19 @@ export class picture extends plugin {
   async lj(e, gq = false) {
     let imageMessages = [];
     let source;
+    if (!e.source && !e.getReply) return false;
     if (e.source) {
-      if (e.group?.getChatHistory) {
-        // 支持at图片添加，以及支持后发送
-        source = (await e.group.getChatHistory(e.source?.seq, 1)).pop();
-      } else if (e.friend?.getChatHistory) {
-        source = (await e.friend.getChatHistory(e.source?.time + 1, 1)).pop();
+      if (e.source.message_id) {
+        try {
+          source = await Bot.getMsg(e.source.message_id);
+        } catch (error) {
+          source = await e.bot.getMsg(e.source.message_id);
+        }
+      } else {
+        source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
       }
+    } else {
+      source = await e.getReply();  //无e.source的情况
     }
     if (source) {
       for (let val of source.message) {
