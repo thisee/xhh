@@ -83,7 +83,7 @@
                <p class='xh'>{{k.xh}}</p>
                <hr>
                <div class="re_p">{{if k.zhiding}}<img class="zhiding" src="{{ppath}}bilibili/imgs/zhiding.png">{{/if}}{{if typeof(k.msg)=='String'}}{{k.msg}}{{else}}{{each k.msg msg}}{{if msg.includes('hdslb.com\/bfs\/')}}<img class="face" src="{{msg}}">{{else if msg.includes('[图片]')}}
-{{each k.pic i}}<img class="pic_" src="{{i}}">{{/each}}{{else}}{{msg}}{{/if}}{{/each}}{{/if}}</div>
+{{each k.pic i}}<img class="pic_" src="{{i}}">{{/each}}{{else if msg.includes('(标签➩)')}}<div class="re_p_bq">{{msg.replace('(标签➩)','')}}</div>{{else}}{{msg}}{{/if}}{{/each}}{{/if}}</div>
                
                <div class="re_w">
               <img class="dianzan" src="{{ppath}}bilibili/imgs/redz.png">
@@ -107,7 +107,7 @@
                 <p>下载封面</p>
                 <p>下载视频</p>
                 <hr>
-                <p class="fr">限制：仅管理、群主、主人</p>
+                <p class="fr">限制：仅群管、主人</p>
                 <p>开启推送</p>
                 <p>关闭推送</p>
                 <hr>

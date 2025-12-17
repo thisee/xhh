@@ -30,7 +30,7 @@
                     </div>
                     
                     
-                  <div class="l_box">
+                  <div class="l_box_">
                   <p>{{name}}</p>
                   <p>等级：{{ lv_6&&lv==6 ? lv+'s' : lv}}</p>
                   <p>{{time}}</p>
@@ -39,7 +39,7 @@
                 
                   <div class="r_box_">
                   <div class="tab">评论</div>
-                  <p>{{if typeof(msg)=='String'}}{{msg}}{{else}}{{each msg msg}}{{if msg.includes('hdslb.com\/bfs\/')}}<img class="face" src="{{msg}}">{{else if msg.includes('[图片]')}}<img class="face_" src="{{ppath}}bilibili/imgs/tu.png">{{else}}{{msg}}{{/if}}{{/each}}{{/if}}</p>
+                  <p>{{if typeof(msg)=='String'}}{{msg}}{{else}}{{each msg msg}}{{if msg.includes('hdslb.com\/bfs\/')}}<img class="face" src="{{msg}}">{{else if msg.includes('[图片]')}}<img class="face_" src="{{ppath}}bilibili/imgs/tu.png">{{else if msg.includes('(标签➩)')}}<span class="re_p_bq">{{msg.replace('(标签➩)','')}}</span>{{else}}{{msg}}{{/if}}{{/each}}{{/if}}</p>
                 </div>
                 </div>
  

@@ -116,7 +116,6 @@ p img.emoji-svg {
 .up_box {
   padding: 10px;
   border-radius: 15px;
-  min-height: 350px;
   margin-top: 5px;
   background: rgba(255, 255, 255, 0.45);
   box-shadow: 2px 10px 10px 5px rgb(0 0 0 / 35%);
@@ -134,33 +133,36 @@ p img.emoji-svg {
 }
 .t_box {
   position: relative;
-  top: -130px;
+  top: -156px;
   width: 700px;
-  margin-right: 0px;
+  left: 166px;
+  margin-bottom: -30px;
   border-radius: 10px;
   background: #ace0f9;
-  box-shadow: 5px 10px 10px 5px rgb(0 0 0 / 15%);
+  /*box-shadow: 5px 10px 10px 5px rgb(0 0 0 / 15%);*/
+  box-shadow:
+    0 8px 32px 0 rgba(51, 51, 52, 0.5),
+    inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
   padding: 3px 50px 3px 3px;
-  display: inline-block;
 }
+
 
 .t_box p {
   position: relative;
   left: 20px;
-  color: #887ac6;
-  text-shadow: 0.5px 0.5px 1px #fff;
-  text-overflow: -o-ellipsis-lastline;
-  overflow: hidden; /*溢出内容隐藏*/
-  text-overflow: ellipsis; /*文本溢出部分用省略号表示*/
-  display: -webkit-box; /*特别显示模式*/
-  -webkit-line-clamp: 1; /*行数*/
-  line-clamp: 1;
-  -webkit-box-orient: vertical; /*盒子中内容竖直排列*/
-  font-weight: bold;
+  color: #E75FA7;
+  text-shadow: 0.5px 0.5px 1px #000000;
+  white-space: pre-wrap; /*识别换行*/
+  /*font-weight: bold;*/
+
 }
+
 .xx_box {
   left: 180px;
   bottom: 115px;
+  margin-bottom:52px;
   display: flex;
   position: relative;
 }
@@ -223,21 +225,27 @@ p img.emoji-svg {
   left: -155px;
   top: 120px;
 }
-.l_box p {
+.l_box_{
+  position: absolute;
+  left: -155px;
+  top: 146px;
+}
+.l_box p,.l_box_ p{
   border-radius: 10px;
   font-size: 16px;
   text-shadow: 0.5px 0.5px 1px #fff;
+  min-width:140px;
   background: #ace0f9;
   padding: 5px 3px;
   margin: 5px 0 5px 0;
   box-shadow: 2px 5px 5px 2px rgb(0 0 0 / 5%);
 }
 
-.l_box p:nth-child(2n) {
+.l_box p:nth-child(2n),.l_box_ p:nth-child(2n) {
   background: #ffafd2;
   margin: 10px;
 }
-.l_box p:first-child {
+.l_box p:first-child,.l_box_ p:first-child{
   margin-top: 10px;
 }
 .r_box {
@@ -270,7 +278,9 @@ p img.emoji-svg {
   background: #deefec;
   box-shadow: 2px 5px 5px 2px rgb(0 0 0 / 5%);
   width: 700px;
-  min-height: 170px;
+  min-height: 370px;
+  margin-bottom: -160px;
+  margin-top: 10px;
   border-radius: 15px;
   padding: 20px 0px 20px 60px;
 }
@@ -284,11 +294,12 @@ p img.emoji-svg {
 .r_box_ {
   position: relative;
   background: #deefec;
-  left: -268px;
+  left: -258px;
   top: 120px;
+  margin-bottom: -36px;
   box-shadow: 2px 5px 5px 2px rgb(0 0 0 / 5%);
   width: 730px;
-  min-height: 170px;
+  min-height: 220px;
   border-radius: 15px;
   padding: 20px 0px 20px 60px;
   display: inline-block;
@@ -484,8 +495,10 @@ p img.emoji-svg {
 }
 
 .re_p_bq {
-  background: #ace0f9;
-  border-radius: 10px;
+  /*background: #ace0f9;*/
+  /*border-radius: 10px;*/
+  /*padding: 1px 3px;*/
+  color:  #5F6BFB;
   position: relative;
   display: inline;
 }

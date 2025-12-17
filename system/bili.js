@@ -206,9 +206,15 @@ class bili {
     let pic = data.pls[n].pic;
     if (!pic.length) return false;
     let msg = [];
-    pic.map(img => {
-      msg.push(segment.image(img));
-    });
+    // pic.map(img => {
+      // msg.push(segment.image(img));
+    // });
+    
+    //处理图片过长
+    for (const t of pic) {
+        msg.push(...(await splitImage(t)));
+      }
+      msg = msg.map(item => segment.image(item))
     e.reply(msg);
     return true;
   }
@@ -1157,14 +1163,19 @@ class bili {
             }
           });
         }
-        //处理子评论，将(回复 @xxx:)变成一个标签
-        if (v.content.message.includes('回复 @')) {
-          let na = v.content.message.match('回复 @(.*) :')[1];
-          v.content.message = v.content.message.replace(
-            `回复 @${na} :`,
-            `回复 ❥(标签➩)@${na}❥ :`
-          );
+        
+        //处理@xxx，将( @xxx)变成一个标签
+        const at_name = v.content.at_name_to_mid || v.content.at_name_to_mid_str
+        if (at_name){
+          const atnames = Object.keys(at_name)
+          for(const atname of atnames){
+           v.content.message = v.content.message.replace(
+            `@${atname}`,
+            `❥(标签➩)@${atname}❥`
+            );
+           }
         }
+        
         //评论文本
         pl['msg'] = v.content.message.split('❥');
 
