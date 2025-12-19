@@ -30,5 +30,5 @@ cover: false
 group_config:
 
 
-#小花火图鉴优先级:
+#小花火图鉴优先级(修改后需要重启):
 wiki: -99
