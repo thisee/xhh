@@ -26,9 +26,8 @@ export class voice extends plugin {
           fnc: 'yylb',
         },
         {
-          reg: '',
+          reg: '^((\\d+)(.*))|((.*)(\\d+))$',
           fnc: 'fsyy',
-          log: false,
         },
       ],
     });
@@ -240,7 +239,6 @@ export class voice extends plugin {
 
     if (e.msg && e.msg.length > 5) return false;
     let xh = /\d+/.exec(e.msg);
-    if (!xh) return false;
     let n = xh - 1;
     let type;
     if (/日语|日文/.test(e.msg)) {
