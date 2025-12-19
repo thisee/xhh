@@ -211,7 +211,7 @@ p img.emoji-svg {
 }
 
 .r_box .zhuanfa {
-  padding: 3px;
+  padding: 3px 0px;
   border-radius: 10px;
   background: #c1e1e1;
 }
