@@ -52,6 +52,7 @@ export class user extends plugin {
   }
 
   fp(e) {
+    // 自用
     if (Number(Bot.uin) != 263243846) return false;
     if (e.msg.includes('删除')) return this.Delete(e);
     let msg = e.msg.replace(/绑定|设备|#/g, '');
@@ -69,25 +70,26 @@ export class user extends plugin {
   }
 
   async help(e) {
+    // 自用
     if (Number(Bot.uin) != 263243846) return false;
     const msg = [
       '[注意点]',
-      '1.绑定设备主要是解决小花火查询米游社报的异常问题，小花火通过模拟你的常用设备访问米游社获取fp设备指纹参数，用于后续查询米游社时使用',
-      '2.如果你不信任小花火，请不要使用此功能\n',
+      '1.绑定设备主要是解决查询米游社报的异常问题，我通过模拟你的常用设备访问米游社获取fp设备指纹参数，用于后续查询米游社时使用',
+      '2.如果你不信任我，请不要使用此功能\n',
       '[绑定设备]',
       '方法一（仅适用于部分安卓设备）：',
       '1. 使用常用米游社手机下载下面链接的APK文件（复制到浏览器打开），并安装',
       'https://e-e.lanzouw.com/isfXD2f00v6f',
       '密码:xhh',
       '2. 打开app后点击按钮复制设备信息',
-      '3. 给小花火发送：设备（+设备信息）',
+      '3. 发送：设备（+设备信息）',
       '-------------------------------',
       '方法二：',
       '1. 使用抓包软件抓取常用手机的米游社APP请求',
       '2. 在请求头内找到【x-rpc-device_id】和【x-rpc-device_fp】',
       '3. 自行构造如下格式的信息：',
       '   {"device_id": "x-rpc-device_id的内容", "device_fp": "x-rpc-device_fp的内容"}',
-      '4. 给小花火发送：设备（+设备信息）',
+      '4. 发送：设备（+构造的设备信息）',
       '-------------------------------',
       '[删除设备]',
       '发送[删除设备]即可',
@@ -320,6 +322,7 @@ export class user extends plugin {
   }
 
   async mysReqErrHandler_(e, args, reject) {
+    // 自用
     if (Number(Bot.uin) != 263243846) return false;
     let { data, mysApi, type } = args;
     if (
