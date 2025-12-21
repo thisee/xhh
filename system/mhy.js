@@ -3,7 +3,7 @@ import md5 from 'md5';
 import lodash from 'lodash';
 import fs from 'fs';
 import YAML from 'yaml';
-import { yaml, api,config } from '#xhh';
+import { yaml, api, config } from '#xhh';
 
 class mhy {
   constructor() {
@@ -19,10 +19,9 @@ class mhy {
     if (!info?.oaid) return logger.error('设备格式错误');
     let ck = this.getUser(e)?.ck;
     if (!ck) return e.reply('请先扫码绑定米游社后，在绑定设备');
-    const { deviceName, deviceModel, oaid, deviceFingerprint, deviceBoard } =
-      info;
+    const { deviceName, deviceModel, oaid, deviceFingerprint, deviceBoard } = info;
     const device_ = deviceFingerprint.split('/')[0];
-    if (oaid.includes('error'))
+    if (!oaid || oaid.includes('error') || /^0+$/.test(oaid))
       return e.reply('设备oaid获取失败，可能你的设备不支持获取');
     let body = {
       device_id: oaid,
@@ -153,7 +152,7 @@ class mhy {
       if (res.data?.cookie_token) Cookie = res.data?.cookie_token;
       if (res.data?.ltoken) ltoken = res.data?.ltoken;
     }
-    if(!e.no_reply) e.no_reply = e.reply;
+    if (!e.no_reply) e.no_reply = e.reply;
     let sendMsg = [];
     e.reply = msg => {
       sendMsg.push(msg);
@@ -168,7 +167,7 @@ class mhy {
     ).default;
     e.ck = e.msg;
     await new userck(e).bing();
-    if(config().hbxx) sendMsg=[sendMsg[0]]
+    if (config().hbxx) sendMsg = [sendMsg[0]]
     return { sendMsg, ltoken };
   }
 
@@ -250,7 +249,7 @@ class mhy {
       return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     }
     return (
-      S4() +S4() +'-' +S4() +'-' +S4() +'-' +S4() +'-' +S4() +S4() +S4()
+      S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4()
     );
   }
   getDs(salt = this.mysSalt) {
@@ -261,7 +260,7 @@ class mhy {
   }
 
   getDs2(query = '', body = '', salt = this.mysSalt2) {
-    if(salt==4) salt=this.mysSalt3
+    if (salt == 4) salt = this.mysSalt3
     let t = Math.round(new Date().getTime() / 1000);
     let r = Math.floor(Math.random() * 900000 + 100000);
     let DS = md5(`salt=${salt}&t=${t}&r=${r}&b=${body}&q=${query}`);
@@ -292,20 +291,20 @@ class mhy {
   }
 
   getServer(uid, game) {
-  if (game === 'zzz') {
+    if (game === 'zzz') {
+      return 'prod_gf_cn';
+    }
+    const isSr = game === 'sr';
+    switch (String(uid)[0]) {
+      case '1':
+      case '2':
+      case '3':
+        return isSr ? 'prod_gf_cn' : 'cn_gf01'; // 官服
+      case '5':
+        return isSr ? 'prod_qd_cn' : 'cn_qd01'; // B服
+    }
     return 'prod_gf_cn';
   }
-  const isSr = game === 'sr';
-  switch (String(uid)[0]) {
-    case '1':
-    case '2':
-    case '3':
-      return isSr ? 'prod_gf_cn' : 'cn_gf01'; // 官服
-    case '5':
-      return isSr ? 'prod_qd_cn' : 'cn_qd01'; // B服
-  }
-  return 'prod_gf_cn';
-}
 
 }
 
