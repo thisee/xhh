@@ -343,7 +343,8 @@ export class voice extends plugin {
         let vo;
         if (kg.voice) vo = await uploadRecord(yy, 0, false);
         else vo = segment.record(yy);
-
+        let content = table[n].content.replace(/\n| /g, '')
+        content = content.replace(/●/g, '\n●')
         await e.reply(
             `[简述]:${table[n].name}\n[内容]:${table[n].content.replace(/\n| /g, '')}`
         );
