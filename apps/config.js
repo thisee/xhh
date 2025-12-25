@@ -1,6 +1,5 @@
 import { yaml, makeForwardMsg, config } from '#xhh';
 
-let xx = '小花火设置';
 let path = './plugins/xhh/config/config.yaml';
 
 const name_list = {
@@ -21,22 +20,22 @@ export class Config extends plugin {
       priority: 15,
       rule: [
         {
-          reg: `^#*${xx}$`,
+          reg: `^#*(小花火|xhh)设置$`,
           fnc: 'f1',
           permission: 'master',
         },
         {
-          reg: `^#*${xx}(塔罗牌|自动更新|星铁攻略(图)?|b站|B站|哔哩哔哩|bili|bilibili)?(开启|关闭)((查)?委托前缀)?$`,
+          reg: `^#*(小花火|xhh)设置(塔罗牌|自动更新|星铁攻略(图)?|b站|B站|哔哩哔哩|bili|bilibili)?(开启|关闭)((查)?委托前缀)?$`,
           fnc: 'f2',
           permission: 'master',
         },
         {
-          reg: `^#*${xx}((塔罗牌(每日)?次数)|((图片)?渲染(精度)?)|自动视频)(\\d+)$`,
+          reg: `^#*(小花火|xhh)设置((塔罗牌(每日)?次数)|((图片)?渲染(精度)?)|自动视频)(\\d+)$`,
           fnc: 'f3',
           permission: 'master',
         },
         {
-          reg: `^#*(小花火)?(设置)?(添加|删除)播报群(号)?(.*)$`,
+          reg: `^#*(小花火|xhh)?(设置)?(添加|删除)播报群(号)?(.*)$`,
           fnc: 'f6',
           permission: 'master',
         },
@@ -53,7 +52,7 @@ export class Config extends plugin {
   }
 
   async f2(e) {
-    const CLEAN_REGEX = /#|小花火|设置/g;
+    const CLEAN_REGEX = /#|小花火|xhh|设置/g;
     const TYPE_MAP = {
       塔罗牌: 'tlp',
       星铁攻略: 'srstrategy',
@@ -81,7 +80,7 @@ export class Config extends plugin {
 
   async f3(e) {
     let num = e.msg.replace(
-      /#|小花火设置|渲染|精度|图片|塔罗牌|自动视频|次数|每日/g,
+      /#|小花火设置|xhh设置|渲染|精度|图片|塔罗牌|自动视频|次数|每日/g,
       ''
     );
     if (e.msg.includes('塔罗牌')) await yaml.set(path, 'tlpcs', Number(num));
