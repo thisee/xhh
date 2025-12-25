@@ -275,7 +275,7 @@ export class voice extends plugin {
             type = '英语';
         } else if (/韩语|韩文/.test(e.msg)) {
             type = '韩语';
-        } else if (/^([0-9]|[0-9][0-9]|[1][0-9][0-9])$/.test(e.msg)) {
+        } else if (/^([0-9]|[0-9][0-9]|[1-2][0-9][0-9])$/.test(e.msg)) {
             type = '汉语';
         } else {
             return false;
