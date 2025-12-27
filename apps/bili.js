@@ -171,6 +171,7 @@ export class bilibili extends plugin {
 
     //主动解析卡片(emmm...一般都自动解析了)
     if (['解析', '解'].includes(e.msg) && source.message[0].type == 'json') {
+      e.jiexi=true;
       if (bv) return bili.video(e, bv);
       if (dt_id) return bili.dt(id.dt_id, e);
     }

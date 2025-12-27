@@ -6,9 +6,6 @@ update: false
 #图片渲染精度：填数字（单位：%）
 img_quality: 80
 
-#超清语音开关：true开，false关 (注意：pc端QQ无法听取超清语音，请谨慎开启)
-voice: false
-
 #塔罗牌开关：true开，false关
 tlp: false
 

@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-
+import { yaml } from '#xhh'
 class yyjson {
     async gs_download(id) {
         let url = `https://api-takumi-static.mihoyo.com/hoyowiki/genshin/wapi/entry_page?app_sn=ys_obc&entry_page_id=${id}`;
@@ -16,7 +16,6 @@ class yyjson {
         let list = data.list;
         return list;
     }
-
     async sr_download(id) {
         let url = `https://api-static.mihoyo.com/common/blackboard/sr_wiki/v1/content/info?app_sn=sr_wiki&content_id=${id}`;
         let SRdata_ = await (await fetch(url)).json();
@@ -123,6 +122,69 @@ class yyjson {
         };
         return sr;
     }
+
+    async gs_other_download(name) {
+        const names = yaml.get('./plugins/xhh/system/default/gs_en_id.yaml')
+        if (!names[name]) return false
+        name = names[name]
+        let data = await fetch(`https://gensh.honeyhunterworld.com/${name}/?lang=CHS`).then(res => res.text())
+        let arr = data.match(/<td>VoiceOver<\/td>(.*?)<h2>Stories<\/h2>/)[1]
+        const list = []
+        const titles = arr.match(/<td>(.*?)<\/td><td><div class="dialog_cont">/g).map(v => v.match(/<td>(.*?)<\/td><td><div class="dialog_cont">/)[1])
+        const ids = arr.match(/<script>dialog_data.push\({"start":"(.*?)",/g).map(v => v.match(/<script>dialog_data.push\({"start":"(.*?)",/)[1])
+        const decs = arr.match(/{"from":"(.*?)","line":"(.*?)"/g).map(v => v.match(/{"from":"(.*?)","line":"(.*?)"/)[2])
+        if (!ids[0]) return logger.error('无数据')
+        if (name == 'playerboy') name = 'hero'
+        if (name == 'playergirl') name = 'heroine'
+        for (let i = 0; i < ids.length; i++) {
+            list.push({
+                id: 'https://gensh.honeyhunterworld.com/audio/quotes/' + name + '/' + ids[i] + '_',
+                title: titles[i],
+                dec: decs[i].replace(/\\u([dD][89a-fA-F][0-9a-fA-F]{2})/g, (match, grp) => {
+                    return String.fromCharCode(parseInt(grp, 16));
+                }).replace(/\\u([0-9a-fA-F]{4})/g, (match, grp) => {
+                    return String.fromCharCode(parseInt(grp, 16));
+                })
+            })
+        }
+        return list
+    }
+
+    async sr_other_download(name) {
+        const names = yaml.get('./plugins/xhh/system/default/sr_en_id.yaml')
+        if (!names[name]) return false
+        name = names[name]
+        let data = await fetch(`https://starrail.honeyhunterworld.com/${name}/?lang=CN`).then(res => res.text())
+        let arr = data.match(/Continuous RePlay(.*?)<section id="char_stories" class="tab-panel tab-panel-1">/)[1].replace('<tr>', '')
+        const list = []
+        const titles = arr.match(/<tr><td>(.*?)<\/td><td><div class="dialog_cont">/g).map(v => v.match(/<tr><td>(.*?)<\/td><td><div class="dialog_cont">/)[1])
+        const ids = arr.match(/<script>dialog_data.push\({"start":(.*?),/g).map(v => v.match(/<script>dialog_data.push\({"start":(.*?),/)[1])
+        const decs = arr.match(/{"from":"(.*?)","line":"(.*?)"/g).map(v => v.match(/{"from":"(.*?)","line":"(.*?)"/)[2])
+        if (!ids[0]) return logger.error('无数据')
+        for (let i = 0; i < ids.length; i++) {
+            list.push({
+                id: 'https://starrail.honeyhunterworld.com/audio/hsr-audio/' + ids[i] + '_',
+                title: titles[i],
+                dec: decs[i].replace(/\\u([dD][89a-fA-F][0-9a-fA-F]{2})/g, (match, grp) => {
+                    return String.fromCharCode(parseInt(grp, 16));
+                }).replace(/\\u([0-9a-fA-F]{4})/g, (match, grp) => {
+                    return String.fromCharCode(parseInt(grp, 16));
+                })
+            })
+        }
+        return list
+    }
+
+
+
+
+
+
+
+
+
+
+
 }
 
 export default new yyjson();
