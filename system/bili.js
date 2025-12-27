@@ -207,20 +207,20 @@ class bili {
     if (!pic.length) return false;
     let msg = [];
     // pic.map(img => {
-      // msg.push(segment.image(img));
+    // msg.push(segment.image(img));
     // });
-    
+
     //处理图片过长
     for (const t of pic) {
-        msg.push(...(await splitImage(t)));
-      }
-      msg = msg.map(item => segment.image(item))
+      msg.push(...(await splitImage(t)));
+    }
+    msg = msg.map(item => segment.image(item))
     e.reply(msg);
     return true;
   }
 
   //主页
-  async video(e, bv, _pl_, dow, _re) {
+  async video(e, bv, _pl_, dow, _re, like_hf = true) {
     let data = await this.sp_(bv);
     if (!data) return false;
     /*
@@ -235,7 +235,7 @@ class bili {
     稿件总时长(秒)：duration
     up主：owner{
        id:mid
-      名字：name
+      名字: name
       头像: face
     }
     视频状态数：stat{
@@ -253,10 +253,13 @@ class bili {
     let cid = data.pages[0].cid;
     let online = await this.online(cid, bv);
 
-    /*获取up主信息
+    /*
+    获取up主信息
       粉丝数量：fans
       等级：level_info.current_level
       是否关注: is_gz
+      是否互关：is_hg
+      是否拉黑：is_lh
      lv.6是否有小闪电：is_senior_member:0 or 1
     */
     let up_data = await this.up_xx(false, data.owner.mid);
@@ -265,6 +268,13 @@ class bili {
     */
     let san = await this.san_(bv);
     if (!up_data || !san) return false;
+
+    if (up_data.is_lh && !e.jiexi) return e.reply('该用户已入黑名单，无法解析其B站', true)
+
+    if (up_data.is_hg && !san.like && like_hf) {
+      await e.reply('互粉用户！正在自动点赞中...', true)
+      return this.dz(e, bv, true)
+    }
 
     let list_num = config().list_num || 10;
     let pls = (await this.pl(bv)).slice(0, list_num);
@@ -299,6 +309,8 @@ class bili {
       up_id: data.owner.mid,
       fans: zh(up_data.fans),
       is_gz: up_data.is_gz,
+      is_hg: up_data.is_hg,
+      is_lh: up_data.is_lh,
       lv: up_data.level_info.current_level,
       lv_6: up_data.is_senior_member,
       online: online,
@@ -696,6 +708,8 @@ class bili {
       msgs = msg.split('❥');
     }
 
+    if (up_data.is_lh && !e.jiexi) return e.reply('该用户已入黑名单，无法解析其B站', true)
+
     //获取评论区
     let pinglun = basic
       ? await this.pl(basic.comment_id_str, basic.comment_type)
@@ -914,7 +928,7 @@ class bili {
   }
 
   //给视频点赞,取消点赞,投币,收藏
-  async dz(e, bv) {
+  async dz(e, bv, re) {
     headers = await this.getHeaders();
     if (!headers) return false;
     headers.Accept = 'application/x-www-form-urlencoded';
@@ -953,6 +967,7 @@ class bili {
         `[bilibili]${like == 1 ? '点赞' : like == 2 ? '取消点赞' : like == 3 ? '点赞+投币(' + n + '个)' : like == 4 ? '收藏' : like == 5 ? '取消收藏' : '三连'}成功！`
       );
       await sleep(3500); //等待3.5秒
+      if (re) return this.video(e, bv, false, true, true, false);
       return this.video(e, bv);
     }
     if (res.code == 65006 && like == 1)
@@ -1163,19 +1178,19 @@ class bili {
             }
           });
         }
-        
+
         //处理@xxx，将( @xxx)变成一个标签
         const at_name = v.content.at_name_to_mid || v.content.at_name_to_mid_str
-        if (at_name){
+        if (at_name) {
           const atnames = Object.keys(at_name)
-          for(const atname of atnames){
-           v.content.message = v.content.message.replace(
-            `@${atname}`,
-            `❥(标签➩)@${atname}❥`
+          for (const atname of atnames) {
+            v.content.message = v.content.message.replace(
+              `@${atname}`,
+              `❥(标签➩)@${atname}❥`
             );
-           }
+          }
         }
-        
+
         //评论文本
         pl['msg'] = v.content.message.split('❥');
 
@@ -1413,7 +1428,11 @@ class bili {
       e.reply('up主的信息没找到，可能是uid不对。。。');
       return false;
     }
-    res.data.card['is_gz'] = res.data.following; //是否关注
+    url = 'https://api.bilibili.com/x/web-interface/relation?mid=' + mid;
+    const res2 = await fetch(url, { method: 'get', headers }).then(res => res.json())
+    res.data.card['is_hg'] = res2.data.relation.attribute == 6 //是否互关
+    res.data.card['is_lh'] = res2.data.relation.attribute == 128 //是否已拉黑
+    res.data.card['is_gz'] = res.data.following//是否关注
     return res.data.card;
   }
 

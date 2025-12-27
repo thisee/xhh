@@ -2,7 +2,6 @@ import mys from './mys.js';
 import render from './render.js';
 import splitImage from './process_images.js';
 import yaml from './yaml.js';
-import uploadRecord from './uploadRecord.js';
 import yyjson from './yyjson.js';
 import bili from './bili.js';
 import mhy from './mhy.js';
@@ -111,7 +110,6 @@ export {
   render,
   splitImage,
   yaml,
-  uploadRecord,
   yyjson,
   QR,
   bili,
