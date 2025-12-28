@@ -270,7 +270,7 @@ export class voice extends plugin {
                 "Range": "bytes=0-",
                 "sec-fetch-dest": "document",
                 "sec-fetch-mode": "navigate",
-                "referer": `https://gensh.honeyhunterworld.com/${id}/?lang=CHS`,
+                "referer": id.includes('-character') ? `https://starrail.honeyhunterworld.com/${id}/` : `https://gensh.honeyhunterworld.com/${id}/`,
                 "sec-ch-ua": '"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
                 "sec-ch-ua-mobile": "?0",
                 "sec-ch-ua-platform": '"Windows"',
