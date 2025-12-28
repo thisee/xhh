@@ -20,18 +20,18 @@ export class voice extends plugin {
             event: 'message',
             priority: 15,
             rule: [{
-                reg: '^#*(小花火)?清(空|除)语音(图片(列表)?)?缓存$',
-                fnc: 'qc',
-                permission: 'master',
-            },
-            {
-                reg: '^(#|\\*)?(星铁|原神)?(.*)语音(列表)?$',
-                fnc: 'yylb',
-            },
-            {
-                reg: '^((\\d+)(.*))|((.*)(\\d+))$',
-                fnc: 'fsyy',
-            },
+                    reg: '^#*(小花火)?清(空|除)语音(图片(列表)?)?缓存$',
+                    fnc: 'qc',
+                    permission: 'master',
+                },
+                {
+                    reg: '^(#|\\*)?(星铁|原神)?(.*)语音(列表)?$',
+                    fnc: 'yylb',
+                },
+                {
+                    reg: '^((\\d+)(.*))|((.*)(\\d+))$',
+                    fnc: 'fsyy',
+                },
             ],
         });
         this.task = {
@@ -84,7 +84,10 @@ export class voice extends plugin {
         let data, table = []
         data = await yyjson.gs_other_download(name);
         if (data) {
-            let { list, id } = data
+            let {
+                list,
+                id
+            } = data
             if (list.length) {
                 // if (gs_id) list = await yyjson.gs_download(gs_id);
                 for (let v of list) {
@@ -103,7 +106,10 @@ export class voice extends plugin {
             }
             data = await yyjson.sr_other_download(name);
             if (!data) return false;
-            let { list, id } = data
+            let {
+                list,
+                id
+            } = data
             // let sr_id = (await mys.data(name, 'js', true)).id;
             if (list.length) {
                 // if (sr_id) {
@@ -155,7 +161,6 @@ export class voice extends plugin {
     async fsyy(e) {
         if (!e.source && !e.getReply) return false;
         if (!config().all_voice) return false;
-        if (!ffmpeg()) return false;
         if (e.source && Number(e.source.user_id) !== Number(Bot.uin)) return false;
         // if (!/^\[图片]$/.test(e.source.message)) return false
         let source = {};
@@ -214,7 +219,10 @@ export class voice extends plugin {
         // let isSr = data.isSr;
         // let list = data.list;
         // let table = data.table;
-        let { list, id } = data;
+        let {
+            list,
+            id
+        } = data;
         if (!list[n]) return e.reply('喂喂喂！你这序号不对吧🤔', true);
         // let yy = data.yy;
         // let x;
@@ -256,6 +264,7 @@ export class voice extends plugin {
         //         }
         //     }
         // }
+        if (!ffmpeg()) return false;
         let yy = list[n].id + lx + '.ogg'
         logger.mark(`\x1B[36m${yy}\x1B[0m`);
         let res = await fetch(yy);
@@ -285,7 +294,7 @@ export class voice extends plugin {
             })
             if (!res.ok) return e.reply('获取该语音失败~', true);
             data = Buffer.from(await res.arrayBuffer())
-            yy='./plugins/xhh/temp/yy_pic/temp.ogg'
+            yy = './plugins/xhh/temp/yy_pic/temp.ogg'
             fs.writeFileSync(yy, data);
         }
         // if (!yy_ || typeof yy_ != 'string') return e.reply('获取该语音失败~', true);
@@ -302,7 +311,7 @@ export class voice extends plugin {
             fs.rmSync('./plugins/xhh/temp/yy_pic/', {
                 recursive: true
             });
-        } catch (err) { }
+        } catch (err) {}
         if (e) return e.reply('已清空语音列表图片缓存');
     }
 
