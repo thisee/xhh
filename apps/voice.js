@@ -67,35 +67,33 @@ export class voice extends plugin {
                 break;
             }
         }
-        let other_list = await yyjson.gs_other_download(name);
         //先查原神
-        let gs_id = (await mys.data(name)).id;
+        // let gs_id = (await mys.data(name)).id;
         let background = '../../../../../plugins/xhh/resources/yytable/bg0.png';
 
         if (name == '空') {
-            gs_id = '505542'
+            // gs_id = '505542'
             background = '../../../../../plugins/xhh/resources/yytable/bg.png';
         } else if (name == '荧') {
-            gs_id = '505527'
+            // gs_id = '505527'
             background = '../../../../../plugins/xhh/resources/yytable/bg.png';
         }
-        let list = false;
-        let img = false;
-        let isSr = false;
-        let data, yy, table;
-        if (other_list.length) {
-            if (gs_id) list = await yyjson.gs_download(gs_id);
-            table = []
-            for (let v of other_list) {
-                table.push(v.title);
+        // let list
+        let img
+        // let isSr = false;
+        let data, table = []
+        data = await yyjson.gs_other_download(name);
+        if (data) {
+            let { list, id } = data
+            if (list.length) {
+                // if (gs_id) list = await yyjson.gs_download(gs_id);
+                for (let v of list) {
+                    table.push(v.title);
+                }
+                img = await this.tu(e, table, name, background);
             }
-            img = await this.tu(e, table, name, background);
-            def = false;
-        }
-
-        //非原神查星铁
-        if (def) {
-            other_list = await yyjson.sr_other_download(name);
+        } else {
+            //非原神查星铁
             let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
             for (let i in srnames) {
                 if (srnames[i].includes(name)) {
@@ -103,39 +101,41 @@ export class voice extends plugin {
                     break;
                 }
             }
-            let sr_id = (await mys.data(name, 'js', true)).id;
-            if (other_list.length) {
-                if (sr_id) {
-                    let sr = await yyjson.sr_download(sr_id);
-                    table = sr.table;
-                    yy = sr.sr_yy;
-                }
-                const table_ = [];
-                for (let v of other_list) {
-                    table_.push(v.title);
+            data = await yyjson.sr_other_download(name);
+            if (!data) return false;
+            let { list, id } = data
+            // let sr_id = (await mys.data(name, 'js', true)).id;
+            if (list.length) {
+                // if (sr_id) {
+                //     let sr = await yyjson.sr_download(sr_id);
+                //     table = sr.table;
+                //     yy = sr.sr_yy;
+                // }
+                for (let v of list) {
+                    table.push(v.title);
                 }
                 background = '../../../../../plugins/xhh/resources/yytable/sr.png';
-                img = await this.tu(e, table_, name, background);
-                isSr = true;
+                img = await this.tu(e, table, name, background);
+                // isSr = true;
             }
         }
 
-        if (!isSr) {
-            data = {
-                name,
-                isSr,
-                list,
-                other_list
-            };
-        } else {
-            data = {
-                name,
-                isSr,
-                table,
-                yy,
-                other_list
-            };
-        }
+        // if (!isSr) {
+        //     data = {
+        //         name,
+        //         isSr,
+        //         list,
+        //         list
+        //     };
+        // } else {
+        //     data = {
+        //         name,
+        //         isSr,
+        //         table,
+        //         yy,
+        //         list
+        //     };
+        // }
 
         if (img) {
             let f = await e.reply(img);
@@ -182,19 +182,19 @@ export class voice extends plugin {
         let n = xh - 1;
         let type, lx
         if (/日语|日文/.test(e.msg)) {
-            type = '日语'
+            // type = '日语'
             lx = 'jp'
         } else if (/汉语|中文|华语/.test(e.msg)) {
-            type = '汉语'
+            // type = '汉语'
             lx = 'cn'
         } else if (/外语|英语|英文/.test(e.msg)) {
-            type = '英语'
+            // type = '英语'
             lx = 'en'
         } else if (/韩语|韩文/.test(e.msg)) {
-            type = '韩语'
+            // type = '韩语'
             lx = 'kr'
         } else if (/^([0-9]|[0-9][0-9]|[1-2][0-9][0-9])$/.test(e.msg)) {
-            type = '汉语'
+            // type = '汉语'
             lx = 'cn'
         } else {
             return false;
@@ -211,59 +211,87 @@ export class voice extends plugin {
                 'utf-8'
             )
         );
-        let isSr = data.isSr;
-        let list = data.list;
-        let table = data.table;
-        let other_list = data.other_list;
-        if (!other_list[n]) return e.reply('喂喂喂！你这序号不对吧🤔', true);
-        let yy = data.yy;
-        let x;
-        const pattern = /[\u4e00-\u9fa5]+/g; // 匹配中文字符
-        if (isSr) {
-            switch (type) {
-                case '汉语': {
-                    x = 0;
-                    break;
-                }
-                case '英语': {
-                    x = 1;
-                    break;
-                }
-                case '日语': {
-                    x = 2;
-                    break;
-                }
-                case '韩语': {
-                    x = 3;
-                    break;
-                }
-                default:
-                    return false;
+        // let isSr = data.isSr;
+        // let list = data.list;
+        // let table = data.table;
+        let { list, id } = data;
+        if (!list[n]) return e.reply('喂喂喂！你这序号不对吧🤔', true);
+        // let yy = data.yy;
+        // let x;
+        // const pattern = /[\u4e00-\u9fa5]+/g; // 匹配中文字符
+        // if (isSr) {
+        //     switch (type) {
+        //         case '汉语': {
+        //             x = 0;
+        //             break;
+        //         }
+        //         case '英语': {
+        //             x = 1;
+        //             break;
+        //         }
+        //         case '日语': {
+        //             x = 2;
+        //             break;
+        //         }
+        //         case '韩语': {
+        //             x = 3;
+        //             break;
+        //         }
+        //         default:
+        //             return false;
+        //     }
+        // } else {
+        //     for (let v of list) {
+        //         if (v.tab_name == type) {
+        //             table = v.table;
+        //             break;
+        //         }
+        //     }
+        // }
+        // if (table.length) {
+        //     for (let i in table) {
+        //         if (table[i].name.match(pattern).join('') == list[n].title.match(pattern).join('')) {
+        //             yy = isSr ? yy[x][i].replace(/sourcesrc=|><\/audio><\/div>/g, '') : table[i].audio_url
+        //             break;
+        //         }
+        //     }
+        // }
+        let yy = list[n].id + lx + '.ogg'
+        logger.mark(`\x1B[36m${yy}\x1B[0m`);
+        let res = await fetch(yy);
+        if (!res.ok) {
+            logger.mark('语音直接访问失败，尝试添加请求头下载...');
+            let headers = {
+                "accept": "*/*",
+                "accept-encoding": "identity;q=1, *;q=0",
+                "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+                "cookie": "_first_time=1;_lr_retry_request=true;",
+                "priority": "i",
+                "Range": "bytes=0-",
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "referer": `https://gensh.honeyhunterworld.com/${id}/?lang=CHS`,
+                "sec-ch-ua": '"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"Windows"',
+                "sec-fetch-dest": "video",
+                "sec-fetch-mode": "no-cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
             }
-        } else {
-            for (let v of list) {
-                if (v.tab_name == type) {
-                    table = v.table;
-                    break;
-                }
-            }
+            res = await fetch(yy, {
+                method: 'GET',
+                headers
+            })
+            if (!res.ok) return e.reply('获取该语音失败~', true);
+            data = Buffer.from(await res.arrayBuffer())
+            yy='./plugins/xhh/temp/yy_pic/temp.ogg'
+            fs.writeFileSync(yy, data);
         }
-        if (table.length) {
-            for (let i in table) {
-                if (table[i].name.match(pattern).join('') == other_list[n].title.match(pattern).join('')) {
-                    yy = isSr ? yy[x][i].replace(/sourcesrc=|><\/audio><\/div>/g, '') : table[i].audio_url
-                    break;
-                }
-            }
-        }
-        let yy_ = other_list[n].id + lx + '.ogg'
-        logger.mark(`\x1B[36m${yy_}\x1B[0m`);
-        let res = await fetch(yy_);
-        if (!res.ok) yy_ = yy;
-        if (!yy_ || typeof yy_ != 'string') return e.reply('获取该语音失败~', true);
-        let vo = segment.record(yy_);
+        // if (!yy_ || typeof yy_ != 'string') return e.reply('获取该语音失败~', true);
+        let vo = segment.record(yy);
         await e.reply(
-            `[简述]:${other_list[n].title}\n[内容]:${other_list[n].dec.replace(/<br\\\/>/g, '\n').replace(/<color=#37FFFF>|<\\\/color>/g, '')}`
+            `[简述]:${list[n].title}\n[内容]:${list[n].dec.replace(/<br\\\/>/g, '\n').replace(/<color=#37FFFF>|<\\\/color>/g, '')}`
         );
         e.reply(vo);
         return true;
