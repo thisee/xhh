@@ -19,10 +19,10 @@ export class hbzz extends plugin {
 
     async hb(e) {
         let qq, uid, ck
-        
+
         if (e.message.length > 1) {
             for (const message of e.message) {
-                if (message.type == 'at' && message.qq != Number(Bot.uin)) qq = message.qq
+                if (message.type == 'at' && message.qq != Number(Bot.uin)) e.user_id = message.qq
             }
         }
 
@@ -33,13 +33,11 @@ export class hbzz extends plugin {
             uid = e.user.getUid('sr');
             const mys = e.user.getMysUser('sr');
             ck = mys.ck;
-            qq = e.user_id
         }
-        
+
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
 
-        //用于匹配用户设备信息
-        e.user_id = qq
+        qq = e.user_id
 
         //获取headers
         let headers = mhy.getHeaders(e, ck);
@@ -59,7 +57,7 @@ export class hbzz extends plugin {
         data = res.data
 
         if (!data?.grid_fight_brief?.season_level) return logger.mark(`UID${uid},未找到货币战争数据`)
-            
+
         //晋升等级
         const season_level = data.grid_fight_brief.season_level
         //职级
@@ -72,63 +70,63 @@ export class hbzz extends plugin {
         //战绩记录
         const grid_fight_archive_list = data.grid_fight_archive_list
         const list = []
-        if(grid_fight_archive_list.length) {
-        for (const k of grid_fight_archive_list) {
-            const item = {}
-            //A几
-            item.A = Number(k.brief.division.level) - 1
-            //icon
-            item.icon = k.brief.division.icon
-            //级别
-            item.name = k.brief.division.name_with_num
-            //什么博弈
-            item.type = k.archive_type == 'ArchiveTypeHard' ? '超频博弈' : '标准博弈'
-            //时间
-            item.time = k.brief.archive_time
-            //评级
-            item.rank = k.brief.archive_rank.replace('GridFightArchiveRank', '')
-            //小队生命值
-            item.hp = k.brief.remain_hp
-            //总经济
-            item.coin = k.brief.total_coin
-            //阵容价值
-            item.lineup_coin = k.brief.lineup_coin
-            //前台角色
-            item.front_roles = k.lineup.front_roles
-            //后台的角色
-            item.back_roles = k.lineup.back_roles
-            //羁绊
-            item.trait_list = k.lineup.trait_list
-            //投资环境
-            item.portal_list = k.lineup.portal_list
-            //投资策略
-            item.augment_list = k.lineup.augment_list
-            //伤害统计
-            item.damage_list = k.lineup.damage_list
-            //合并前台后台角色id 和 羁绊id
-            const id_list = [...item.front_roles, ...item.back_roles, ...item.trait_list]
-            if (item.damage_list.length > 0) {
-                item.sh_list = []
-                let n = 0
-                for (const v of item.damage_list) {
-                    for (const i of id_list) {
-                        if (v.id == i.role_id || v.id == i.trait_id) {
-                            i.sh = (Math.ceil(Number(v.damage)) / 10000).toFixed(2) + '万'
-                            item.sh_list.push(i)
-                            n++
-                            break
+        if (grid_fight_archive_list.length) {
+            for (const k of grid_fight_archive_list) {
+                const item = {}
+                //A几
+                item.A = Number(k.brief.division.level) - 1
+                //icon
+                item.icon = k.brief.division.icon
+                //级别
+                item.name = k.brief.division.name_with_num
+                //什么博弈
+                item.type = k.archive_type == 'ArchiveTypeHard' ? '超频博弈' : '标准博弈'
+                //时间
+                item.time = k.brief.archive_time
+                //评级
+                item.rank = k.brief.archive_rank.replace('GridFightArchiveRank', '')
+                //小队生命值
+                item.hp = k.brief.remain_hp
+                //总经济
+                item.coin = k.brief.total_coin
+                //阵容价值
+                item.lineup_coin = k.brief.lineup_coin
+                //前台角色
+                item.front_roles = k.lineup.front_roles
+                //后台的角色
+                item.back_roles = k.lineup.back_roles
+                //羁绊
+                item.trait_list = k.lineup.trait_list
+                //投资环境
+                item.portal_list = k.lineup.portal_list
+                //投资策略
+                item.augment_list = k.lineup.augment_list
+                //伤害统计
+                item.damage_list = k.lineup.damage_list
+                //合并前台后台角色id 和 羁绊id
+                const id_list = [...item.front_roles, ...item.back_roles, ...item.trait_list]
+                if (item.damage_list.length > 0) {
+                    item.sh_list = []
+                    let n = 0
+                    for (const v of item.damage_list) {
+                        for (const i of id_list) {
+                            if (v.id == i.role_id || v.id == i.trait_id) {
+                                i.sh = (Math.ceil(Number(v.damage)) / 10000).toFixed(2) + '万'
+                                item.sh_list.push(i)
+                                n++
+                                break
+                            }
                         }
+                        if (n == 5) break //只显示5个
                     }
-                    if (n == 5) break //只显示5个
+                    //以第一个伤害为100%计算后面的伤害比例
+                    for (let i = 0; i < 5; i++) {
+                        if (item.damage_list[i]) item.sh_list[i].sh_l = (Number(item.damage_list[i].damage) / Number(item.damage_list[0].damage) * 100).toFixed(2) + '%'
+                    }
                 }
-                //以第一个伤害为100%计算后面的伤害比例
-                for (let i = 0; i < 5; i++) {
-                    if (item.damage_list[i]) item.sh_list[i].sh_l = (Number(item.damage_list[i].damage) / Number(item.damage_list[0].damage) * 100).toFixed(2) + '%'
-                }
+                list.push(item)
             }
-            list.push(item)
         }
-    }
 
         let num = config().huobi_num
         if (!num || num < 1 || num > 3) num = 2

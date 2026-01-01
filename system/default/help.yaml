@@ -34,6 +34,8 @@
       desc: '删除扫码绑定获取的stoken（连同xiaoyao-cvs一并删除）'
     - title: '签到'
       desc: '原神,星铁,绝区零的米游社签到'
+    - title: '母带'
+      desc: '查询绝区零母带'
 
 - group: bilibili命令
   list:
