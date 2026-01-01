@@ -71,7 +71,7 @@ export class zzz extends plugin {
         }
 
         if (msg.length == 1) return e.reply('暂无数据！', true)
-        return e.reply(msg.join('\n'))
+        return e.reply(msg.join('\n'), true)
 
 
 
