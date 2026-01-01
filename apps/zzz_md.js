@@ -22,23 +22,23 @@ export class zzz extends plugin {
 
         if (e.message.length > 1) {
             for (const message of e.message) {
-                if (message.type == 'at' && message.qq != Number(Bot.uin)) e.user_id = message.qq
+                if (message.type == 'at' && message.qq != Number(Bot.uin)) qq = message.qq
             }
         }
 
         if (qq) {
-            uid = (await NoteUser.create(qq)).getUid('zzz');
-            ck = (await NoteUser.create(qq)).getMysUser('zzz').ck
+            uid = (await NoteUser.create(qq)).getUid('sr');
+            ck = (await NoteUser.create(qq)).getMysUser('sr').ck
+            e.user_id = qq
         } else {
-            uid = e.user.getUid('zzz');
-            const mys = e.user.getMysUser('zzz');
+            uid = e.user.getUid('sr');
+            const mys = e.user.getMysUser('sr');
             ck = mys.ck;
+            qq = e.user_id
         }
 
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
         
-        qq = e.user_id
-
         //获取headers
         let headers = mhy.getHeaders(e, ck);
 
