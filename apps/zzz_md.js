@@ -27,8 +27,8 @@ export class zzz extends plugin {
         }
 
         if (qq) {
-            uid = (await NoteUser.create(qq)).getUid('sr');
-            ck = (await NoteUser.create(qq)).getMysUser('sr').ck
+            uid = (await NoteUser.create(qq)).getUid('zzz');
+            ck = (await NoteUser.create(qq)).getMysUser('zzz').ck
             e.user_id = qq
         } else {
             uid = e.user.getUid('sr');
