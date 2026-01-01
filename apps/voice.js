@@ -57,7 +57,6 @@ export class voice extends plugin {
     async yylb(e) {
         if (!config().all_voice) return false;
         let name = e.msg.replace(/#|\*|星铁|原神|语音|列表/g, '');
-        let def = true;
 
         //调用小花火原神别名
         let gsnames = yaml.get('./plugins/xhh/system/default/gs_js_names.yaml');
