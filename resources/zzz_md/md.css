@@ -1,0 +1,108 @@
+@font-face {
+    font-family: 'yuan';
+    src: url('../font/yuan.ttf');
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-size: 16px;
+    font-family: 'yuan';
+    width: 540px;
+    transform-origin: 0 0;
+}
+
+.container {
+    padding: 4px 10px 6px 10px;
+    width: 540px;
+}
+
+.bg {
+    width: 480px;
+    padding: 88px 30px 20px 30px;
+    border-image: url(./imgs/bg.png);
+    border-image-slice: 160 0 160 0 fill;
+    border-image-width: 80px 10px;
+}
+
+.one_box {
+    height: 100px;
+    position: relative;
+}
+
+.tx {
+    height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+        inset 1px 0 0 rgba(255, 255, 255, 0.8),
+        inset -1px 0 0 rgba(0, 0, 0, 0.1),
+        2px 2px 5px rgba(0, 0, 0, 0.2);
+    margin-right: 10px;
+}
+
+.info {
+    padding-top: 30px;
+}
+
+.info .tab {
+    background-color: antiquewhite;
+    border-radius: 10px;
+    font-size: 12px;
+    padding: 2px 8px;
+    margin-bottom: 5px;
+    width: fit-content;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+        inset 1px 0 0 rgba(255, 255, 255, 0.8),
+        inset -1px 0 0 rgba(0, 0, 0, 0.1),
+        2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.zzz_logo {
+    position: absolute;
+    right: 10px;
+    top: 30px;
+    height: 50px;
+}
+
+.two_box {
+    gap: 10px 32px;
+    padding: 10px;
+}
+
+.t {
+    width: 130px;
+}
+
+.t img {
+    width: 60px;
+    margin-right: 2px;
+}
+
+.t p {
+    color: #f6bab4;
+    text-shadow: 0.5px 0.5px 1px #000000;
+    margin-top: auto;
+}
+
+.logo {
+    font-size: 10px;
+    text-align: center;
+    text-shadow: 0.5px 0.5px 1px #000000;
+    padding-left: 0px;
+    font-weight: bolder;
+    color: #b4f6ee;
+}
+
+.flex {
+    display: flex;
+    flex-wrap: wrap;
+}
