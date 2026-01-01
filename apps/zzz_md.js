@@ -31,8 +31,8 @@ export class zzz extends plugin {
             ck = (await NoteUser.create(qq)).getMysUser('zzz').ck
             e.user_id = qq
         } else {
-            uid = e.user.getUid('sr');
-            const mys = e.user.getMysUser('sr');
+            uid = e.user.getUid('zzz');
+            const mys = e.user.getMysUser('zzz');
             ck = mys.ck;
             qq = e.user_id
         }
