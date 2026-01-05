@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { bili, config } from '#xhh';
+import { bili, config,getSource } from '#xhh';
 import fetch from 'node-fetch';
 import moment from 'moment';
 
@@ -82,23 +82,7 @@ export class bilibili extends plugin {
     if (await handleBilibiliLink(e)) return true;
 
     //引用回复
-    if (!e.source && !e.getReply) return false;
-
-    let source = {};
-
-    if (e.source) {
-      if (e.source.message_id) {
-        try {
-          source = await Bot.getMsg(e.source.message_id);
-        } catch (error) {
-          source = await e.bot.getMsg(e.source.message_id);
-        }
-      } else {
-        source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
-      }
-    } else {
-      source = await e.getReply();  //无e.source的情况
-    }
+    let source = await getSource(e)
 
     if (!source) return false;
 

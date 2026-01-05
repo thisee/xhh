@@ -12,11 +12,11 @@ export class Sign extends plugin {
       priority: -26,
       rule: [
         {
-          reg: '^#*(小花火)*(原神|星铁|绝区零)*签到$',
+          reg: '^#*(小花火|xhh)*(原神|星铁|绝区零)*签到$',
           fnc: 'sign',
         },
         {
-          reg: '^#(小花火)*(本群)*开始签到$',
+          reg: '^#(小花火|xhh)*(本群)*开始签到$',
           fnc: 'scheduled_sign',
           permission: 'master',
         },
