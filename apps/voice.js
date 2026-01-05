@@ -4,7 +4,8 @@ import {
     yaml,
     render,
     mys,
-    config
+    config,
+    getSource
 } from '#xhh';
 import {
     execSync
@@ -160,31 +161,15 @@ export class voice extends plugin {
     async fsyy(e) {
         if (!e.source && !e.getReply) return false;
         if (!config().all_voice) return false;
-        if (e.source && Number(e.source.user_id) !== Number(Bot.uin)) return false;
-        // if (!/^\[图片]$/.test(e.source.message)) return false
-        let source = {};
-        if (e.source) {
-            if (e.source.message_id) {
-                try {
-                    source = await Bot.getMsg(e.source.message_id);
-                } catch (error) {
-                    source = await e.bot.getMsg(e.source.message_id);
-                }
-            } else {
-                source = e.isGroup ? (await e.group.getChatHistory(e.source?.seq, 1)).pop() : (await e.friend.getChatHistory((e.source?.time + 1), 1)).pop();
-            }
-        } else {
-            source = await e.getReply(); //无e.source的情况
-        }
-
+        let source = await getSource(e)
         if (!source) return false;
-
-        if (source.message.length != 1 && source.message[0]?.type != 'image') return false;
+        if (Number(source.user_id) !== Number(Bot.uin)) return false;
+        if (source.message[0]?.type != 'image') return false;
 
         if (e.msg && e.msg.length > 5) return false;
         let xh = /\d+/.exec(e.msg);
         let n = xh - 1;
-        let type, lx
+        let lx
         if (/日语|日文/.test(e.msg)) {
             // type = '日语'
             lx = 'jp'
@@ -205,10 +190,8 @@ export class voice extends plugin {
         }
 
         source.message_id = source.message_id.toString().replace(/\//g, '');
-        //if(e.reply_id) source.message_id=e.reply_id //napcat
 
-        if (!fs.existsSync(`./plugins/xhh/temp/yy_pic/${source.message_id}.json`))
-            return false;
+        if (!fs.existsSync(`./plugins/xhh/temp/yy_pic/${source.message_id}.json`)) return false;
         let data = JSON.parse(
             fs.readFileSync(
                 `./plugins/xhh/temp/yy_pic/${source.message_id}.json`,
@@ -314,12 +297,11 @@ export class voice extends plugin {
         if (e) return e.reply('已清空语音列表图片缓存');
     }
 
-    temp() {
-        if (!fs.existsSync('./plugins/xhh/temp/')) {
-            fs.mkdirSync('./plugins/xhh/temp/');
-        }
+    async temp() {
         if (!fs.existsSync('./plugins/xhh/temp/yy_pic/')) {
-            fs.mkdirSync('./plugins/xhh/temp/yy_pic/');
+            fs.mkdirSync('./plugins/xhh/temp/yy_pic/', {
+                recursive: true
+            });
         }
     }
 }
