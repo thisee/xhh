@@ -232,7 +232,7 @@ export class user extends plugin {
           let yaml_url = `./plugins/xhh/data/Stoken/${e.user_id}.yaml`;
           await this.process_files(yaml_url, data_);
           const yaml_path = './plugins/xiaoyao-cvs-plugin/data/yaml/';
-          if (!fs.existsSync(yaml_path)) fs.mkdirSync(yaml_path, { recursive: true });
+          if (!fs.existsSync(yaml_path)){//fs.mkdirSync(yaml_path, { recursive: true });
             yaml_url = `${yaml_path}${e.user_id}.yaml`;
             for (let k in data_) {
               data_[k]['userId'] = Number(e.user_id);
@@ -240,6 +240,7 @@ export class user extends plugin {
             }
             await this.process_files(yaml_url, data_);
         }
+       }
         if (e.no_reply) e.reply = e.no_reply;
         e.reply(await makeForwardMsg(e, sendMsg));
         break;
