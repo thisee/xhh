@@ -57,8 +57,9 @@ export class Sign extends plugin {
             await MysSign(e, ['gs', 'sr', 'zzz']);
         } catch (error) {
             logger.error(`签到异常: ${error.message}`);
+        } finally {
+            signing = false;
         }
-        signing = false;
         return true;
     }
 
@@ -104,26 +105,36 @@ export class Sign extends plugin {
                 };
                 path = 'sign/end_list';
                 img = await render(path, data_);
-                Bot.pickGroup(Number(group)).sendMsg(img);
+                await Bot.pickGroup(Number(group)).sendMsg(img);
                 //删除签到失败的qq
-                for (const qq of sbai_qqs) {
-                    del(qq, group);
+                del(sbai_qqs, group);
+                if (data.sbai) {
+                    let atqq = sbai_qqs.map(v => v = segment.at(v))
+                    Bot.pickGroup(Number(group)).sendMsg(atqq);
                 }
                 await sleep(200);
             }
 
         } catch (error) {
             logger.error(`自动签到异常: ${error.message}`);
+        } finally {
+            signing = false;
         }
-        signing = false;
     }
 }
 
-function del(qq, group) {
+function del(qqs, group) {
     const path = './plugins/xhh/config/sign.yaml';
     const data = yaml.get(path);
-    data.sign[group].splice(data.sign[group].indexOf(qq), 1);
+    data.sign[group] = removeCommonElements(data.sign[group], qqs)
     return yaml.set(path, 'sign', data.sign);
+}
+
+function removeCommonElements(arr1, arr2) {
+    // 将数组2转为Set提高查找效率
+    const set2 = new Set(arr2);
+    // 过滤掉数组1中存在于数组2的元素
+    return arr1.filter(item => !set2.has(item));
 }
 
 async function render(path, data_) {
