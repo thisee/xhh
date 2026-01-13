@@ -45,6 +45,9 @@ sm_cd: 60
 #签到功能：true开，false关 (自动签到设置在sign.yaml文件)
 sign: false
 
+#使用xhh绑定设备(作用于genshin、StarRail-plugin、ZZZ-Plugin)：true开，false关 (开启后，还需要给bot发送：xhh开启设备     bot会自动更新文件然后重启！)
+bdsb: false
+
 #米哈游视频播报(米游社)：QQ群号 (更多设置在other.yaml文件)
 #groups:
 #    - 123456789
@@ -92,3 +95,5 @@ emoji: false
 #如果你bot有这种问题，就改成：true
 hbxx: false
 
+#http://ttocr.com/
+Verification_API_KEY: ''
