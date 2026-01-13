@@ -62,7 +62,7 @@ async function MysSign(e, games) {
                         game: game_name,
                         uid: uid,
                         icon: rew[day - 1].icon,
-                        tip: '今日已签',
+                        tip: '今天已经签过了',
                         day: day,
                         cnt: rew[day - 1].cnt,
                     });

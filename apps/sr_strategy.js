@@ -295,8 +295,7 @@ export class sr_strategy extends plugin {
 
   //更新全部攻略
   async sch(e) {
-    let kg = await yaml.get('./plugins/xhh/config/config.yaml');
-    if (!kg.srstrategy) return false;
+      if (!config().sr_strategy) return false;
     let js = fs.readFileSync(
       './plugins/miao-plugin/resources/meta-sr/character/data.json',
       'utf-8'

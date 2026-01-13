@@ -1,6 +1,10 @@
 import {
     mhy
 } from '#xhh';
+import {
+    user
+} from '../apps/user.js';
+
 async function api(e, data = {}) {
     let signActId = {
         gs: 'e202311201442471',
@@ -9,27 +13,53 @@ async function api(e, data = {}) {
     };
     const game = data.game;
     const uid = data.uid;
-    const server = data.server || mhy.getServer(uid, game);
+    const server = data.server || ((uid && game) ? mhy.getServer(uid, game) : '');
 
     const api_list = {
-        //账号游戏信息
-        GameRoles: {
-            url: 'https://api-takumi.miyoushe.com/binding/api/getUserGameRolesByStoken',
+        /* createGeetest: {
+            url: `https://api-takumi.mihoyo.com/event/toolcomsrv/risk/createGeetest?is_high=true&app_key=${data.app_key}`,
             obj: {
                 method: 'GET',
             },
         },
+        verifyGeetest: {
+            url: 'https://api-takumi.mihoyo.com/event/toolcomsrv/risk/verifyGeetest',
+            obj: {
+                method: 'POST',
+                body: data.body,
+            },
+        },
         createVerification: {
-            url: `https://bbs-api.miyoushe.com/misc/wapi/createVerification?gids=2&is_high=false'`,
+            url: 'https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/createVerification?is_high=true',
             obj: {
                 method: 'GET',
             },
         },
         verifyVerification: {
-            url: `https://bbs-api.miyoushe.com/misc/wapi/verifyVerfication`,
+            url: 'https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification',
             obj: {
                 method: 'POST',
-                body: JSON.stringify(data.body),
+                body: data.body,
+            },
+        },*/
+        createVerification: {
+            url: 'https://bbs-api.miyoushe.com/misc/wapi/createVerification?is_high=true',
+            obj: {
+                method: 'GET',
+            },
+        },
+        verifyVerification: {
+            url: 'https://bbs-api.miyoushe.com/misc/wapi/verifyVerification',
+            obj: {
+                method: 'POST',
+                body: data.body,
+            },
+        },
+        //账号游戏信息
+        GameRoles: {
+            url: 'https://api-takumi.miyoushe.com/binding/api/getUserGameRolesByStoken',
+            obj: {
+                method: 'GET',
             },
         },
         sign_info: {
@@ -91,8 +121,14 @@ async function api(e, data = {}) {
         api_err(e, res, false, data.type) :
         api_err(e, res, data.uid, data.type);
     if (_err) {
-        // if(res.retcode==1034||res.retcode==10035)
-        if (sign) return _err;
+        if (res.retcode == 1034 || res.retcode == 10035) {
+            const yz = new user().yz(e, '', game, data.headers)
+            if (yz) {
+                res = await fetch(url, obj).then(res => res.json())
+                if(res.retcode == 1034 || res.retcode == 10035) e.reply(_err)
+                else return false
+            } else e.reply(_err)
+        } else if (sign) return _err
         return false;
     }
     return res;
@@ -130,7 +166,7 @@ function api_err(e, res, uid, type) {
             logger.error(res);
             break;
     }
-    //    if([1034,10035].includes(res.retcode))
+    if ([1034, 10035].includes(res.retcode)) return msg
     if (type.includes('sign')) {
         if (res.first_bind) return '签到失败：首次请先手动签到';
         return msg;

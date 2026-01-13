@@ -14,15 +14,13 @@ class mhy {
   }
 
   async shebei(e, info) {
-    if (info?.device_fp && info?.device_id)
-      return this.bd(e, yaml_url, info.device_id, info.device_fp);
+    if (info?.device_fp && info?.device_id) return this.bd(e, yaml_url, info.device_id, info.device_fp);
     if (!info?.oaid) return logger.error('设备格式错误');
     let ck = this.getUser(e)?.ck;
     if (!ck) return e.reply('请先扫码绑定米游社后，在绑定设备');
     const { deviceName, deviceModel, oaid, deviceFingerprint, deviceBoard } = info;
     const device_ = deviceFingerprint.split('/')[0];
-    if (!oaid || oaid.includes('error') || /^0+$/.test(oaid))
-      return e.reply('设备oaid获取失败，可能你的设备不支持获取');
+    if (!oaid || oaid.includes('error') || /^0+$/.test(oaid)) return e.reply('设备oaid获取失败，你的设备不支持获取');
     let body = {
       device_id: oaid,
       seed_id: this.randomString(16),
