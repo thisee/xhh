@@ -94,11 +94,10 @@ export class TL extends plugin {
     }
 
     // if (Object.values(resultData).every(v => !v)) return true
-
     const renderData = {
       bg: Object.values(resultData).filter(Boolean).length > 1 ? 'bg' : 'bg1',
       qq: e.user_id,
-      qqname: e.sender?.nickname?.length < 11 ? e.sender?.nickname : e.user_id,
+      qqname: e.sender.card&&(e.sender.card.length < 11) ? e.sender.card : e.sender.nickname&&(e.sender.nickname.length<11) ? e.sender.nickname : e.user_id,
       time: `${moment().format('MM-DD HH:mm')} ${this.week[moment().day()]}`,
     };
 
