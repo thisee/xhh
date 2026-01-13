@@ -127,7 +127,7 @@ async function api(e, data = {}) {
             if (yz) {
                 res = await fetch(url, obj).then(res => res.json())
                 if (res.retcode == 1034 || res.retcode == 10035) e.reply(_err)
-                else return false
+                else return res
             } else e.reply(_err)
         } else if (sign) return _err
         return false;
