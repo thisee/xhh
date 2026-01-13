@@ -122,10 +122,10 @@ async function api(e, data = {}) {
         api_err(e, res, data.uid, data.type);
     if (_err) {
         if (res.retcode == 1034 || res.retcode == 10035) {
-            const yz = new user().yz(e, '', game, data.headers)
+            const yz = await new user().yz(e, '', game, data.headers)
             if (yz) {
                 res = await fetch(url, obj).then(res => res.json())
-                if(res.retcode == 1034 || res.retcode == 10035) e.reply(_err)
+                if (res.retcode == 1034 || res.retcode == 10035) e.reply(_err)
                 else return false
             } else e.reply(_err)
         } else if (sign) return _err
