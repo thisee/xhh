@@ -293,7 +293,7 @@ class bili {
 
         if (up_data.is_hg && !san.like && like_hf) {
             await e.reply('互粉用户！正在自动点赞中...', true)
-            return this.dz(e, bv, true)
+            return this.dz(e, bv, true, false)
         }
 
         let list_num = config().list_num || 10;
@@ -1003,7 +1003,7 @@ class bili {
     }
 
     //给视频点赞,取消点赞,投币,收藏
-    async dz(e, bv, re) {
+    async dz(e, bv, re, reply = true) {
         headers = await this.getHeaders();
         if (!headers) return false;
         headers.Accept = 'application/x-www-form-urlencoded';
@@ -1067,8 +1067,11 @@ class bili {
         // return e.reply('这个收藏夹达到收藏上限，请换个收藏夹吧')
         // }
         // }
-        if ([-111, -101, -403].includes(res.code))
-            return e.reply('b站ck可能过期，请重新登录或刷新ck');
+        if ([-111, -101, -403].includes(res.code)){
+          if(reply) e.reply('b站ck可能过期，请重新登录或刷新ck');
+          else logger.error('b站ck可能过期，请重新登录或刷新ck')
+          return 
+        }
         if (res.code != 0) return logger.error('code:' + res.code, res.message);
     }
 

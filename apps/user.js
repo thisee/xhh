@@ -565,6 +565,7 @@ export class user extends plugin {
     }
 
     async yue(e) {
+        if(!config().Verification_API_KEY) return false
         let url = 'http://api.ttocr.com/api/points?appkey=' + config().Verification_API_KEY
         let data = await (await fetch(url)).json()
         if (data.msg == '查询成功' && data.points) return e.reply(`剩余可用次数：${Math.floor(data.points/10)}次`)
