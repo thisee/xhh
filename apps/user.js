@@ -64,7 +64,7 @@ export class user extends plugin {
         let path = './plugins/xhh/config/config.yaml';
         fs.cpSync('./plugins/xhh/system/checkCode/gs.txt', './plugins/genshin/model/mys/mysInfo.js')
         fs.cpSync('./plugins/xhh/system/checkCode/sr.txt', './plugins/StarRail-plugin/runtime/MysSRApi.js')
-        await yaml.set(path, bdsb, true);
+        await yaml.set(path, 'bdsb', true);
         await e.reply('开启设备完成，执行重启！')
         new Restart(this.e).restart();
     }
