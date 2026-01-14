@@ -19,7 +19,7 @@
 }
 body {
   font-family: sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   width: 1020px;
   color: #d24747;
   transform: scale(1.5);
@@ -44,10 +44,10 @@ body {
   box-shadow: 0 5px 10px 0 rgb(0 0 0 / 15%);
 }
 .head_box .id_text {
-  font-size: 24px;
+  font-size: 26px;
 }
 .head_box .day_text {
-  font-size: 20px;
+  font-size: 22px;
 }
 .head_box .genshin_logo {
   position: absolute;
@@ -75,11 +75,12 @@ body {
   position: absolute;
   top: -10px;
   left: -8px;
-  background: #d4b98c;
-  color: #fff;
-  font-size: 14px;
+  background: #8CD4CC;
+  color: #FF0000;
+  font-size: 16px;
   padding: 3px 10px;
   border-radius: 15px 15px 15px 15px;
+  box-shadow: 0 3px 5px 0 rgb(0 0 0 / 15%);
   z-index: 20;
 }
 .data_line {
@@ -94,8 +95,8 @@ body {
 }
 
 .data_box .lable {
-  font-size: 14px;
-  color: #7f858a;
+  font-size: 16px;
+  color: #6067BE;
   line-height: 1;
   margin-top: 3px;
 }
@@ -133,16 +134,17 @@ body {
 /*flex-shrink: 0;*/
 /*}*/
 .title {
-  font-size: 16px;
+  font-size: 20px;
   margin-left: 6px;
   line-height: 20px;
+  /*text-shadow: 0.5px 0.5px 0.5px #000000;*/
 }
 .title .text {
   font-family: '粗';
 }
 .title .dec {
   font-family: '宋';
-  font-size: 12px;
+  font-size: 16px;
   color: #999;
   font-weight: 800;
   margin-top: 2px;
