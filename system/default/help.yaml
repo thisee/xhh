@@ -68,6 +68,17 @@
     - title: '清空b站缓存'
       desc: '每天凌晨4点会自动清空的，我给个手动清空的命令'
 
+- group: 设备命令
+  list:
+    - title: '小花火开启设备'
+      desc: '默认xhh的绑定设备，开启后会重启'
+    - title: '设备帮助'
+      desc: '查看设备用法'
+    - title: '设备(+设备信息)'
+      desc: '绑定常用设备'
+    - title: '删除设备'
+      desc: 'del'
+
 - group: 主人专用命令
   list:
     - title: '小花火设置'
