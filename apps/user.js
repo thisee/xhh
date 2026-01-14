@@ -360,6 +360,11 @@ export class user extends plugin {
         if (![1034, 10035, 10041, 5003].includes(Number(args?.res?.retcode))) {
             return reject();
         }
+        if (e.mysReq) return false
+        e.mysReq = true
+
+        mysApi.getUrl = (...args) => this.getUrl.apply(mysApi, args)
+
         const yaml_url = `./plugins/xhh/data/fp/${e.user_id}.yaml`;
         if (fs.existsSync(yaml_url)) {
             let data_ = fs.readFileSync(yaml_url, 'utf-8');
@@ -376,84 +381,74 @@ export class user extends plugin {
                 };
             }
             data.headers['x-rpc-device_id'] = data_.device_id
-        } else if ([1034, 10035].includes(Number(res?.retcode))) {
-            let jg = await yz(e, mysApi)
-            if (!jg) return reject();
+        } else if ([1034, 10035].includes(Number(args?.res?.retcode))) {
+            let create = await mysApi.getData('createVerification')
+            if (!create || create.retcode !== 0) return reject();
+            let verify = await this.ManualVerify(e, {
+                uid: mysApi.uid,
+                ...create.data
+            })
+            if (!verify) {
+                e.reply('自动解码失败！🥀')
+                return reject();
+            }
+            let submit = await mysApi.getData('verifyVerification', verify)
+            if (!submit || submit.retcode !== 0) return reject();
         } else return reject();
 
         let res = await mysApi.getData(type, data);
         if (![1034, 5003, 10035, 10041].includes(Number(res?.retcode))) {
+            logger.mark(`[米游社验证成功][uid:${mysApi.uid}][qq:${e.user_id}]`)
             return res;
         }
         return reject();
     }
-    /*
-        async yz(e, mysApi, code = 1034, game, headers) {
-            //获取headers
-            if (!(headers || mysApi)) headers = mhy.getHeaders(e, e.user.getMysUser().ck);
-            else if (mysApi) headers = mysApi.getHeaders(code == 1034 ? 'is_high=true' : 'is_high=true&app_key=' + app_key, '')
 
-            const gameName = mysApi?.game || game
-
-            let app_key = gameName == 'zzz' ? 'game_record_zzz' : gameName == 'sr' ? 'hkrpg_game_record' : ''
-
-            if (!mysApi) {
-                headers['x-rpc-client_type'] = 5
-                headers.DS = mhy.getDs2(code == 1034 ? 'is_high=true' : 'is_high=true&app_key=' + app_key, '', 4)
+    getUrl(type, data = {}) {
+        let urlMap = {
+            ...this.apiTool.getUrlMap({
+                ...data,
+                deviceId: this.device
+            }),
+            createVerification: {
+                url: 'https://bbs-api.miyoushe.com/misc/wapi/createVerification',
+                query: 'gids=2&is_high=false'
+            },
+            verifyVerification: {
+                url: 'https://bbs-api.miyoushe.com/misc/wapi/verifyVerification',
+                body: data
             }
-            headers['x-rpc-challenge_game'] = gameName == 'zzz' ? '8' : gameName == 'sr' ? '6' : '2'
-
-            let data = {
-                headers,
-                type: code == 10035 ? "createGeetest" : "createVerification",
-                app_key
-            }
-
-            let res = await api(e, data);
-            if (!res || res.retcode !== 0) return false
-
-            let body = await this.ManualVerify(e, res.data)
-
-            if (!body) {
-                e.reply('自动解码失败！')
-                return false
-            }
-
-            if (code == 10035) body['app_key'] = app_key
-            
-            body = JSON.stringify(body)
-
-            if (!mysApi) headers.DS = mhy.getDs2('', body, 4)
-            else headers = mysApi.getHeaders('', body)
-
-            data = {
-                headers,
-                type: code == 10035 ? "verifyGeetest" : "verifyVerification",
-                body
-            }
-
-            res = await api(e, data);
-            if (!res || res.retcode !== 0) {
-                e.reply('自动解码失败！')
-                return false
-            }
-            return true
         }
+        if (!urlMap[type]) return false
 
-    */
-    async yz(e, mysApi, game, headers) {
+
+        let {
+            url,
+            query = '',
+            body = ''
+        } = urlMap[type]
+
+        if (query) url += `?${query}`
+        if (body) body = JSON.stringify(body)
+
+        let headers = this.getHeaders(query, body)
+        if (this.isSr) headers['x-rpc-challenge_game'] = '6'
+        if (this.game == 'zzz') headers['x-rpc-challenge_game'] = '8'
+
+        return {
+            url,
+            headers,
+            body
+        }
+    }
+  
+    async yz(e, game, headers) {
         if (!config().Verification_API_KEY) return false
         //获取headers
-        if (!(headers || mysApi)) headers = mhy.getHeaders(e, e.user.getMysUser().ck);
-        else if (mysApi) headers = mysApi.getHeaders('is_high=true')
-
-        const gameName = mysApi?.game || game
-
-        if (!mysApi) {
-            headers['x-rpc-client_type'] = 5
-            headers.DS = mhy.getDs2('is_high=true', '', 4)
-        }
-        headers['x-rpc-challenge_game'] = gameName == 'zzz' ? '8' : gameName == 'sr' ? '6' : '2'
+        if (!headers) headers = mhy.getHeaders(e, e.user.getMysUser().ck)
+        headers['x-rpc-client_type'] = 5
+        headers.DS = mhy.getDs2('gids=2&is_high=false', '', 4)
+        headers['x-rpc-challenge_game'] = game == 'zzz' ? '8' : game == 'sr' ? '6' : '2'
 
         let data = {
             headers,
@@ -469,11 +464,8 @@ export class user extends plugin {
             e.reply('自动解码失败！')
             return false
         }
-
         body = JSON.stringify(body)
-
-        if (!mysApi) headers.DS = mhy.getDs2('', body, 4)
-        else headers = mysApi.getHeaders('', body)
+        headers.DS = mhy.getDs2('', body, 4)
 
         data = {
             headers,
@@ -565,7 +557,7 @@ export class user extends plugin {
     }
 
     async yue(e) {
-        if(!config().Verification_API_KEY) return false
+        if (!config().Verification_API_KEY) return false
         let url = 'http://api.ttocr.com/api/points?appkey=' + config().Verification_API_KEY
         let data = await (await fetch(url)).json()
         if (data.msg == '查询成功' && data.points) return e.reply(`剩余可用次数：${Math.floor(data.points/10)}次`)
