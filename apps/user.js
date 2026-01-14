@@ -382,7 +382,7 @@ export class user extends plugin {
             }
             data.headers['x-rpc-device_id'] = data_.device_id
         } else if ([1034, 10035].includes(Number(args?.res?.retcode))) {
-            if (!config().Verification_API_KEY) return false
+            if (!config().Verification_API_KEY) return reject()
             let create = await mysApi.getData('createVerification')
             if (!create || create.retcode !== 0) return reject();
             let verify = await this.ManualVerify(e, {
