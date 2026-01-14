@@ -106,11 +106,13 @@ export class Sign extends plugin {
                 path = 'sign/end_list';
                 img = await render(path, data_);
                 await Bot.pickGroup(Number(group)).sendMsg(img);
-                //删除签到失败的qq
-                del(sbai_qqs, group);
-                if (data.sbai) {
-                    let atqq = sbai_qqs.map(v => v = segment.at(v))
-                    Bot.pickGroup(Number(group)).sendMsg(atqq);
+                if (sbai_qqs.length) {
+                    //删除签到失败的qq
+                    del(sbai_qqs, group);
+                    if (data.sbai) {
+                        let atqq = sbai_qqs.map(v => v = segment.at(v))
+                        Bot.pickGroup(Number(group)).sendMsg(atqq);
+                    }
                 }
                 await sleep(200);
             }
