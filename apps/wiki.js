@@ -443,6 +443,7 @@ export class Wiki extends plugin {
           .row;
       }
     });
+
     //计算天赋材料
     character_talent = character_talent[character_talent.length - 1];
     //取3,4,11的图片,重新排序一下
@@ -658,7 +659,7 @@ export class Wiki extends plugin {
 
 function extractUnique(text, kg = false) {
   // 匹配标准正则表达式
-  let Regex = /https(.*?).(png|jpg|webp|svg)/gi;
+  let Regex = /https:\/\/(?!(baike))(.*?)\.(png|jpg|webp|svg)/gi;
   if (kg) {
     Regex = /data-entry-name="(.*?)"/gi;
     return [...text.matchAll(Regex)].map(m => m[1]);
