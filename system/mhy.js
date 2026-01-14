@@ -94,11 +94,7 @@ class mhy {
   }
 
   getUser(e) {
-    const user =
-      e.user.getMysUser() ||
-      e.user.getMysUser('sr') ||
-      e.user.getMysUser('zzz');
-    return user;
+    return e.user.getMysUser('zzz');
   }
 
   getHeaders(e, ck, Ds_ = true, info) {
