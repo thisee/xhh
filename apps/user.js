@@ -48,7 +48,7 @@ export class user extends plugin {
                     fnc: 'refresh_ck',
                 },
                 {
-                    reg: '^#*(小花火|xhh)开启设备$',
+                    reg: '^#*(小花火|xhh)开启设备(绑定)?$',
                     fnc: 'kq',
                 },
                 {
@@ -275,10 +275,14 @@ export class user extends plugin {
     }
 
     //删除设备
-    Delete(e) {
+    async Delete(e) {
         const path = `./plugins/xhh/data/fp/${e.user_id}.yaml`;
         if (!fs.existsSync(path)) return e.reply('你没有绑定过设备', true);
         fs.unlinkSync(path);
+        //ZZZ-Plugin???
+        const ltuid = e.user.getMysUser('zzz').ltuid
+        await redis.del(`ZZZ:DEVICE_FP:${ltuid}:FP`);
+        await redis.del(`ZZZ:DEVICE_FP:${ltuid}:ID`);
         e.reply('删除成功!', true);
         return true;
     }
@@ -360,8 +364,7 @@ export class user extends plugin {
         if (![1034, 10035, 10041, 5003].includes(Number(args?.res?.retcode))) {
             return reject();
         }
-        if (e.mysReq) return false
-        e.mysReq = true
+        if (e.mysReq) return await mysApi.getData(type, data);
 
         mysApi.getUrl = (...args) => this.getUrl.apply(mysApi, args)
 
@@ -381,6 +384,7 @@ export class user extends plugin {
                 };
             }
             data.headers['x-rpc-device_id'] = data_.device_id
+            logger.info(`\x1B[35m[xhh]调用${e.user_id}用户常用设备重试米游社...\x1B[0m`)
         } else if ([1034, 10035].includes(Number(args?.res?.retcode))) {
             if (!config().Verification_API_KEY) return reject()
             let create = await mysApi.getData('createVerification')
@@ -395,11 +399,12 @@ export class user extends plugin {
             }
             let submit = await mysApi.getData('verifyVerification', verify)
             if (!submit || submit.retcode !== 0) return reject();
+            e.mysReq = true
         } else return reject();
 
         let res = await mysApi.getData(type, data);
         if (![1034, 5003, 10035, 10041].includes(Number(res?.retcode))) {
-            logger.mark(`[米游社验证成功][uid:${mysApi.uid}][qq:${e.user_id}]`)
+            logger.mark(`[[xhh]mys重试成功][uid:${mysApi.uid}][qq:${e.user_id}]`)
             return res;
         }
         return reject();
@@ -442,7 +447,7 @@ export class user extends plugin {
             body
         }
     }
-  
+
     async yz(e, game, headers) {
         if (!config().Verification_API_KEY) return false
         //获取headers

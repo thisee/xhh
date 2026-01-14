@@ -194,7 +194,7 @@ export default class MysSRApi extends MysApi {
         if (res?.retcode === 1034 || res?.retcode === 10035) {
           logger.mark(`[米游社查询失败][UID:${this.uid}][qq:${this.userId}] 遇到验证码`)
           this.e.reply('米游社查询遇到验证码，请稍后再试')
-        }else{
+        }else if(res?.retcode != 0){
           this.e.reply([`UID:${this.uid}，米游社账号异常，暂时无法查询`, this.mysButton])
         }
         break

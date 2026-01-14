@@ -469,7 +469,7 @@ export default class MysInfo {
         if (res?.retcode == 1034||res?.retcode==10035) {
           logger.mark(`[米游社查询失败][uid:${this.uid}][qq:${this.userId}] 遇到验证码`)
           if (!isTask) this.e.reply([`UID:${this.uid}，米游社查询遇到验证码，请稍后再试`, this.mysButton])
-        }else{
+        }else if(res?.retcode != 0){
           if (!isTask) this.e.reply([`UID:${this.uid}，米游社账号异常，暂时无法查询`, this.mysButton])
         }
         break
