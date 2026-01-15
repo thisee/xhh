@@ -398,7 +398,7 @@ export class user extends plugin {
             let submit = await mysApi.getData('verifyVerification', verify)
             if (!submit || submit.retcode !== 0) return reject();
             e.mysReq = true
-           await sleep(3000)
+            sleep(3000)
         } else return reject();
 
         let res = await mysApi.getData(type, data);
