@@ -268,7 +268,8 @@ export class user extends plugin {
                     }
                 }
                 if (e.no_reply) e.reply = e.no_reply;
-                e.reply(await makeForwardMsg(e, sendMsg));
+                if (sendMsg.length < 2) e.reply(sendMsg)
+                else e.reply(await makeForwardMsg(e, sendMsg));
                 break;
             }
         }
@@ -338,7 +339,8 @@ export class user extends plugin {
         msgs.map((v, i) => {
             if (typeof msgs[i] === 'string') msgs[i] = msgs[i].replace(/绑定Cookie/g, '刷新Cookie');
         })
-        e.reply(await makeForwardMsg(e, msgs));
+        if (msgs.length < 2) e.reply(msgs)
+        else e.reply(await makeForwardMsg(e, msgs));
     }
 
     async process_files(yaml_url, data_) {
@@ -398,7 +400,7 @@ export class user extends plugin {
             let submit = await mysApi.getData('verifyVerification', verify)
             if (!submit || submit.retcode !== 0) return reject();
             e.mysReq = true
-           await sleep(3000)
+            await sleep(2000)
         } else return reject();
 
         let res = await mysApi.getData(type, data);
@@ -544,7 +546,7 @@ export class user extends plugin {
 
         // 处理成功结果
         if (result?.data && result.status === 1) {
-            const msg = `自动解码成功☘️,用时：${result.time / 1000}秒\n将在3秒后重试！`
+            const msg = `自动解码成功☘️,用时：${result.time / 1000}秒\n将在2秒后重试！`
             if (e.isGroup) {
                 Bot.pickGroup(e.group_id).sendMsg(msg)
             } else {
