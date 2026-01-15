@@ -160,7 +160,7 @@ function api_err(e, res, uid, type) {
             break;
         case 1034:
         case 10035:
-            if (!type.includes('sign')) msg = `${uid ? 'UID:' + uid : ''}米游社查询遇到验证码，${config().bdsb ? '暂时无法查询，部分安卓手机可发送：设备帮助\n绑定常用设备后查询！':'暂时无法查询！'}`
+            if (!type.includes('sign')) msg = `${uid ? 'UID:' + uid : ''}米游社查询遇到验证码，${config().bdsb ? '暂时无法查询，可发送：设备帮助\n尝试绑定常用设备后查询！':'暂时无法查询！'}`
             else msg = '签到遇到验证码，暂时无法签到' //res.data.gt   res.data.challenge
             break;
         default:
