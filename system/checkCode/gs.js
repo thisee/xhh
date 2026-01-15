@@ -4,6 +4,8 @@ import lodash from "lodash"
 import NoteUser from "../../../genshin/model/mys/NoteUser.js"
 import MysUser from "../../../genshin/model/mys/MysUser.js"
 import DailyCache from "../../../genshin/model/mys/DailyCache.js"
+import fs from "fs"
+import YAML from 'yaml';
 
 export default class MysInfo {
   static tips = "请先#绑定Cookie\n发送【Cookie帮助】查看配置教程"
@@ -468,9 +470,9 @@ export default class MysInfo {
 
         if (res?.retcode == 1034||res?.retcode==10035) {
           logger.mark(`[米游社查询失败][uid:${this.uid}][qq:${this.userId}] 遇到验证码`)
-          if (!isTask) this.e.reply([`UID:${this.uid}，米游社查询遇到验证码，请稍后再试`, this.mysButton])
+          if (!isTask) this.e.reply([`UID:${this.uid}，米游社查询遇到验证码，${config().bdsb ? '查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！' : '暂时无法查询'}`, this.mysButton])
         }else if(res?.retcode != 0){
-          if (!isTask) this.e.reply([`UID:${this.uid}，米游社账号异常，暂时无法查询`, this.mysButton])
+          if (!isTask) this.e.reply([`UID:${this.uid}，米游社账号异常，${config().bdsb ? '查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！' : '暂时无法查询'}`, this.mysButton])
         }
         break
       case 10307:
@@ -510,4 +512,8 @@ export default class MysInfo {
     /** 统计次数设为超限 */
     await this.ckUser.disable(game)
   }
+}
+
+function config(){
+    return YAML.parse(fs.readFileSync('./plugins/xhh/config/config.yaml', 'utf-8'))
 }

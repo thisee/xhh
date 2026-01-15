@@ -3,6 +3,9 @@ import md5 from 'md5'
 import _ from 'lodash'
 import crypto from 'crypto'
 import SRApiTool from '../../../StarRail-plugin/runtime/SRApiTool.js'
+import fs from "fs"
+import YAML from 'yaml';
+
 // const DEVICE_ID = randomString(32).toUpperCase()
 const DEVICE_NAME = randomString(_.random(1, 10))
 export default class MysSRApi extends MysApi {
@@ -191,11 +194,10 @@ export default class MysSRApi extends MysApi {
           logger.mark(`[米游社sr查询失败][UID:${this.uid}][qq:${this.userId}] 账号异常，尝试调用 Handler mys.req.err`)
           res = await handler.call('mys.req.err', this.e, { mysApi: this, type, res, data, mysInfo: this }) || res
         }
-        if (res?.retcode === 1034 || res?.retcode === 10035) {
-          logger.mark(`[米游社查询失败][UID:${this.uid}][qq:${this.userId}] 遇到验证码`)
-          this.e.reply('米游社查询遇到验证码，请稍后再试')
+        if (res?.retcode == 1034||res?.retcode==10035) {
+          this.e.reply(`UID:${this.uid}，米游社查询遇到验证码，${config().bdsb ? '查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！' : '暂时无法查询'}`)
         }else if(res?.retcode != 0){
-          this.e.reply([`UID:${this.uid}，米游社账号异常，暂时无法查询`, this.mysButton])
+          this.e.reply(`UID:${this.uid}，米游社账号异常，${config().bdsb ? '查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！' : '暂时无法查询'}`)
         }
         break
       }
@@ -230,4 +232,8 @@ export function generateSeed (length = 16) {
     result += characters[Math.floor(Math.random() * characters.length)]
   }
   return result
+}
+
+function config(){
+    return YAML.parse(fs.readFileSync('./plugins/xhh/config/config.yaml', 'utf-8'))
 }

@@ -387,7 +387,8 @@ export class user extends plugin {
                 };
             }
             data.headers['x-rpc-device_id'] = data_.device_id
-            logger.info(`\x1B[35m[xhh]调用${e.user_id}用户常用设备重试米游社...\x1B[0m`)
+            if(!e.deviceFp) e.reply(`米游社访问异常,正在调用QQ：${e.user_id}常用设备重试米游社......`)
+            e.deviceFp = true
         } else if ([1034, 10035].includes(Number(args?.res?.retcode))) {
             if (!config().Verification_API_KEY) return reject()
             let create = await mysApi.getData('createVerification')
@@ -567,7 +568,7 @@ export class user extends plugin {
         if (!config().Verification_API_KEY) return false
         let url = 'http://api.ttocr.com/api/points?appkey=' + config().Verification_API_KEY
         let data = await (await fetch(url)).json()
-        if (data.msg == '查询成功' && data.points) return e.reply(`剩余可用次数：${Math.floor(data.points/10)}次`)
+        if (data.msg == '查询成功' && data.points) return e.reply(`剩余可用次数：约${Math.floor(data.points/10)}次`)
         else return e.reply(data.msg)
     }
 
