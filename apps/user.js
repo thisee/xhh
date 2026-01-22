@@ -387,7 +387,7 @@ export class user extends plugin {
                 };
             }
             data.headers['x-rpc-device_id'] = data_.device_id
-            if(!e.deviceFp) e.reply(`米游社访问异常,正在调用QQ：${e.user_id}常用设备重试米游社......`)
+            if (!e.deviceFp) e.reply(`米游社访问异常,正在调用QQ：${e.user_id}常用设备重试米游社......`)
             e.deviceFp = true
         } else if ([1034, 10035].includes(Number(args?.res?.retcode))) {
             if (!config().Verification_API_KEY) return reject()
@@ -395,7 +395,11 @@ export class user extends plugin {
             if (!create || create.retcode !== 0) return reject();
             let verify = await this.ManualVerify(e, create.data)
             if (!verify) {
-                e.reply('自动解码失败！🥀')
+                if (e.isGroup) {
+                    Bot.pickGroup(e.group_id).sendMsg('自动解码失败！🥀')
+                } else {
+                    Bot.pickFriend(e.user_id).sendMsg('自动解码失败！🥀')
+                }
                 return reject();
             }
             let submit = await mysApi.getData('verifyVerification', verify)

@@ -366,6 +366,7 @@ class bili {
             method: 'get',
             headers
         })).json();
+
         if (res.code == 0) {
             for (let v of res.data.dash.video) {
                 if (v.id <= qn) {
@@ -403,6 +404,7 @@ class bili {
                 this.Download_(e, bv, res, _re, size);
             }
         }
+
         let img = await render('bilibili/video', data, {
             e,
             ret: false
@@ -1067,10 +1069,10 @@ class bili {
         // return e.reply('这个收藏夹达到收藏上限，请换个收藏夹吧')
         // }
         // }
-        if ([-111, -101, -403].includes(res.code)){
-          if(reply) e.reply('b站ck可能过期，请重新登录或刷新ck');
-          else logger.error('b站ck可能过期，请重新登录或刷新ck')
-          return 
+        if ([-111, -101, -403].includes(res.code)) {
+            if (reply) e.reply('b站ck可能过期，请重新登录或刷新ck');
+            else logger.error('b站ck可能过期，请重新登录或刷新ck')
+            return
         }
         if (res.code != 0) return logger.error('code:' + res.code, res.message);
     }
@@ -1381,7 +1383,7 @@ class bili {
         //下载ing
         const v_path = './plugins/xhh/temp/bili/video.m4s'
         const v_path1 = './plugins/xhh/temp/bili/audio.m4s'
-        const sp_path = './plugins/xhh/temp/bili/temp.mp4'
+        let sp_path = './plugins/xhh/temp/bili/temp.mp4'
         await this.temp();
         logger.mark('[小花火bili]:开始下载视频和音频');
         const data = Buffer.from(await sp.arrayBuffer());
@@ -1407,9 +1409,10 @@ class bili {
         ) {
             if (e.isGroup) e.group.recallMsg(v_re.message_id);
             else e.friend.recallMsg(v_re.message_id);
-            sleep(500)
+            sleep(1500)
             await e.reply(video);
         }
+        
         if (send) {
             if (e.isGroup) await e.group.recallMsg(re.message_id);
             else await e.friend.recallMsg(re.message_id);
@@ -1627,7 +1630,7 @@ class bili {
                 logger.error(res.message);
         if (!res.data.refresh && !qz)
             return e.reply(
-                '当前b站ck，无需刷新！如有问题，请重新b站登录或者发送：强制更新b站ck'
+                '当前b站ck，无需刷新！如有问题，请重新b站登录或者发送：强制刷新b站ck'
             );
         let timestamp = res.data.timestamp;
         //通过返回的时间戳算出签名
