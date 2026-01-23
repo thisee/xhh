@@ -400,6 +400,7 @@ export class user extends plugin {
                 } else {
                     Bot.pickFriend(e.user_id).sendMsg('自动解码失败！🥀')
                 }
+                e.mysReq = true
                 return reject();
             }
             let submit = await mysApi.getData('verifyVerification', verify)
