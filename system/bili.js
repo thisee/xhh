@@ -1504,8 +1504,9 @@ class bili {
         }).then(res =>
             res.json()
         );
-        if (res.code != 0 && e) {
-            e.reply('up主的信息没找到，可能是uid不对。。。');
+        if (res.code != 0) {
+           if(e) e.reply('up主的信息没找到，可能是uid不对或者B站Cookie已失效。。。');
+           else logger.mark('up主的信息没找到，可能是uid不对或者B站Cookie已失效。。。')
             return false;
         }
         url = 'https://api.bilibili.com/x/web-interface/relation?mid=' + mid;
@@ -1513,8 +1514,8 @@ class bili {
             method: 'get',
             headers
         }).then(res => res.json())
-        res.data.card['is_hg'] = res2.data.relation.attribute == 6 //是否互关
-        res.data.card['is_lh'] = res2.data.relation.attribute == 128 //是否已拉黑
+        res.data.card['is_hg'] = res2.data?.relation?.attribute == 6 //是否互关
+        res.data.card['is_lh'] = res2.data?.relation?.attribute == 128 //是否已拉黑
         res.data.card['is_gz'] = res.data.following //是否关注
         return res.data.card;
     }
