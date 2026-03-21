@@ -8,7 +8,7 @@ import fs from "fs"
 import YAML from 'yaml';
 
 export default class MysInfo {
-  static tips = "请先#绑定Cookie\n发送【Cookie帮助】查看配置教程"
+  static tips = "请先#扫码登录"
 
   constructor(e) {
     if (e) {
