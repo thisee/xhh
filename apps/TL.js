@@ -132,12 +132,24 @@ export class TL extends plugin {
     }
     let headers = mhy.getHeaders(e, sk, false);
     let url =
-      game == 'gs' ? this.gsUrl : game == 'sr' ? this.srUrl : this.zzzUrl;
-    let res = await fetch(url, {
-      method: 'get',
-      headers,
-    }).then(res => res.json());
-    if ([-10001, 10001, -100].includes(res?.retcode)) {
+      game == 'gs' ? this.gsUrl : game == 'sr' ? this.srUrl : this.zzzUrl;
+    
+    let res;
+    for (let i = 0; i < 5; i++) {
+      try {
+        res = await fetch(url, {
+          method: 'get',
+          headers,
+        }).then(r => r.json());
+        if (res) break; // 请求成功跳出循环
+      } catch (error) {
+        logger.error(`[小花火体力] 接口请求第 ${i + 1} 次失败`);
+        if (i === 4) return false; // 5次均失败则直接返回
+        await new Promise(resolve => setTimeout(resolve, 500)); // 延迟 0.5 秒后重试
+      }
+    }
+
+    if ([-10001, 10001, -100].includes(res?.retcode)) {
       if (!san) {
         e.reply('登录验证过期。请重新：扫码绑定 ');
       }
@@ -170,12 +182,19 @@ export class TL extends plugin {
   }
 
   async getGameDate(e, headers, uid) {
-    headers.DS = mhy.getDs();
-    let res = await api(e, {
-      type: 'GameRoles',
-      headers: headers,
-    });
-    let data;
+    headers.DS = mhy.getDs();
+    let res;
+    for (let i = 0; i < 5; i++) {
+      try {
+        res = await api(e, { type: 'GameRoles', headers: headers });
+        if (res?.data) break; // 请求成功跳出循环
+      } catch (error) {
+        logger.error(`[小花火体力] 角色数据请求第 ${i + 1} 次失败`);
+        if (i === 4) return false;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    let data;
     res.data.list.forEach(v => {
       if (v.game_uid == uid) {
         data = {
