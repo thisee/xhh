@@ -165,7 +165,7 @@ export class TL extends plugin {
       res.data.stamina_recover_time ||
       res.data.energy?.restore;
     if (!time) time = 0;
-    let game_ = await this.getGameDate(e, headers, uid);
+    let game_ = await this.getGameData(e, headers, uid);
     //派遣，委托 是否全部完成
     if (res.data.expeditions?.length) {
       res.data.expeditions_ = res.data.expeditions.every(
@@ -181,7 +181,7 @@ export class TL extends plugin {
     return data;
   }
 
-  async getGameDate(e, headers, uid) {
+  async getGameData(e, headers, uid) {
     headers.DS = mhy.getDs();
     let res;
     for (let i = 0; i < 5; i++) {
