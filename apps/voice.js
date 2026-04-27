@@ -105,7 +105,10 @@ export class voice extends plugin {
                 }
             }
             data = await yyjson.sr_other_download(name);
-            if (!data) return false;
+            if (!data) {
+                await e.reply("未获取到" + name + "的语音数据，如确认为已实装角色，请检查_js_names.yaml和_en_id.yaml");
+                return false;
+            }
             let {
                 list,
                 id
