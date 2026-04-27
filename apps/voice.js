@@ -57,14 +57,25 @@ export class voice extends plugin {
 
     async yylb(e) {
         if (!config().all_voice) return false;
-        let name = e.msg.replace(/#|\*|星铁|原神|语音|列表/g, '');
+        let isSrMode = e.msg.startsWith("*") || e.msg.includes("星铁");
+        let name = e.msg.replace(/#|\*|星铁|原神|语音|列表/g, "");
+        let miaoPath = "./plugins/miao-plugin/config/roleName.yaml";
+        let miaoRoleName = fs.existsSync(miaoPath) ? yaml.get(miaoPath) : null;
 
         //调用小花火原神别名
-        let gsnames = yaml.get('./plugins/xhh/system/default/gs_js_names.yaml');
-        for (let i in gsnames) {
-            if (gsnames[i].includes(name)) {
-                name = i;
-                break;
+        let gsnames = yaml.get("./plugins/xhh/system/default/gs_js_names.yaml") || {};
+        if (miaoRoleName && miaoRoleName.gs) {
+            for (let key in miaoRoleName.gs) {
+                if (!gsnames[key]) gsnames[key] = [];
+                if (Array.isArray(miaoRoleName.gs[key])) gsnames[key] = gsnames[key].concat(miaoRoleName.gs[key]);
+            }
+        }
+        if (!isSrMode) {
+            for (let i in gsnames) {
+                if (gsnames[i] && gsnames[i].includes(name)) {
+                    name = i;
+                    break;
+                }
             }
         }
         //先查原神
@@ -82,7 +93,7 @@ export class voice extends plugin {
         let img
         // let isSr = false;
         let data, table = []
-        data = await yyjson.gs_other_download(name);
+        data = isSrMode ? false : await yyjson.gs_other_download(name);
         if (data) {
             let {
                 list,
@@ -97,9 +108,15 @@ export class voice extends plugin {
             }
         } else {
             //非原神查星铁
-            let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
+            let srnames = yaml.get("./plugins/xhh/system/default/sr_js_names.yaml") || {};
+            if (miaoRoleName && miaoRoleName.sr) {
+                for (let key in miaoRoleName.sr) {
+                    if (!srnames[key]) srnames[key] = [];
+                    if (Array.isArray(miaoRoleName.sr[key])) srnames[key] = srnames[key].concat(miaoRoleName.sr[key]);
+                }
+            }
             for (let i in srnames) {
-                if (srnames[i].includes(name)) {
+                if (srnames[i] && srnames[i].includes(name)) {
                     name = i;
                     break;
                 }
