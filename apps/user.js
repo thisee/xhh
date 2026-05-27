@@ -129,8 +129,8 @@ export class user extends plugin {
             return true;
         }
 
-        let url = 'https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/fetch'; //获取二维码
-        const app_id = 2;
+        let url = 'https://passport-api.mihoyo.com/account/ma-cn-passport/app/createQRLogin'; //获取二维码
+        // const app_id = 2;
         /**
         1 《崩坏3》
         2 《未定事件簿》
@@ -144,8 +144,8 @@ export class user extends plugin {
         let headers = mhy.getHeaders(e);
 
         let body = {
-            app_id: app_id,
-            device: headers['x-rpc-device_id'],
+            // app_id: app_id,
+            // device: headers['x-rpc-device_id'],
         };
         let res = await fetch(url, {
             method: 'POST',
@@ -154,7 +154,8 @@ export class user extends plugin {
         }).then(res => res.json());
 
         const sm_url = res.data.url;
-
+        let ticket = res.data.ticket
+        
         let img = segment.image(
             (await QR.toDataURL(sm_url)).replace(
                 'data:image/png;base64,',
@@ -167,7 +168,7 @@ export class user extends plugin {
             [
                 '请在60秒内使用手机米游社扫码登录',
                 img,
-                '调用[未定事件铺]接口,获取米游社game_token,谁触发谁扫码,请不要帮别人绑定自己的米游社！！！',
+                '谁触发谁扫码,请不要帮别人绑定自己的米游社！！！',
             ],
             60,
             true
@@ -175,14 +176,15 @@ export class user extends plugin {
         if (re.data?.message_id) re.message_id = re.data.message_id;
         await sleep(2000);
 
-        url = 'https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/query'; //查询二维码状态
-        let ticket = sm_url.split('ticket=')[1];
-        body['ticket'] = ticket;
+        url = 'https://passport-api.mihoyo.com/account/ma-cn-passport/app/queryQRLoginStatus'; //查询二维码状态
+        body = {ticket};
         let zt;
         now_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
         await redis.set(`xhh_sm:${e.user_id}_CD`, now_time, {
             EX: CD
         }); //进入CD
+        
+      
         for (var n = 1; n < 150; n++) {
             await sleep(1000);
             res = await fetch(url, {
@@ -190,35 +192,31 @@ export class user extends plugin {
                 headers,
                 body: JSON.stringify(body),
             }).then(res => res.json());
+            
+                            
             if (res.retcode != 0) return e.reply('二维码已过期~', true);
-            if (res.data.stat == 'Init') continue;
-            if (res.data.stat == 'Scanned' && !zt) {
+            if (res.data.status == 'Init') continue;
+            if (res.data.status == 'Scanned' && !zt) {
                 zt = true;
                 recallMsg(e, re.message_id);
                 e.reply('二维码已被扫，请确认登录~', true);
             }
-            if (res.data.stat == 'Confirmed') {
-                const data = JSON.parse(res.data.payload.raw);
-                //通过game_token获取SToken
-                url =
-                    'https://passport-api.mihoyo.com/account/ma-cn-session/app/getTokenByGameToken';
-                body = {
-                    account_id: Number(data.uid),
-                    game_token: data.token,
-                };
-                res = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(body),
-                }).then(res => res.json());
+            
+            if (res.data.status == 'Confirmed') {
+
                 //SToken
-                const SToken = res.data.token.token;
+                const SToken = (
+                  res.data.tokens.find(i => i.name === "stoken" || i.name === "stoken_v2") ||
+                  res.data.tokens[0]
+                  )?.token
                 //stuid
-                const stuid = data.uid;
+                const stuid = res.data.user_info.aid || res.data.user_info.uid || res.data.user_info.account_id
                 //mid
                 const mid = res.data.user_info.mid;
+                
                 //用SToken获取cookie
                 const ck = `stuid=${stuid};stoken=${SToken};mid=${mid};`;
+                
                 headers.Cookie = ck;
                 const {
                     sendMsg,
