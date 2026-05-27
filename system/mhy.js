@@ -114,7 +114,7 @@ class mhy {
       'Content-Type': 'application/json, text/plain, */*',
       Referer: 'https://app.mihoyo.com',
       'X-Requested-With': 'com.mihoyo.hyperion',
-      'x-rpc-app_version': '2.71.1',
+      "x-rpc-app_version": "2.71.1",
       'x-rpc-sys_version': '13',
       'x-rpc-client_type': '2',
       'x-rpc-device_id': device_id || this.getDeviceGuid(),
