@@ -26,7 +26,7 @@ export class voice extends plugin {
                     permission: 'master',
                 },
                 {
-                    reg: '^(#|\\*)?(星铁|原神)?(.*)语音(列表)?$',
+                    reg: '^(#|\\*)(星铁|原神)?(.*)语音(列表)?$',
                     fnc: 'yylb',
                 },
                 {
