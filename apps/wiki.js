@@ -1,21 +1,21 @@
-import { yaml, render, mys, config, reply_recallMsg } from '#xhh';
-import fs from 'fs';
-import { JSDOM } from 'jsdom';
+import { yaml, render, mys, config, reply_recallMsg } from "#xhh";
+import fs from "fs";
+import { JSDOM } from "jsdom";
 const { window } = new JSDOM();
 const DOMParser = window.DOMParser;
 
-const pr = yaml.get('./plugins/xhh/config/other.yaml').wiki;
+const pr = yaml.get("./plugins/xhh/config/other.yaml").wiki;
 export class Wiki extends plugin {
   constructor(e) {
     super({
-      name: '[小花火]图鉴',
-      dsc: '图鉴',
-      event: 'message',
+      name: "[小花火]图鉴",
+      dsc: "图鉴",
+      event: "message",
       priority: pr || -99,
       rule: [
         {
-          reg: '^#*(星铁)*(.*)图鉴$',
-          fnc: 'illustrated_book',
+          reg: "^#*(星铁)*(.*)图鉴$",
+          fnc: "illustrated_book",
         },
       ],
     });
@@ -23,13 +23,13 @@ export class Wiki extends plugin {
 
   async illustrated_book(e) {
     if (!config().wiki) return false;
-    const isSr = e.msg.includes('星铁');
-    const name = e.msg.replace(/#|星铁|图鉴/g, '').trim();
+    const isSr = e.msg.includes("星铁");
+    const name = e.msg.replace(/#|星铁|图鉴/g, "").trim();
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
-      { method: 'role', args: [e, name] },
-      { method: 'weapon', args: [e, name] },
-      { method: 'syw_yiqi', args: [e, name] },
+      { method: "role", args: [ e, name ] },
+      { method: "weapon", args: [ e, name ] },
+      { method: "syw_yiqi", args: [ e, name ] },
     ];
     if (isSr) {
       for (const { method, args } of checkTypes) {
@@ -51,186 +51,186 @@ export class Wiki extends plugin {
 
     let type, _name
     
-    if (name=='遗器') type = 'yq', _name = '遗器';
-    if (name=='圣遗物') type = 'syw', _name = '圣遗物';
-    if (/武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓/.test(name)) type = 'wq', _name = '武器';
-    if (name.includes('光锥')) type = 'gz', _name = '光锥';
-    if (name.includes('角色')) type = 'js', _name = '角色';
+    if (name=="遗器") type = "yq", _name = "遗器";
+    if (name=="圣遗物") type = "syw", _name = "圣遗物";
+    if (/武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓/.test(name)) type = "wq", _name = "武器";
+    if (name.includes("光锥")) type = "gz", _name = "光锥";
+    if (name.includes("角色")) type = "js", _name = "角色";
 
     if(!_name) return false;
     
-    let data = await mys.data('', type, isSr);
+    let data = await mys.data("", type, isSr);
 
-    let condition = name.replace(/角色|武器|光锥/g, '');
+    let condition = name.replace(/角色|武器|光锥/g, "");
 
     if (!isSr) {
       switch (condition) {
-        case '五星':
-        case '5星':
-          data = data.filter(item => item.ji === '五星');
-          _name = '五星角色';
-          if (type = 'wq') _name = '五星武器';
+        case "五星":
+        case "5星":
+          data = data.filter(item => item.ji === "五星");
+          _name = "五星角色";
+          if (type = "wq") _name = "五星武器";
           break;
-        case '四星':
-        case '4星':
-          data = data.filter(item => item.ji === '四星');
-          _name = '四星角色';
-          if (type = 'wq') _name = '四星武器';
+        case "四星":
+        case "4星":
+          data = data.filter(item => item.ji === "四星");
+          _name = "四星角色";
+          if (type = "wq") _name = "四星武器";
           break;
-        case '水系':
-        case '水':
-          data = data.filter(item => item.yuanshu === '水');
-          _name = '水系角色';
+        case "水系":
+        case "水":
+          data = data.filter(item => item.yuanshu === "水");
+          _name = "水系角色";
           break;
-        case '火系':
-        case '火':
-          data = data.filter(item => item.yuanshu === '火');
-          _name = '火系角色';
+        case "火系":
+        case "火":
+          data = data.filter(item => item.yuanshu === "火");
+          _name = "火系角色";
           break;
-        case '冰系':
-        case '冰':
-          data = data.filter(item => item.yuanshu === '冰');
-          _name = '冰系角色';
+        case "冰系":
+        case "冰":
+          data = data.filter(item => item.yuanshu === "冰");
+          _name = "冰系角色";
           break;
-        case '雷系':
-        case '雷':
-          data = data.filter(item => item.yuanshu === '雷');
-          _name = '雷系角色';
+        case "雷系":
+        case "雷":
+          data = data.filter(item => item.yuanshu === "雷");
+          _name = "雷系角色";
           break;
-        case '风系':
-        case '风':
-          data = data.filter(item => item.yuanshu === '风');
-          _name = '风系角色';
+        case "风系":
+        case "风":
+          data = data.filter(item => item.yuanshu === "风");
+          _name = "风系角色";
           break;
-        case '岩系':
-        case '岩':
-          data = data.filter(item => item.yuanshu === '岩');
-          _name = '岩系角色';
+        case "岩系":
+        case "岩":
+          data = data.filter(item => item.yuanshu === "岩");
+          _name = "岩系角色";
           break;
-        case '草系':
-        case '草':
-          data = data.filter(item => item.yuanshu === '草');
-          _name = '草系角色';
+        case "草系":
+        case "草":
+          data = data.filter(item => item.yuanshu === "草");
+          _name = "草系角色";
           break;
-        case '单手剑':
-          data = data.filter(item => item.wuqi === '单手剑');
-          _name = '单手剑武器';
+        case "单手剑":
+          data = data.filter(item => item.wuqi === "单手剑");
+          _name = "单手剑武器";
           break;
-        case '双手剑':
-        case '大剑':
-          data = data.filter(item => item.wuqi === '双手剑');
-          _name = '双手剑武器';
+        case "双手剑":
+        case "大剑":
+          data = data.filter(item => item.wuqi === "双手剑");
+          _name = "双手剑武器";
           break;
-        case '长柄':
-        case '长枪':
-          data = data.filter(item => item.wuqi === '长柄武器');
-          _name = '长柄武器';
+        case "长柄":
+        case "长枪":
+          data = data.filter(item => item.wuqi === "长柄武器");
+          _name = "长柄武器";
           break;
-        case '弓系':
-        case '弓箭':
-        case '弓':
-          data = data.filter(item => item.wuqi === '弓');
-          _name = '弓武器';
+        case "弓系":
+        case "弓箭":
+        case "弓":
+          data = data.filter(item => item.wuqi === "弓");
+          _name = "弓武器";
           break;
-        case '法器':
-          data = data.filter(item => item.wuqi === '法器');
-          _name = '法器武器';
+        case "法器":
+          data = data.filter(item => item.wuqi === "法器");
+          _name = "法器武器";
           break;
       }
     } else {
       switch (condition) {
-        case '五星':
-        case '5星':
-          data = data.filter(item => item.ji === '五星');
-          _name = '五星角色';
-          if (type = 'gz') _name = '五星光锥';
+        case "五星":
+        case "5星":
+          data = data.filter(item => item.ji === "五星");
+          _name = "五星角色";
+          if (type = "gz") _name = "五星光锥";
           break;
-        case '四星':
-        case '4星':
-          data = data.filter(item => item.ji === '四星');
-          _name = '四星角色';
-          if (type = 'gz') _name = '四星光锥';
+        case "四星":
+        case "4星":
+          data = data.filter(item => item.ji === "四星");
+          _name = "四星角色";
+          if (type = "gz") _name = "四星光锥";
           break;
-        case '物理系':
-        case '物理':
-          data = data.filter(item => item.shuxing === '物理');
-          _name = '物理角色';
+        case "物理系":
+        case "物理":
+          data = data.filter(item => item.shuxing === "物理");
+          _name = "物理角色";
           break;
-        case '火系':
-        case '火':
-          data = data.filter(item => item.shuxing === '火');
-          _name = '火系角色';
+        case "火系":
+        case "火":
+          data = data.filter(item => item.shuxing === "火");
+          _name = "火系角色";
           break;
-        case '冰系':
-        case '冰':
-          data = data.filter(item => item.shuxing === '冰');
-          _name = '冰系角色';
+        case "冰系":
+        case "冰":
+          data = data.filter(item => item.shuxing === "冰");
+          _name = "冰系角色";
           break;
-        case '雷系':
-        case '雷':
-          data = data.filter(item => item.shuxing === '雷');
-          _name = '雷系角色';
+        case "雷系":
+        case "雷":
+          data = data.filter(item => item.shuxing === "雷");
+          _name = "雷系角色";
           break;
-        case '风系':
-        case '风':
-          data = data.filter(item => item.shuxing === '风');
-          _name = '风系角色';
+        case "风系":
+        case "风":
+          data = data.filter(item => item.shuxing === "风");
+          _name = "风系角色";
           break;
-        case '量子系':
-        case '量子':
-          data = data.filter(item => item.shuxing === '量子');
-          _name = '量子角色';
+        case "量子系":
+        case "量子":
+          data = data.filter(item => item.shuxing === "量子");
+          _name = "量子角色";
           break;
-        case '虚数系':
-        case '虚数':
-          data = data.filter(item => item.shuxing === '虚数');
-          _name = '虚数角色';
+        case "虚数系":
+        case "虚数":
+          data = data.filter(item => item.shuxing === "虚数");
+          _name = "虚数角色";
           break;
-        case '记忆系':
-        case '记忆':
-          data = data.filter(item => item.mingtu === '记忆');
-          _name = '记忆角色';
-          if (type = 'gz') _name = '记忆光锥';
+        case "记忆系":
+        case "记忆":
+          data = data.filter(item => item.mingtu === "记忆");
+          _name = "记忆角色";
+          if (type = "gz") _name = "记忆光锥";
           break;
-        case '丰饶系':
-        case '丰饶':
-          data = data.filter(item => item.mingtu === '丰饶');
-          _name = '丰饶角色';
-          if (type = 'gz') _name = '丰饶光锥';
+        case "丰饶系":
+        case "丰饶":
+          data = data.filter(item => item.mingtu === "丰饶");
+          _name = "丰饶角色";
+          if (type = "gz") _name = "丰饶光锥";
           break;
-        case '存护系':
-        case '存护':
-          data = data.filter(item => item.mingtu === '存护');
-          _name = '存护角色';
-          if (type = 'gz') _name = '存护光锥';
+        case "存护系":
+        case "存护":
+          data = data.filter(item => item.mingtu === "存护");
+          _name = "存护角色";
+          if (type = "gz") _name = "存护光锥";
           break;
-        case '巡猎系':
-        case '巡猎':
-          data = data.filter(item => item.mingtu === '巡猎');
-          _name = '巡猎角色';
-          if (type = 'gz') _name = '巡猎光锥';
+        case "巡猎系":
+        case "巡猎":
+          data = data.filter(item => item.mingtu === "巡猎");
+          _name = "巡猎角色";
+          if (type = "gz") _name = "巡猎光锥";
           break;
-        case '虚无系':
-        case '虚无':
-          data = data.filter(item => item.mingtu === '虚无');
-          _name = '虚无角色';
-          if (type = 'gz') _name = '虚无光锥';
+        case "虚无系":
+        case "虚无":
+          data = data.filter(item => item.mingtu === "虚无");
+          _name = "虚无角色";
+          if (type = "gz") _name = "虚无光锥";
           break;
-        case '同谐系':
-        case '同谐':
-          data = data.filter(item => item.mingtu === '同谐');
-          _name = '同谐角色';
-          if (type = 'gz') _name = '同谐光锥';
+        case "同谐系":
+        case "同谐":
+          data = data.filter(item => item.mingtu === "同谐");
+          _name = "同谐角色";
+          if (type = "gz") _name = "同谐光锥";
           break;
-        case '智识系':
-        case '智识':
-          data = data.filter(item => item.mingtu === '智识');
-          _name = '智识角色';
+        case "智识系":
+        case "智识":
+          data = data.filter(item => item.mingtu === "智识");
+          _name = "智识角色";
           break;
-        case '毁灭系':
-        case '毁灭':
-          data = data.filter(item => item.mingtu === '毁灭');
-          _name = '毁灭角色';
+        case "毁灭系":
+        case "毁灭":
+          data = data.filter(item => item.mingtu === "毁灭");
+          _name = "毁灭角色";
           break;
       }
     }
@@ -250,7 +250,7 @@ export class Wiki extends plugin {
       name: _name,
       data: data,
     };
-    return render('wiki/list', data, { e, ret: true });
+    return render("wiki/list", data, { e, ret: true });
   }
 
   //遗器图
@@ -261,7 +261,7 @@ export class Wiki extends plugin {
       pic: ext.picture.list,
       table: ext.table.list,
     };
-    render('wiki/yiqi', data, { e, ret: true });
+    render("wiki/yiqi", data, { e, ret: true });
   }
 
   //圣遗物图
@@ -272,14 +272,14 @@ export class Wiki extends plugin {
       icon: data.icon,
       table: ext.table.list,
     };
-    render('wiki/syw', data, { e, ret: true });
+    render("wiki/syw", data, { e, ret: true });
   }
 
   //圣遗物和遗器
   async syw_yiqi(e, name, isSr = false) {
     const path = isSr
-      ? './plugins/xhh/system/default/yiqi.yaml'
-      : './plugins/xhh/system/default/syw.yaml';
+      ? "./plugins/xhh/system/default/yiqi.yaml"
+      : "./plugins/xhh/system/default/syw.yaml";
     const _name = yaml.get(path);
     for (let i in _name) {
       if (_name[i].includes(name)) {
@@ -288,7 +288,7 @@ export class Wiki extends plugin {
       }
     }
     if (Object.keys(_name).includes(name)) {
-      let data = await mys.data(name, isSr ? 'yq' : 'syw', isSr);
+      let data = await mys.data(name, isSr ? "yq" : "syw", isSr);
       if (!data) return false;
       data.map(v => {
         if (v.title == name) data = v;
@@ -306,8 +306,8 @@ export class Wiki extends plugin {
   //武器
   async weapon(e, name, isSr = false) {
     const path = !isSr
-      ? './plugins/xhh/system/default/wqname.yaml'
-      : './plugins/xhh/system/default/gz_names.yaml';
+      ? "./plugins/xhh/system/default/wqname.yaml"
+      : "./plugins/xhh/system/default/gz_names.yaml";
     const wq_name = yaml.get(path);
     for (let i in wq_name) {
       if (wq_name[i].includes(name)) {
@@ -316,7 +316,7 @@ export class Wiki extends plugin {
       }
     }
     if (Object.keys(wq_name).includes(name)) {
-      const { id } = await mys.data(name, isSr ? 'gz' : 'wq', isSr);
+      const { id } = await mys.data(name, isSr ? "gz" : "wq", isSr);
       if (!id) return false;
       let data = await mys.detail(id, isSr);
       if (isSr) this.sr_gz_pictures(e, data);
@@ -329,8 +329,8 @@ export class Wiki extends plugin {
   //角色
   async role(e, name, isSr = false) {
     const path = isSr
-      ? './plugins/xhh/system/default/sr_js_names.yaml'
-      : './plugins/xhh/system/default/gs_js_names.yaml';
+      ? "./plugins/xhh/system/default/sr_js_names.yaml"
+      : "./plugins/xhh/system/default/gs_js_names.yaml";
     const role_name = yaml.get(path);
     for (let i in role_name) {
       if (role_name[i].includes(name)) {
@@ -339,7 +339,7 @@ export class Wiki extends plugin {
       }
     }
     if (Object.keys(role_name).includes(name)) {
-      const { id } = await mys.data(name, 'js', isSr);
+      const { id } = await mys.data(name, "js", isSr);
       if (!id) return false;
       let data = await mys.detail(id, isSr);
       if (isSr) this.sr_role_pictures(e, data);
@@ -357,14 +357,14 @@ export class Wiki extends plugin {
     text = JSON.parse(text.c_18.filter.text);
     let attribute, fate, rarity;
     text.map(v => {
-      if (v.includes('属性')) {
-        attribute = v.replace(/属性\//, '');
+      if (v.includes("属性")) {
+        attribute = v.replace(/属性\//, "");
       }
-      if (v.includes('命途')) {
-        fate = v.replace(/命途\//, '');
+      if (v.includes("命途")) {
+        fate = v.replace(/命途\//, "");
       }
-      if (v.includes('星级')) {
-        rarity = v.replace(/星级\//, '');
+      if (v.includes("星级")) {
+        rarity = v.replace(/星级\//, "");
       }
     });
     let character,
@@ -372,10 +372,10 @@ export class Wiki extends plugin {
       attr = [];
     if (modules) {
       modules.forEach(module => {
-        if (module.name === '角色信息') {
+        if (module.name === "角色信息") {
           character = JSON.parse(module.components[0].data).list;
         }
-        if (module.name === '角色晋阶') {
+        if (module.name === "角色晋阶") {
           character_material = JSON.parse(module.components[0].data).list[0]
             .materials;
         }
@@ -390,17 +390,17 @@ export class Wiki extends plugin {
       const js = JSON.parse(
         fs.readFileSync(
           `./plugins/miao-plugin/resources/meta-sr/character/${data.content.title}/data.json`,
-          'utf-8'
+          "utf-8"
         )
       );
-      attr.push({ key: '阵营', value: js.allegiance });
-      attr.push({ key: '命途/属性', value: fate + '/' + attribute });
-      attr.push({ key: '中文cv', value: js.cncv });
+      attr.push({ key: "阵营", value: js.allegiance });
+      attr.push({ key: "命途/属性", value: fate + "/" + attribute });
+      attr.push({ key: "中文cv", value: js.cncv });
     }
     data = {
       name: userinfo?.name || data.content.title,
       //级
-      star: userinfo?.rarity || rarity == '五星' ? 5 : 4,
+      star: userinfo?.rarity || rarity == "五星" ? 5 : 4,
       //属性
       attribute: attribute,
       //命途
@@ -415,30 +415,30 @@ export class Wiki extends plugin {
       //突破材料(另一个排版没有,懒得写了)
       material: character_material,
     };
-    render('wiki/sr_role', data, { e, ret: true });
+    render("wiki/sr_role", data, { e, ret: true });
   }
 
   //原神角色
   async gs_role_pictures(e, data) {
     const modules = data.page.modules;
     const role_attribute = {
-      '#378383': '风',
-      '#5FACC1': '冰',
-      '#6455A6': '雷',
-      '#518ABB': '水',
-      '#B8584B': '火',
-      '#6D9840': '草',
-      '#C09257': '岩',
+      "#378383": "风",
+      "#5FACC1": "冰",
+      "#6455A6": "雷",
+      "#518ABB": "水",
+      "#B8584B": "火",
+      "#6D9840": "草",
+      "#C09257": "岩",
     };
     let character, character_material, character_talent;
     modules.forEach(module => {
-      if (module.name === '基础信息') {
+      if (module.name === "基础信息") {
         character = JSON.parse(module.components[0].data);
       }
-      if (module.name === '角色突破') {
+      if (module.name === "角色突破") {
         character_material = JSON.parse(module.components[0].data);
       }
-      if (module.name === '天赋') {
+      if (module.name === "天赋") {
         character_talent = JSON.parse(module.components[0].data).list[0].attr
           .row;
       }
@@ -457,17 +457,17 @@ export class Wiki extends plugin {
       ...extractUnique(character_talent[3], true),
       ...extractUnique(character_talent[10], true),
     ];
-    const pngs_ = extractElements(pngs, [1, 3, 5]);
-    const png_names_ = extractElements(png_names, [1, 3, 5]);
-    pngs = [...pngs_, ...pngs];
-    png_names = [...png_names_, ...png_names];
-    png_names[0] += ' x18';
-    png_names[1] += ' x66';
-    png_names[2] += ' x93';
+    const pngs_ = extractElements(pngs, [ 1, 3, 5 ]);
+    const png_names_ = extractElements(png_names, [ 1, 3, 5 ]);
+    pngs = [ ...pngs_, ...pngs ];
+    png_names = [ ...png_names_, ...png_names ];
+    png_names[0] += " x18";
+    png_names[1] += " x66";
+    png_names[2] += " x93";
     const weeks = {
-      '周一/四/日': ['自由', '繁荣', '浮世', '诤言', '公平', '角逐', '月光'],
-      '周二/五/日': ['抗争', '勤劳', '风雅', '巧思', '正义', '焚燔', '乐园'],
-      '周三/六/日': ['诗文', '黄金', '天光', '笃行', '秩序', '纷争', '浪迹'],
+      "周一/四/日": [ "自由", "繁荣", "浮世", "诤言", "公平", "角逐", "月光" ],
+      "周二/五/日": [ "抗争", "勤劳", "风雅", "巧思", "正义", "焚燔", "乐园" ],
+      "周三/六/日": [ "诗文", "黄金", "天光", "笃行", "秩序", "纷争", "浪迹" ],
     };
     let week;
     for (const k in weeks) {
@@ -476,22 +476,22 @@ export class Wiki extends plugin {
       });
       if (week) break;
     }
-    png_names[3] += ' x9';
-    png_names[4] += ' x63';
-    png_names[5] += ' x114';
-    png_names[6] += ' x18';
-    png_names[7] += ' x3';
+    png_names[3] += " x9";
+    png_names[4] += " x63";
+    png_names[5] += " x114";
+    png_names[6] += " x18";
+    png_names[7] += " x3";
     pngs.splice(3, 0, pngs.splice(6, 1)[0]);
     png_names.splice(3, 0, png_names.splice(6, 1)[0]);
 
     //计算成长属性
     let grow = character_material.list[character_material.list.length - 1];
     grow = grow.attr[grow.attr.length - 1];
-    grow.value = grow.value[0].replace(/<p>(.*)<\/p>/, '$1').trim();
-    if (grow.key == '暴击伤害') {
-      grow.value = '38.4%';
-    } else if (grow.key == '暴击率') {
-      grow.value = '19.2%';
+    grow.value = grow.value[0].replace(/<p>(.*)<\/p>/, "$1").trim();
+    if (grow.key == "暴击伤害") {
+      grow.value = "38.4%";
+    } else if (grow.key == "暴击率") {
+      grow.value = "19.2%";
     }
     character_material = character_material.list[0].materials;
     data = {
@@ -507,7 +507,7 @@ export class Wiki extends plugin {
       //突破材料
       material: character_material,
       //成长属性
-      grow: grow.key + ' ' + grow.value,
+      grow: grow.key + " " + grow.value,
       //天赋材料图片
       pngs: pngs,
       //天赋材料
@@ -515,7 +515,7 @@ export class Wiki extends plugin {
       //天赋材料周几
       week: week,
     };
-    render('wiki/gs_role', data, { e, ret: true });
+    render("wiki/gs_role", data, { e, ret: true });
   }
 
   //原神武器
@@ -524,8 +524,8 @@ export class Wiki extends plugin {
     let wq, description, numeric_value;
     modules.forEach((v, i) => {
       if (i == 0) wq = JSON.parse(v.components[0].data);
-      if (v.name == '装备描述') description = JSON.parse(v.components[0].data);
-      if (v.name == '成长数值')
+      if (v.name == "装备描述") description = JSON.parse(v.components[0].data);
+      if (v.name == "成长数值")
         numeric_value = JSON.parse(v.components[0].data).list;
     });
     const rich_text = description.rich_text;
@@ -542,8 +542,8 @@ export class Wiki extends plugin {
 
     const arr = numeric_
       .match(/<p>(.*?)<\/p>/g)
-      .map(m => m.replace(/<p>|<\/p>/g, ''));
-    const atk = arr[0].replace(/基础攻击力/g, '').replace(/:|：/g, '')
+      .map(m => m.replace(/<p>|<\/p>/g, ""));
+    const atk = arr[0].replace(/基础攻击力/g, "").replace(/:|：/g, "")
 
     const attr_ = {
       key: arr[1].split(/[:：]/)[0],
@@ -551,32 +551,32 @@ export class Wiki extends plugin {
     };
     //材料周几
     const weeks = {
-      '周一/四/日': [
-        '高塔孤王',
-        '孤云寒林',
-        '远海夷地',
-        '谧林涓露',
-        '悠古弦音',
-        '贡祭炽心',
-        '奇巧秘器'
+      "周一/四/日": [
+        "高塔孤王",
+        "孤云寒林",
+        "远海夷地",
+        "谧林涓露",
+        "悠古弦音",
+        "贡祭炽心",
+        "奇巧秘器"
       ],
-      '周二/五/日': [
-        '凛风奔狼',
-        '雾海云间',
-        '鸣神御灵',
-        '绿洲花园',
-        '纯圣露滴',
-        '谵妄圣主',
-        '长夜燧火'
+      "周二/五/日": [
+        "凛风奔狼",
+        "雾海云间",
+        "鸣神御灵",
+        "绿洲花园",
+        "纯圣露滴",
+        "谵妄圣主",
+        "长夜燧火"
       ],
-      '周三/六/日': [
-        '狮牙斗士',
-        '漆黑陨铁',
-        '今昔剧画',
-        '烈日威权',
-        '无垢之海',
-        '神合秘烟',
-        '终北遗嗣'
+      "周三/六/日": [
+        "狮牙斗士",
+        "漆黑陨铁",
+        "今昔剧画",
+        "烈日威权",
+        "无垢之海",
+        "神合秘烟",
+        "终北遗嗣"
       ],
     };
     let week;
@@ -590,7 +590,7 @@ export class Wiki extends plugin {
       name: wq.name,
       type: wq.category,
       //级
-      star: wq.star + '星',
+      star: wq.star + "星",
       //图片
       img: wq.image,
       rich_text,
@@ -603,7 +603,7 @@ export class Wiki extends plugin {
       attr_,
       week,
     };
-    render('wiki/wq', data, { e, ret: true });
+    render("wiki/wq", data, { e, ret: true });
   }
 
   //星铁光锥
@@ -617,16 +617,16 @@ export class Wiki extends plugin {
     );
     const cn = extractChineseWords(material);
     material = extractUniqueHttpsLinks(material);
-    let mat = [0, 6, 12, 2, 5, 11, 1].map(index => material[index]); //重新排序，提取
+    let mat = [ 0, 6, 12, 2, 5, 11, 1 ].map(index => material[index]); //重新排序，提取
     if (cn[2] === cn[5])
-      mat = [0, 5, 11, 3, 6, 12, 1].map(index => material[index]); //另一种排版
-    let mat_num = [20, 20, 14, 4, 12, 15, '89.3w'];
+      mat = [ 0, 5, 11, 3, 6, 12, 1 ].map(index => material[index]); //另一种排版
+    let mat_num = [ 20, 20, 14, 4, 12, 15, "89.3w" ];
     content = extractHonkaiStarRailData(content[0]);
     content.jineng[1] = content.jineng[1].replace(
       /【([\d.%/]+)】/g,
-      '<p class="lan">【$1】</p>'
+      "<p class=\"lan\">【$1】</p>"
     );
-    if (content.xiyoudu == '4星') mat_num = [15, 15, 12, 3, 9, 12, '70.7w'];
+    if (content.xiyoudu == "4星") mat_num = [ 15, 15, 12, 3, 9, 12, "70.7w" ];
     data = {
       name,
       ...content,
@@ -634,7 +634,7 @@ export class Wiki extends plugin {
       mat,
       mat_num,
     };
-    render('wiki/gz', data, { e, ret: true });
+    render("wiki/gz", data, { e, ret: true });
   }
 
   /*
@@ -662,11 +662,11 @@ function extractUnique(text, kg = false) {
   let Regex = /https:\/\/(?!(baike))(.*?)\.(png|jpg|webp|svg)/gi;
   if (kg) {
     Regex = /data-entry-name="(.*?)"/gi;
-    return [...text.matchAll(Regex)].map(m => m[1]);
+    return [ ...text.matchAll(Regex) ].map(m => m[1]);
   }
   // 提取所有匹配项并转为Set去重
   const matches = text.match(Regex) || [];
-  const unique = [...new Set(matches)];
+  const unique = [ ...new Set(matches) ];
 
   return unique;
 }
@@ -680,11 +680,11 @@ function extractUnique(text, kg = false) {
 function extractElements(arr, indexes) {
   // 验证
   if (!Array.isArray(arr) || !Array.isArray(indexes)) {
-    logger.error('参数必须是数组类型');
+    logger.error("参数必须是数组类型");
   }
 
   // 去重并排序索引
-  const sortedIndexes = [...new Set(indexes)]
+  const sortedIndexes = [ ...new Set(indexes) ]
     .sort((a, b) => b - a)
     .filter(i => i >= 0 && i < arr.length);
 
@@ -700,74 +700,74 @@ function extractElements(arr, indexes) {
 function extractHonkaiStarRailData(htmlString) {
   // 创建DOM解析器
   const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlString, 'text/html');
+  const doc = parser.parseFromString(htmlString, "text/html");
 
   // 初始化结果对象
   const result = {
-    img: '',
-    mingtu: '',
-    xiyoudu: '',
-    jineng: ['', ''],
-    miaoshu: '',
+    img: "",
+    mingtu: "",
+    xiyoudu: "",
+    jineng: [ "", "" ],
+    miaoshu: "",
   };
 
   // 1. 提取图片链接
   const imgElement = doc.querySelector(
-    'img[src^="https://act-upload.mihoyo.com"]'
+    "img[src^=\"https://act-upload.mihoyo.com\"]"
   );
   if (imgElement) {
     result.img = imgElement.src;
   }
 
   // 2. 提取表格数据
-  const mobileTable = doc.querySelector('.obc-tml-light-table--mobile');
+  const mobileTable = doc.querySelector(".obc-tml-light-table--mobile");
   if (mobileTable) {
-    const rows = mobileTable.querySelectorAll('tr');
+    const rows = mobileTable.querySelectorAll("tr");
 
     rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
+      const cells = row.querySelectorAll("td");
       if (cells.length < 2) return;
 
       const key = cells[0].textContent.trim();
       const valueCell = cells[1];
 
       switch (key) {
-        case '命途':
+        case "命途":
           result.mingtu = valueCell.textContent.trim();
           break;
 
-        case '稀有度':
+        case "稀有度":
           result.xiyoudu = valueCell.textContent.trim();
           break;
 
-        case '技能':
+        case "技能":
           // 提取技能名称
           const skillName =
-            valueCell.querySelector('h3 span')?.textContent.trim() || '';
+            valueCell.querySelector("h3 span")?.textContent.trim() || "";
           result.jineng[0] = skillName;
 
           // 提取技能描述（保留数字和中文）
           const skillDesc =
             valueCell
-              .querySelector('p')
-              ?.textContent.replace(/\s+/g, ' ')
-              .trim() || '';
+              .querySelector("p")
+              ?.textContent.replace(/\s+/g, " ")
+              .trim() || "";
           result.jineng[1] = skillDesc;
           break;
 
-        case '光锥描述':
+        case "光锥描述":
           // 提取所有段落并处理换行
-          const paragraphs = valueCell.querySelectorAll('p');
-          let fullDescription = '';
+          const paragraphs = valueCell.querySelectorAll("p");
+          let fullDescription = "";
 
           paragraphs.forEach(p => {
             // 处理段落内容，将<br>转换为\n
             let paragraphContent = p.innerHTML
-              .replace(/<br\s*\/?>/gi, '\n') // 转换换行标签
-              .replace(/<\/?[^>]+>/g, '') // 移除所有HTML标签
+              .replace(/<br\s*\/?>/gi, "\n") // 转换换行标签
+              .replace(/<\/?[^>]+>/g, "") // 移除所有HTML标签
               .trim();
 
-            fullDescription += paragraphContent + '\n';
+            fullDescription += paragraphContent + "\n";
           });
 
           // 移除最后的换行符并赋值

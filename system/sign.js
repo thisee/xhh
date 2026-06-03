@@ -4,16 +4,16 @@ import {
     mhy,
     render,
     yaml
-} from '#xhh';
-import NoteUser from '../../genshin/model/mys/NoteUser.js';
+} from "#xhh";
+import NoteUser from "../../genshin/model/mys/NoteUser.js";
 
 async function MysSign(e, games) {
     if (
         !e.user.getMysUser() &&
-        !e.user.getMysUser('sr') &&
-        !e.user.getMysUser('zzz')
+        !e.user.getMysUser("sr") &&
+        !e.user.getMysUser("zzz")
     )
-        return e.reply('未绑定米游社ck,请发送[扫码绑定]', true);
+        return e.reply("未绑定米游社ck,请发送[扫码绑定]", true);
     let msgs = [];
     let bj = 1;
     for (let game of games) {
@@ -21,29 +21,29 @@ async function MysSign(e, games) {
         if (!mys) continue;
         const ck = mys.ck;
         const uids = mys.uids;
-        const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : '绝区零';
+        const game_name = game == "gs" ? "原神" : game == "sr" ? "星铁" : "绝区零";
         for (let i = 0; i < uids[game].length; i++) {
             const uid = uids[game][i];
             if (i > 0) await sleep(1000);
             let headers = mhy.getHeaders(e, ck);
             const Ds = mhy.getDsSign();
             headers.DS = Ds;
-            headers.Origin = 'https://act.mihoyo.com';
-            headers.Referer = 'https://act.mihoyo.com';
+            headers.Origin = "https://act.mihoyo.com";
+            headers.Referer = "https://act.mihoyo.com";
             //必加参数
-            headers['x-rpc-signgame'] =
-                game == 'zzz' ? 'zzz' : game == 'sr' ? 'hkrpg' : 'hk4e';
+            headers["x-rpc-signgame"] =
+                game == "zzz" ? "zzz" : game == "sr" ? "hkrpg" : "hk4e";
             let data = {
                 game,
                 uid,
                 headers,
-                type: 'sign_info',
+                type: "sign_info",
             };
             let res = await api(e, data);
             /**
              * 报错
              */
-            if (typeof res == 'string') {
+            if (typeof res == "string") {
                 msgs.push({
                     game: game_name,
                     uid: uid,
@@ -62,7 +62,7 @@ async function MysSign(e, games) {
                         game: game_name,
                         uid: uid,
                         icon: rew[day - 1].icon,
-                        tip: '今天已经签过了',
+                        tip: "今天已经签过了",
                         day: day,
                         cnt: rew[day - 1].cnt,
                     });
@@ -73,7 +73,7 @@ async function MysSign(e, games) {
                 } else {
                     //未签到,开始签到
                     logger.mark(`[${game_name}签到]QQ: ${e.user_id},UID: ${uid}`);
-                    data.type = 'sign';
+                    data.type = "sign";
                     const sign_res = await api(e, data);
                     //签到成功
                     if (sign_res.retcode == 0) {
@@ -81,7 +81,7 @@ async function MysSign(e, games) {
                             game: game_name,
                             uid: uid,
                             icon: rew[day].icon,
-                            tip: '签到成功',
+                            tip: "签到成功",
                             day: day + 1,
                             cnt: rew[day].cnt,
                         });
@@ -91,7 +91,7 @@ async function MysSign(e, games) {
                         }
                     }
                     //签到失败
-                    else if (typeof sign_res == 'string') {
+                    else if (typeof sign_res == "string") {
                         msgs.push({
                             game: game_name,
                             uid: uid,
@@ -108,14 +108,14 @@ async function MysSign(e, games) {
         name: e.sender.card || e.sender.nickname,
     };
     //渲染
-    return render('sign/sign', data_, {
+    return render("sign/sign", data_, {
         e,
         ret: true,
     });
 }
 
 function add(e) {
-    const path = './plugins/xhh/config/sign.yaml';
+    const path = "./plugins/xhh/config/sign.yaml";
     const data = yaml.get(path);
     if (!data.zd_sign || !e.isGroup) return;
     if (data.sign_group && !data.sign_group.includes(e.group_id)) return;
@@ -130,13 +130,13 @@ function add(e) {
     if (qqs.includes(e.user_id)) return;
     qqs.push(e.user_id);
     data.sign[e.group_id] = qqs;
-    return yaml.set(path, 'sign', data.sign);
+    return yaml.set(path, "sign", data.sign);
 }
 
 async function reward(e, data) {
     let rew = await redis.get(`xhh:sign:${data.game}`);
     if (rew) return JSON.parse(rew);
-    data.type = 'sign_home';
+    data.type = "sign_home";
     const res = await api(e, data);
     const time = getSecondsToMidnight();
     await redis.set(`xhh:sign:${data.game}`, JSON.stringify(res.data.awards), {
@@ -163,7 +163,7 @@ async function zd_MysSign(qqs) {
         z_num = 0,
         cg_qqs = [],
         sbai_qqs = [];
-    const games = ['gs', 'sr', 'zzz'];
+    const games = [ "gs", "sr", "zzz" ];
     for (let qq of qqs) {
         let e = {};
         e.user_id = qq;
@@ -180,22 +180,22 @@ async function zd_MysSign(qqs) {
                 let headers = mhy.getHeaders(e, ck);
                 const Ds = mhy.getDsSign();
                 headers.DS = Ds;
-                headers.Origin = 'https://act.mihoyo.com';
-                headers.Referer = 'https://act.mihoyo.com';
+                headers.Origin = "https://act.mihoyo.com";
+                headers.Referer = "https://act.mihoyo.com";
                 //必加参数
-                headers['x-rpc-signgame'] =
-                    game == 'zzz' ? 'zzz' : game == 'sr' ? 'hkrpg' : 'hk4e';
+                headers["x-rpc-signgame"] =
+                    game == "zzz" ? "zzz" : game == "sr" ? "hkrpg" : "hk4e";
                 let data = {
                     game,
                     uid,
                     headers,
-                    type: 'sign_info',
+                    type: "sign_info",
                 };
                 let res = await api(e, data);
                 /**
                  * 报错
                  */
-                if (typeof res == 'string') {
+                if (typeof res == "string") {
                     if (!sbai_qqs.includes(qq)) {
                         if (cg_qqs.includes(qq)) {
                             const index = cg_qqs.indexOf(qq);
@@ -217,7 +217,7 @@ async function zd_MysSign(qqs) {
                         continue;
                     } else {
                         //未签到,开始签到
-                        data.type = 'sign';
+                        data.type = "sign";
                         const sign_res = await api(e, data);
                         //签到成功
                         if (sign_res.retcode == 0) {
@@ -228,7 +228,7 @@ async function zd_MysSign(qqs) {
                             continue;
                         }
                         //签到失败
-                        else if (typeof sign_res == 'string') {
+                        else if (typeof sign_res == "string") {
                             if (!sbai_qqs.includes(qq)) {
                                 if (cg_qqs.includes(qq)) {
                                     const index = cg_qqs.indexOf(qq);

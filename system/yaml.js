@@ -1,11 +1,11 @@
-import fs from 'fs';
-import YAML from 'yaml';
+import fs from "fs";
+import YAML from "yaml";
 
 class yaml {
   get(path) {
     let read;
     try {
-      read = fs.readFileSync(path, 'utf-8');
+      read = fs.readFileSync(path, "utf-8");
     } catch (err) {
       logger.error(err);
       return false;
@@ -16,15 +16,15 @@ class yaml {
   set(path, keyname, value) {
     let read;
     try {
-      read = fs.readFileSync(path, 'utf-8');
+      read = fs.readFileSync(path, "utf-8");
     } catch (err) {
       logger.error(err);
       return false;
     }
     let D = YAML.parseDocument(read);
     try {
-      D.setIn(keyname.split('.'), value);
-      fs.writeFileSync(path, YAML.stringify(D), 'utf-8');
+      D.setIn(keyname.split("."), value);
+      fs.writeFileSync(path, YAML.stringify(D), "utf-8");
     } catch (err) {
       logger.error(err);
       return false;
@@ -34,7 +34,7 @@ class yaml {
   add(path, keyname, value) {
     let du;
     try {
-      du = fs.readFileSync(path, 'utf-8');
+      du = fs.readFileSync(path, "utf-8");
     } catch (err) {
       logger.error(err);
       return false;
@@ -49,8 +49,8 @@ class yaml {
     }
     let D = YAML.parseDocument(du);
     try {
-      D.addIn(keyname.split('.'), value);
-      fs.writeFileSync(path, YAML.stringify(D), 'utf-8');
+      D.addIn(keyname.split("."), value);
+      fs.writeFileSync(path, YAML.stringify(D), "utf-8");
     } catch (err) {
       logger.error(err);
       return false;
@@ -60,7 +60,7 @@ class yaml {
   del(path, keyname, value) {
     let read;
     try {
-      read = fs.readFileSync(path, 'utf-8');
+      read = fs.readFileSync(path, "utf-8");
     } catch (err) {
       logger.error(err);
       return false;
@@ -75,7 +75,7 @@ class yaml {
       }
       if (D[keyname].indexOf(value) !== -1) {
         D[keyname].splice(D[keyname].indexOf(value), 1);
-        logger.info('del is ok');
+        logger.info("del is ok");
         this.set(path, keyname, D[keyname]);
       }
     } catch (err) {

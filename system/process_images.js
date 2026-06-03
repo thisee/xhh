@@ -3,15 +3,15 @@
 本地图片或者网络地址(http)
 */
 
-import fetch from 'node-fetch';
-import sharp from 'sharp'
-import fs from 'fs';
-import common from '../../../lib/common/common.js';
+import fetch from "node-fetch";
+import sharp from "sharp"
+import fs from "fs";
+import common from "../../../lib/common/common.js";
 
 const _path = process.cwd();
 
 //存放切割图片的目录
-const outputDir =_path+'/plugins/xhh/temp/bili/'
+const outputDir =_path+"/plugins/xhh/temp/bili/"
 
 /**
  * 按照高度阈值(16800像素)均匀切割图片
@@ -22,7 +22,7 @@ const outputDir =_path+'/plugins/xhh/temp/bili/'
 async function splitImage(inputPath, chunkHeight = 16800) {
   // 获取图片元数据
   let metadata
-  if (inputPath.startsWith('http')) metadata = await (await fetch(inputPath)).arrayBuffer().then(b => sharp(b).metadata())
+  if (inputPath.startsWith("http")) metadata = await (await fetch(inputPath)).arrayBuffer().then(b => sharp(b).metadata())
   else metadata = await sharp(inputPath).metadata();
 
   const { width, height, format } = metadata;
@@ -32,7 +32,7 @@ async function splitImage(inputPath, chunkHeight = 16800) {
 
   if (totalChunks === 1) {
     // logger.mark('图片高度小于切割高度，无需切割');
-    return [inputPath];
+    return [ inputPath ];
   }
 
 //   logger.mark(`原图信息: 宽度=${width}px, 高度=${height}px, 格式=${format}`);
@@ -47,11 +47,11 @@ async function splitImage(inputPath, chunkHeight = 16800) {
   let timestamp, name
 
   // http图片，下载需要切割的图片到本地
-  if (inputPath.startsWith('http')) {
+  if (inputPath.startsWith("http")) {
     timestamp = new Date().getTime();
     name = timestamp.toString().slice(-6);
-    await common.downFile(inputPath, outputDir + name + '.' + format);
-    inputPath = outputDir + name + '.' + format;
+    await common.downFile(inputPath, outputDir + name + "." + format);
+    inputPath = outputDir + name + "." + format;
   }
 
 
@@ -67,7 +67,7 @@ async function splitImage(inputPath, chunkHeight = 16800) {
 
     timestamp = new Date().getTime();
     name = timestamp.toString().slice(-6);
-    const outputPath = outputDir + name + '.' + format
+    const outputPath = outputDir + name + "." + format
 
     await sharp(inputPath)
       .extract({

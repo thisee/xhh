@@ -1,37 +1,39 @@
-import fs from 'fs';
+import fs from "fs";
 import {
     yaml,
     makeForwardMsg,
     config
-} from '#xhh';
+} from "#xhh";
 
 export class Npcwt extends plugin {
     constructor(e) {
         super({
-            name: '[小花火]原神npc委托成就',
-            dsc: '',
-            event: 'message',
+            name: "[小花火]原神npc委托成就",
+            dsc: "",
+            event: "message",
             priority: 1234,
-            rule: [{
-                reg: '',
-                fnc: 'wt',
+            rule: [
+{
+                reg: "",
+                fnc: "wt",
                 log: false,
-            }, ],
+            }, 
+],
         });
     }
     async wt(e) {
         if (!e.msg) return false;
-        if (config().wt && !e.msg.includes('#')) return false;
+        if (config().wt && !e.msg.includes("#")) return false;
         let name = e.msg
-            .replace(/#|＃|？|。|,|，|·|!|！|—|《|》|…|「|」|『|』|、|\.|\?/g, '')
+            .replace(/#|＃|？|。|,|，|·|!|！|—|《|》|…|「|」|『|』|、|\.|\?/g, "")
             .trim();
         let data = JSON.parse(
-            fs.readFileSync('./plugins/xhh/system/default/NPCwt.json', 'utf-8')
+            fs.readFileSync("./plugins/xhh/system/default/NPCwt.json", "utf-8")
         );
         for (let i = 0; i < data.length; i++) {
             let v = data[i];
             let name_ = v.name
-                .replace(/#|＃|？|。|,|，|·|!|！|—|《|》|…|「|」|『|』|、|\.|\?/g, '')
+                .replace(/#|＃|？|。|,|，|·|!|！|—|《|》|…|「|」|『|』|、|\.|\?/g, "")
                 .trim();
             if (name == name_) {
                 let msg;

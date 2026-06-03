@@ -3,18 +3,20 @@ import {
     makeForwardMsg,
     recallMsg,
     getSource
-} from '#xhh';
+} from "#xhh";
 export class picture extends plugin {
     constructor(e) {
         super({
-            name: '[小花火]图片处理',
-            dsc: '',
-            event: 'message',
+            name: "[小花火]图片处理",
+            dsc: "",
+            event: "message",
             priority: 1234,
-            rule: [{
-                reg: '^#?(过期|链接|大小)$',
-                fnc: 'lj',
-            }, ],
+            rule: [
+{
+                reg: "^#?(过期|链接|大小)$",
+                fnc: "lj",
+            }, 
+],
         });
     }
 
@@ -23,7 +25,7 @@ export class picture extends plugin {
         let source = await getSource(e)
         if (source) {
             for (let val of source.message) {
-                if (val.type === 'image') {
+                if (val.type === "image") {
                     imageMessages.push(val);
                 }
             }
@@ -34,7 +36,7 @@ export class picture extends plugin {
         if (imageMessages.length <= 0) {
             return false
         }
-        if (e.msg.includes('过期')) gq = true;
+        if (e.msg.includes("过期")) gq = true;
         let msg = [];
         if (gq) {
             for (let img of imageMessages) {
@@ -56,7 +58,7 @@ export class picture extends plugin {
                 segment.image(imageMessages[i].url),
             ]);
         }
-        msg = await makeForwardMsg(e, msg, '图片链接');
+        msg = await makeForwardMsg(e, msg, "图片链接");
         e.reply(msg);
         return;
     }

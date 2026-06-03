@@ -3,20 +3,22 @@ import {
     mhy,
     render,
     config
-} from '#xhh';
-import NoteUser from '../../genshin/model/mys/NoteUser.js';
+} from "#xhh";
+import NoteUser from "../../genshin/model/mys/NoteUser.js";
 
 export class hbzz extends plugin {
     constructor(e) {
         super({
-            name: '[小花火]货币战争',
-            dsc: '',
-            event: 'message',
+            name: "[小花火]货币战争",
+            dsc: "",
+            event: "message",
             priority: 123,
-            rule: [{
-                reg: '^#*(星铁)?货币战争$',
-                fnc: 'hb',
-            }]
+            rule: [
+{
+                reg: "^#*(星铁)?货币战争$",
+                fnc: "hb",
+            }
+]
         })
     }
 
@@ -25,35 +27,35 @@ export class hbzz extends plugin {
 
         if (e.message.length > 1) {
             for (const message of e.message) {
-                if (message.type == 'at' && message.qq != Number(Bot.uin)) qq = message.qq
+                if (message.type == "at" && message.qq != Number(Bot.uin)) qq = message.qq
             }
         }
 
         if (qq) {
-            uid = (await NoteUser.create(qq)).getUid('sr');
-            ck = (await NoteUser.create(qq)).getMysUser('sr').ck
+            uid = (await NoteUser.create(qq)).getUid("sr");
+            ck = (await NoteUser.create(qq)).getMysUser("sr").ck
             e.user_id = qq
         } else {
-            uid = e.user.getUid('sr');
-            const mys = e.user.getMysUser('sr');
+            uid = e.user.getUid("sr");
+            const mys = e.user.getMysUser("sr");
             ck = mys.ck;
             qq = e.user_id
         }
 
-        if (!uid || !ck) return e.reply('请先扫码绑定账号！');
+        if (!uid || !ck) return e.reply("请先扫码绑定账号！");
 
 
         //获取headers
         let headers = mhy.getHeaders(e, ck);
-        headers['x-rpc-client_type'] = 5
-        const server = mhy.getServer(uid, 'sr')
-        headers.DS = mhy.getDs2(`role_id=${uid}&server=${server}`, '', 4) //补对Ds
+        headers["x-rpc-client_type"] = 5
+        const server = mhy.getServer(uid, "sr")
+        headers.DS = mhy.getDs2(`role_id=${uid}&server=${server}`, "", 4) //补对Ds
 
         let data = {
             uid,
             headers,
             server,
-            type: 'huobi',
+            type: "huobi",
         };
 
         let res = await api(e, data);
@@ -66,7 +68,7 @@ export class hbzz extends plugin {
         const season_level = data.grid_fight_brief.season_level
         //职级
         const face = data.grid_fight_brief.division.icon_with_bg
-        const level = 'A' + (Number(data.grid_fight_brief.division.level) - 1).toString()
+        const level = "A" + (Number(data.grid_fight_brief.division.level) - 1).toString()
         const name = data.grid_fight_brief.division.name_with_num
         //货币积分
         const weekly_score_cur = data.grid_fight_brief.weekly_score_cur
@@ -84,11 +86,11 @@ export class hbzz extends plugin {
                 //级别
                 item.name = k.brief.division.name_with_num
                 //什么博弈
-                item.type = k.archive_type == 'ArchiveTypeHard' ? '超频博弈' : '标准博弈'
+                item.type = k.archive_type == "ArchiveTypeHard" ? "超频博弈" : "标准博弈"
                 //时间
                 item.time = k.brief.archive_time
                 //评级
-                item.rank = k.brief.archive_rank.replace('GridFightArchiveRank', '')
+                item.rank = k.brief.archive_rank.replace("GridFightArchiveRank", "")
                 //小队生命值
                 item.hp = k.brief.remain_hp
                 //总经济
@@ -108,14 +110,14 @@ export class hbzz extends plugin {
                 //伤害统计
                 item.damage_list = k.lineup.damage_list
                 //合并前台后台角色id 和 羁绊id
-                const id_list = [...item.front_roles, ...item.back_roles, ...item.trait_list]
+                const id_list = [ ...item.front_roles, ...item.back_roles, ...item.trait_list ]
                 if (item.damage_list.length > 0) {
                     item.sh_list = []
                     let n = 0
                     for (const v of item.damage_list) {
                         for (const i of id_list) {
                             if (v.id == i.role_id || v.id == i.trait_id) {
-                                i.sh = (Math.ceil(Number(v.damage)) / 10000).toFixed(2) + '万'
+                                i.sh = (Math.ceil(Number(v.damage)) / 10000).toFixed(2) + "万"
                                 item.sh_list.push(i)
                                 n++
                                 break
@@ -125,7 +127,7 @@ export class hbzz extends plugin {
                     }
                     //以第一个伤害为100%计算后面的伤害比例
                     for (let i = 0; i < 5; i++) {
-                        if (item.damage_list[i]) item.sh_list[i].sh_l = (Number(item.damage_list[i].damage) / Number(item.damage_list[0].damage) * 100).toFixed(2) + '%'
+                        if (item.damage_list[i]) item.sh_list[i].sh_l = (Number(item.damage_list[i].damage) / Number(item.damage_list[0].damage) * 100).toFixed(2) + "%"
                     }
                 }
                 list.push(item)
@@ -149,7 +151,7 @@ export class hbzz extends plugin {
             config_num: num
         }
 
-        render('huobi/huobi', data_, {
+        render("huobi/huobi", data_, {
             e,
             ret: true
         })

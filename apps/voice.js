@@ -21,18 +21,18 @@ export class voice extends plugin {
             event: 'message',
             priority: 15,
             rule: [{
-                    reg: '^#*(小花火)?清(空|除)语音(图片(列表)?)?缓存$',
-                    fnc: 'qc',
-                    permission: 'master',
-                },
-                {
-                    reg: '^(#|\\*)(星铁|原神)?(.*)语音(列表)?$',
-                    fnc: 'yylb',
-                },
-                {
-                    reg: '^((\\d+)(.*))|((.*)(\\d+))$',
-                    fnc: 'fsyy',
-                },
+                reg: '^#*(小花火)?清(空|除)语音(图片(列表)?)?缓存$',
+                fnc: 'qc',
+                permission: 'master',
+            },
+            {
+                reg: '^(#|\\*)(星铁|原神)?(.*)语音(列表)?$',
+                fnc: 'yylb',
+            },
+            {
+                reg: '^((\\d+)(.*))|((.*)(\\d+))$',
+                fnc: 'fsyy',
+            },
             ],
         });
         this.task = {
@@ -89,62 +89,60 @@ export class voice extends plugin {
             // gs_id = '505527'
             background = '../../../../../plugins/xhh/resources/yytable/bg.png';
         }
-        // let list
-        let img
-        // let isSr = false;
-        let data, table = []
-        data = isSrMode ? false : await yyjson.gs_other_download(name);
-        if (data) {
-            let {
-                list,
-                id
-            } = data
-            if (list.length) {
-                // if (gs_id) list = await yyjson.gs_download(gs_id);
-                for (let v of list) {
-                    table.push(v.title);
-                }
-                img = await this.tu(e, table, name, background);
+        let img;
+        let data, table = [];
+        let mysData = null;
+
+        // ======= 步骤1：尝试走 MYS 官方主源 =======
+        try {
+            if (isSrMode) {
+                let sr_id = (await mys.data(name, "js", true))?.id;
+                if (sr_id) mysData = await yyjson.sr_download(sr_id);
+            } else {
+                let gs_id = (await mys.data(name))?.id;
+                if (gs_id) mysData = await yyjson.gs_download(gs_id);
             }
+        } catch (err) {
+            logger.info("[小花火] MYS接口暂无数据或失效，准备走内鬼网备用源...");
+        }
+
+        // ======= 步骤2：检查主源数据，失败则走内鬼网备用源 =======
+        if (mysData && mysData.list && mysData.list.length > 0) {
+            data = mysData;
+            data.isMys = true; // 增加MYS数据标记，方便发语音时区分
+            if (isSrMode) background = "../../../../../plugins/xhh/resources/yytable/sr.png";
         } else {
-            //非原神查星铁
-            let srnames = yaml.get("./plugins/xhh/system/default/sr_js_names.yaml") || {};
-            if (miaoRoleName && miaoRoleName.sr) {
-                for (let key in miaoRoleName.sr) {
-                    if (!srnames[key]) srnames[key] = [];
-                    if (Array.isArray(miaoRoleName.sr[key])) srnames[key] = srnames[key].concat(miaoRoleName.sr[key]);
+            if (isSrMode) {
+                let srnames = yaml.get("./plugins/xhh/system/default/sr_js_names.yaml") || {};
+                if (miaoRoleName && miaoRoleName.sr) {
+                    for (let key in miaoRoleName.sr) {
+                        if (!srnames[key]) srnames[key] = [];
+                        if (Array.isArray(miaoRoleName.sr[key])) srnames[key] = srnames[key].concat(miaoRoleName.sr[key]);
+                    }
                 }
-            }
-            for (let i in srnames) {
-                if (srnames[i] && srnames[i].includes(name)) {
-                    name = i;
-                    break;
+                for (let i in srnames) {
+                    if (srnames[i] && srnames[i].includes(name)) {
+                        name = i;
+                        break;
+                    }
                 }
-            }
-            data = await yyjson.sr_other_download(name);
-            if (!data) {
-                await e.reply("未获取到" + name + "的语音数据，如确认为已实装角色，请检查_js_names.yaml和_en_id.yaml");
-                return false;
-            }
-            let {
-                list,
-                id
-            } = data
-            // let sr_id = (await mys.data(name, 'js', true)).id;
-            if (list.length) {
-                // if (sr_id) {
-                //     let sr = await yyjson.sr_download(sr_id);
-                //     table = sr.table;
-                //     yy = sr.sr_yy;
-                // }
-                for (let v of list) {
-                    table.push(v.title);
-                }
-                background = '../../../../../plugins/xhh/resources/yytable/sr.png';
-                img = await this.tu(e, table, name, background);
-                // isSr = true;
+                data = await yyjson.sr_other_download(name);
+                background = "../../../../../plugins/xhh/resources/yytable/sr.png";
+            } else {
+                data = await yyjson.gs_other_download(name);
             }
         }
+
+        if (!data || !data.list || data.list.length === 0) {
+            await e.reply("未获取到" + name + "的语音数据，如确认为已实装角色，请检查配置文件。");
+            return false;
+        }
+
+        // ======= 步骤3：生成图片 =======
+        for (let v of data.list) {
+            table.push(v.title);
+        }
+        img = await this.tu(e, table, name, background);
 
         // if (!isSr) {
         //     data = {
@@ -267,37 +265,39 @@ export class voice extends plugin {
         //     }
         // }
         if (!ffmpeg()) return false;
-        let yy = list[n].id + lx + '.ogg'
-        logger.mark(`\x1B[36m${yy}\x1B[0m`);
-        let res = await fetch(yy);
-        if (!res.ok) {
-            logger.mark('语音直接访问失败，尝试添加请求头下载...');
-            let headers = {
-                "accept": "*/*",
-                "accept-encoding": "identity;q=1, *;q=0",
-                "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-                "cookie": "_first_time=1;_lr_retry_request=true;",
-                "priority": "i",
-                "Range": "bytes=0-",
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "referer": id.includes('-character') ? `https://starrail.honeyhunterworld.com/${id}/` : `https://gensh.honeyhunterworld.com/${id}/`,
-                "sec-ch-ua": '"Microsoft Edge";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "video",
-                "sec-fetch-mode": "no-cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
+        let yy;
+
+        // 判断当前缓存的数据是否为 MYS 源
+        if (data.isMys) {
+            yy = list[n]["audio_" + lx] || list[n].audio_cn; // 动态提取对应的语种
+            logger.mark(`[小花火语音] 正在获取 MYS 源语音: \x1B[36m${yy}\x1B[0m`);
+            let res = await fetch(yy);
+            if (!res.ok) return e.reply("获取MYS语音失败，请检查是否更新", true);
+            let bufferData = Buffer.from(await res.arrayBuffer());
+            yy = "./plugins/xhh/temp/yy_pic/temp.mp3";
+            fs.writeFileSync(yy, bufferData);
+        } else {
+            // 内鬼网备用源防盗链拉取逻辑
+            yy = list[n].id + lx + ".ogg";
+            logger.mark(`[小花火语音] 正在获取内鬼网语音: \x1B[36m${yy}\x1B[0m`);
+            let res = await fetch(yy);
+            if (!res.ok) {
+                logger.mark("语音直接访问失败，尝试添加防盗链请求头下载...");
+                let headers = {
+                    "accept": "*/*",
+                    "accept-encoding": "identity;q=1, *;q=0",
+                    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+                    "cookie": "_first_time=1;_lr_retry_request=true;",
+                    "Range": "bytes=0-",
+                    "referer": id.includes("-character") ? `https://starrail.honeyhunterworld.com/${id}/` : `https://gensh.honeyhunterworld.com/${id}/`,
+                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+                };
+                res = await fetch(yy, { method: "GET", headers });
+                if (!res.ok) return e.reply("获取备用源语音失败，请检查是否更新", true);
+                let bufferData = Buffer.from(await res.arrayBuffer());
+                yy = "./plugins/xhh/temp/yy_pic/temp.ogg";
+                fs.writeFileSync(yy, bufferData);
             }
-            res = await fetch(yy, {
-                method: 'GET',
-                headers
-            })
-            if (!res.ok) return e.reply('获取该语音失败~', true);
-            data = Buffer.from(await res.arrayBuffer())
-            yy = './plugins/xhh/temp/yy_pic/temp.ogg'
-            fs.writeFileSync(yy, data);
         }
         // if (!yy_ || typeof yy_ != 'string') return e.reply('获取该语音失败~', true);
         let vo = segment.record(yy);
@@ -313,7 +313,7 @@ export class voice extends plugin {
             fs.rmSync('./plugins/xhh/temp/yy_pic/', {
                 recursive: true
             });
-        } catch (err) {}
+        } catch (err) { }
         if (e) return e.reply('已清空语音列表图片缓存');
     }
 

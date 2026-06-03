@@ -1,32 +1,32 @@
-import fetch from 'node-fetch';
-import fs from 'fs';
+import fetch from "node-fetch";
+import fs from "fs";
 import {
     yaml
-} from '#xhh';
-import YAML from 'yaml';
+} from "#xhh";
+import YAML from "yaml";
 class mys {
     //图鉴
     async tujian(isSr = false) {
         let url =
-            'https://api-takumi-static.mihoyo.com/common/blackboard/ys_obc/v1/home/content/list?app_sn=ys_obc&channel_id=189';
+            "https://api-takumi-static.mihoyo.com/common/blackboard/ys_obc/v1/home/content/list?app_sn=ys_obc&channel_id=189";
         if (isSr)
             url =
-            'https://api-static.mihoyo.com/common/blackboard/sr_wiki/v1/home/content/list?app_sn=sr_wiki&channel_id=17';
+            "https://api-static.mihoyo.com/common/blackboard/sr_wiki/v1/home/content/list?app_sn=sr_wiki&channel_id=17";
         let res;
         try {
             res = await fetch(url).then(res => res.json());
         } catch (error) {
-            logger.error('米游社访问失败');
+            logger.error("米游社访问失败");
             return false;
         }
         let children = res.data.list[0].children;
         let data = {};
         children.map(va => {
-            if (va.name == '角色') data['js_list'] = va.list;
-            else if (va.name == '武器') data['wq_list'] = va.list;
-            else if (va.name == '圣遗物') data['syw_list'] = va.list;
-            else if (va.name == '光锥') data['gz_list'] = va.list;
-            else if (va.name == '遗器') data['yq_list'] = va.list;
+            if (va.name == "角色") data["js_list"] = va.list;
+            else if (va.name == "武器") data["wq_list"] = va.list;
+            else if (va.name == "圣遗物") data["syw_list"] = va.list;
+            else if (va.name == "光锥") data["gz_list"] = va.list;
+            else if (va.name == "遗器") data["yq_list"] = va.list;
         });
         return data;
     }
@@ -45,22 +45,22 @@ js,gz,yq 角色,光锥,遗器
 获取武器id,图标,星级,命途
 获取遗器id,图标
 */
-    async data(name = '', type = 'js', isSr = false) {
+    async data(name = "", type = "js", isSr = false) {
         let data = await this.tujian(isSr);
         if (!data) return false;
         let list = data.js_list;
         switch (type) {
-            case 'wq':
+            case "wq":
                 list = data.wq_list;
                 break;
-            case 'gz':
+            case "gz":
                 list = data.gz_list;
                 break;
-            case 'syw':
+            case "syw":
                 list = data.syw_list;
                 if (name) return list;
                 break;
-            case 'yq':
+            case "yq":
                 list = data.yq_list;
                 if (name) return list;
         }
@@ -69,7 +69,7 @@ js,gz,yq 角色,光锥,遗器
             let id; 
             for (let va of list) {
                 id = va.content_id;
-                if (va.title.replace(/ /g, '') == name) return {
+                if (va.title.replace(/ /g, "") == name) return {
                     id
                 };
             }
@@ -85,37 +85,37 @@ js,gz,yq 角色,光锥,遗器
                 mingtus = [];
             data = [];
             for (let n in list) {
-                const title = list[n].title.replace(/ /g, '');
-                if (title.includes('预告')) continue;
-                else if (title.includes('奇偶·')) continue;
-                else if (title == '开拓者·毁灭') continue;
+                const title = list[n].title.replace(/ /g, "");
+                if (title.includes("预告")) continue;
+                else if (title.includes("奇偶·")) continue;
+                else if (title == "开拓者·毁灭") continue;
                 names.push(title);
                 ids.push(list[n].content_id);
                 icons.push(list[n].icon);
-                if (!['syw', 'yq'].includes(type)) {
+                if (![ "syw", "yq" ].includes(type)) {
                     text = JSON.parse(list[n].ext);
                     text = text.c_25 || text.c_5 || text.c_19 || text.c_18;
                     text = text.filter.text;
                     text = JSON.parse(text);
-                    if (type == 'gz') {
+                    if (type == "gz") {
                         for (let s of text) {
-                            if (s.includes('星级')) jis.push(s.replace(/星级\//, ''));
-                            else if (s.includes('命途')) mingtus.push(s.replace(/命途\//, ''));
+                            if (s.includes("星级")) jis.push(s.replace(/星级\//, ""));
+                            else if (s.includes("命途")) mingtus.push(s.replace(/命途\//, ""));
                         }
                         continue;
                     }
-                    if (type != 'wq') {
+                    if (type != "wq") {
                         for (let s of text) {
-                            if (s.includes('星级')) jis.push(s.replace(/星级\//, ''));
-                            else if (s.includes('元素')) yuanshus.push(s.replace(/元素\//, ''));
-                            else if (s.includes('武器')) wuqis.push(s.replace(/武器\//, ''));
-                            else if (s.includes('属性')) shuxs.push(s.replace(/属性\//, ''));
-                            else if (s.includes('命途')) mingtus.push(s.replace(/命途\//, ''));
+                            if (s.includes("星级")) jis.push(s.replace(/星级\//, ""));
+                            else if (s.includes("元素")) yuanshus.push(s.replace(/元素\//, ""));
+                            else if (s.includes("武器")) wuqis.push(s.replace(/武器\//, ""));
+                            else if (s.includes("属性")) shuxs.push(s.replace(/属性\//, ""));
+                            else if (s.includes("命途")) mingtus.push(s.replace(/命途\//, ""));
                         }
                     } else {
                         for (let s of text) {
-                            if (s.includes('武器星级')) jis.push(s.replace(/武器星级\//, ''));
-                            else if (s.includes('武器类型')) wuqis.push(s.replace(/武器类型\//, ''));
+                            if (s.includes("武器星级")) jis.push(s.replace(/武器星级\//, ""));
+                            else if (s.includes("武器类型")) wuqis.push(s.replace(/武器类型\//, ""));
                         }
                     }
                 }
@@ -152,7 +152,7 @@ js,gz,yq 角色,光锥,遗器
         try {
             res = await fetch(url).then(res => res.json());
         } catch (error) {
-            logger.error('米游社访问失败');
+            logger.error("米游社访问失败");
             return false;
         }
         return res.data;

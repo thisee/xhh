@@ -1,45 +1,45 @@
-import fetch from 'node-fetch';
-import common from '../../../lib/common/common.js';
-import lodash from 'lodash';
-import { yaml, makeForwardMsg, sleep, config } from '#xhh';
+import fetch from "node-fetch";
+import common from "../../../lib/common/common.js";
+import lodash from "lodash";
+import { yaml, makeForwardMsg, sleep, config } from "#xhh";
 const name_list = {
-  gs: '原神',
-  sr: '崩铁',
-  zzz: '绝区零',
-  bh3: '崩坏3',
-  by: '崩缘',
-  xbgd: '星布谷地'
+  gs: "原神",
+  sr: "崩铁",
+  zzz: "绝区零",
+  bh3: "崩坏3",
+  by: "崩缘",
+  xbgd: "星布谷地"
 }
 //手动触发，只回复当前聊天
 export class video extends plugin {
   constructor(e) {
     super({
-      name: '[小花火]米哈游最新视频',
-      dsc: '',
-      event: 'message',
+      name: "[小花火]米哈游最新视频",
+      dsc: "",
+      event: "message",
       priority: 1,
       rule: [
         {
-          reg: '^#最新视频$',
-          fnc: 'video',
+          reg: "^#最新视频$",
+          fnc: "video",
         }
       ],
     });
     this.task = {
-      cron: '30 0/3 * * * ? ',
-      name: '[小花火]米哈游视频',
+      cron: "30 0/3 * * * ? ",
+      name: "[小花火]米哈游视频",
       fnc: () => vid(),
       log: false,
     };
   }
 
   async video(e) {
-    await redis.del('xhh_vid:gs');
-    await redis.del('xhh_vid:sr');
-    await redis.del('xhh_vid:zzz');
-    if (getother().bh3) await redis.del('xhh_vid:bh3');
-    if (getother().by) await redis.del('xhh_vid:by');
-    if (getother().xbgd) await redis.del('xhh_vid:xbgd');
+    await redis.del("xhh_vid:gs");
+    await redis.del("xhh_vid:sr");
+    await redis.del("xhh_vid:zzz");
+    if (getother().bh3) await redis.del("xhh_vid:bh3");
+    if (getother().by) await redis.del("xhh_vid:by");
+    if (getother().xbgd) await redis.del("xhh_vid:xbgd");
     vid(e);
   }
 }
@@ -75,14 +75,14 @@ async function vid(e) {
     ti,
     msgs = [],
     msgs_indexs = {},
-    names = '',
+    names = "",
     path;
   //遍历游戏官号
   for (let i in urls) {
     let msg;
     //游戏名字
     name = name_list[i];
-    url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=' + urls[i];
+    url = "https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=" + urls[i];
     res = await fetch(url).then(res => res.json());
     list = res.data.list;
     ti = await redis.get(`xhh_vid:${i}`);
@@ -105,15 +105,15 @@ async function vid(e) {
         //画质
         p = vod_list[vod_list.length - 1].label;
         //大小
-        size = '约' + Math.ceil(Number(vod_list[vod_list.length - 1].size) / 1024 / 1024) + 'MB';
+        size = "约" + Math.ceil(Number(vod_list[vod_list.length - 1].size) / 1024 / 1024) + "MB";
 
         // 转换时间戳为年月日时分秒
         const date = new Date(time * 1000);
         // const year = date.getFullYear()
-        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 月份加1后补0
-        const day = date.getDate().toString().padStart(2, '0'); // 日期补0
-        const hours = date.getHours().toString().padStart(2, '0'); // 小时补0
-        const minutes = date.getMinutes().toString().padStart(2, '0'); // 分钟补0
+        const month = (date.getMonth() + 1).toString().padStart(2, "0"); // 月份加1后补0
+        const day = date.getDate().toString().padStart(2, "0"); // 日期补0
+        const hours = date.getHours().toString().padStart(2, "0"); // 小时补0
+        const minutes = date.getMinutes().toString().padStart(2, "0"); // 分钟补0
         // const seconds = date.getSeconds().toString().padStart(2, '0') // 秒补0
         // 拼接成年月日时分秒
         time = `${month}月${day}号 ${hours}:${minutes}`;
@@ -125,22 +125,22 @@ async function vid(e) {
         const content_list = JSON.parse(list[n].post.structured_content);
         content = content_list
           .map(item => {
-            if (typeof item.insert == 'string') return item.insert;
+            if (typeof item.insert == "string") return item.insert;
           })
-          .join('');
+          .join("");
 
         // content=JSON.parse(list[n].post.structured_content)[0].insert
 
         //封面
         img = list[n].post.cover;
         //QQ不支持直接发https://upload-bbs.miyoushe.com/
-        if (img.includes('https://upload-bbs.miyoushe.com/')) {
+        if (img.includes("https://upload-bbs.miyoushe.com/")) {
           path = `./plugins/xhh/temp/${name}视频封面.jpg`;
           //封面图是否原图
           if (getother().cover) await common.downFile(img, path);
           else
             await common.downFile(
-              img + '?x-oss-process=image//resize,p_30',
+              img + "?x-oss-process=image//resize,p_30",
               path
             );
         }
@@ -151,7 +151,7 @@ async function vid(e) {
           `标题：${subject}\n\n`,
           `发布时间：${time}\n\n`,
           `画质大小：${p}  ${size}\n\n`,
-          `封面：\n`,
+          "封面：\n",
           img,
           `\n\n视频链接(点击即可观看)：\n${vid_url}`,
         ];
@@ -164,10 +164,10 @@ async function vid(e) {
         } else {
           msgs.push(msg);
           msgs_indexs[i].push(msgs.length - 1)
-          msgs.push([`${name}文本内容：\n${content}`]);
+          msgs.push([ `${name}文本内容：\n${content}` ]);
           msgs_indexs[i].push(msgs.length - 1)
         }
-        names = names + name + ' ';
+        names = names + name + " ";
         break;
       } else {
         continue;
@@ -212,13 +212,13 @@ async function vid(e) {
   const dec = `${names}发布了新视频，一起来看看吧！`;
   let msg
   if (e?.reply) {
-    msg = await makeForwardMsg('', msgs, dec, e.group_id);
+    msg = await makeForwardMsg("", msgs, dec, e.group_id);
     e.reply(msg);
   } else {
     for (let group of groups) {
       const obj = MsgsByGroupConfig(dec, group, msgs, msgs_indexs)
       if (!obj.msgs.length) continue
-      msg = await makeForwardMsg('', obj.msgs, obj.dec, group);
+      msg = await makeForwardMsg("", obj.msgs, obj.dec, group);
       Bot.pickGroup(group).sendMsg(msg);
       //多个群，随机延迟10~20秒发送
       await sleep(lodash.random(10000, 20000));
@@ -228,7 +228,7 @@ async function vid(e) {
 }
 
 function getother() {
-  return yaml.get('./plugins/xhh/config/other.yaml');
+  return yaml.get("./plugins/xhh/config/other.yaml");
 }
 
 
@@ -245,7 +245,7 @@ function MsgsByGroupConfig(dec, group, msgs, msgs_indexs) {
   for (const game of games) {
     if (msgs_indexs[game]) {
       indexArray = indexArray.concat(msgs_indexs[game])
-      dec = dec.replace(name_list[game] + ' ', '')
+      dec = dec.replace(name_list[game] + " ", "")
     }
   }
   msgs = removeElementsByIndex(msgs, indexArray)
@@ -264,7 +264,7 @@ function MsgsByGroupConfig(dec, group, msgs, msgs_indexs) {
 function removeElementsByIndex(sourceArray, indexArray) {
 
   // 将下标数组按降序排序，确保删除顺序正确
-  const sortedIndexes = [...indexArray].sort((a, b) => b - a);
+  const sortedIndexes = [ ...indexArray ].sort((a, b) => b - a);
 
   // 从后往前删除，避免索引错乱
   for (const index of sortedIndexes) {

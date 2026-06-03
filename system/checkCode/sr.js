@@ -1,22 +1,22 @@
-import MysApi from '../../../genshin/model/mys/mysApi.js'
-import md5 from 'md5'
-import _ from 'lodash'
-import crypto from 'crypto'
-import SRApiTool from '../../../StarRail-plugin/runtime/SRApiTool.js'
+import MysApi from "../../../genshin/model/mys/mysApi.js"
+import md5 from "md5"
+import _ from "lodash"
+import crypto from "crypto"
+import SRApiTool from "../../../StarRail-plugin/runtime/SRApiTool.js"
 import fs from "fs"
-import YAML from 'yaml';
+import YAML from "yaml";
 
 // const DEVICE_ID = randomString(32).toUpperCase()
 const DEVICE_NAME = randomString(_.random(1, 10))
 export default class MysSRApi extends MysApi {
-  constructor (uid, cookie, option = {}) {
+  constructor(uid, cookie, option = {}) {
     super(uid, cookie, option, true)
     this.uid = uid
     this.server = this.getServer()
     // this.isSr = true
     // this.server = 'hkrpg_cn'
     this.apiTool = new SRApiTool(uid, this.server)
-    if (typeof this.cookie != 'string' && this.cookie) {
+    if (typeof this.cookie != "string" && this.cookie) {
       let ck = this.cookie[Object.keys(this.cookie).filter(k => this.cookie[k].ck)[0]]
       this._device = ck?.device_id || ck?.device
       this.cookie = ck?.ck
@@ -28,65 +28,65 @@ export default class MysSRApi extends MysApi {
 
   getServer() {
     switch (String(this.uid).slice(0, -8)) {
-      case '1':
-      case '2':
-        return 'prod_gf_cn' // 官服
-      case '5':
-        return 'prod_qd_cn' // B服
-      case '6':
-        return 'prod_official_usa' // 美服
-      case '7':
-        return 'prod_official_euro' // 欧服
-      case '8':
-      case '18':
-        return 'prod_official_asia' // 亚服
-      case '9':
-        return 'prod_official_cht' // 港澳台服
+      case "1":
+      case "2":
+        return "prod_gf_cn" // 官服
+      case "5":
+        return "prod_qd_cn" // B服
+      case "6":
+        return "prod_official_usa" // 美服
+      case "7":
+        return "prod_official_euro" // 欧服
+      case "8":
+      case "18":
+        return "prod_official_asia" // 亚服
+      case "9":
+        return "prod_official_cht" // 港澳台服
     }
-    return 'prod_gf_cn'
+    return "prod_gf_cn"
   }
 
-  getUrl (type, data = {}) {
+  getUrl(type, data = {}) {
     data.deviceId = this._device
     let urlMap = this.apiTool.getUrlMap(data)
     if (!urlMap[type]) return false
-    let { url, query = '', body = '', noDs = false, dsSalt = '' } = urlMap[type]
+    let { url, query = "", body = "", noDs = false, dsSalt = "" } = urlMap[type]
     if (query) url += `?${query}`
     if (body) body = JSON.stringify(body)
 
     let headers = this.getHeaders(query, body)
     if (data.deviceFp) {
-      headers['x-rpc-device_fp'] = data.deviceFp
+      headers["x-rpc-device_fp"] = data.deviceFp
       // 兼容喵崽
       this._device_fp = { data: { device_fp: data.deviceFp } }
     }
     headers.cookie = this.cookie
 
     if (this._device) {
-      headers['x-rpc-device_id'] = this._device
+      headers["x-rpc-device_id"] = this._device
     }
     switch (dsSalt) {
-      case 'web': {
+      case "web": {
         headers.DS = this.getDS2()
         break
       }
       default:
     }
-    if (type === 'srPayAuthKey') {
+    if (type === "srPayAuthKey") {
       let extra = {
-        'x-rpc-app_version': '2.40.1',
-        'User-Agent': 'okhttp/4.8.0',
-        'x-rpc-client_type': '5',
-        Referer: 'https://app.mihoyo.com',
-        Origin: 'https://webstatic.mihoyo.com',
+        "x-rpc-app_version": "2.40.1",
+        "User-Agent": "okhttp/4.8.0",
+        "x-rpc-client_type": "5",
+        "Referer": "https://app.mihoyo.com",
+        "Origin": "https://webstatic.mihoyo.com",
         // Cookie: this.cookies,
         // DS: this.getDS2(),
-        'x-rpc-sys_version': '12',
-        'x-rpc-channel': 'mihoyo',
-        'x-rpc-device_id': this._device,
-        'x-rpc-device_name': DEVICE_NAME,
-        'x-rpc-device_model': 'Mi 10',
-        Host: 'api-takumi.mihoyo.com'
+        "x-rpc-sys_version": "12",
+        "x-rpc-channel": "mihoyo",
+        "x-rpc-device_id": this._device,
+        "x-rpc-device_name": DEVICE_NAME,
+        "x-rpc-device_model": "Mi 10",
+        "Host": "api-takumi.mihoyo.com"
       }
       headers = Object.assign(headers, extra)
     } else {
@@ -103,12 +103,12 @@ export default class MysSRApi extends MysApi {
     return { url, headers, body }
   }
 
-  getDs (q = '', b = '') {
-    let n = ''
-    if (['prod_gf_cn', 'prod_qd_cn'].includes(this.server)) {
-      n = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs'
+  getDs(q = "", b = "") {
+    let n = ""
+    if ([ "prod_gf_cn", "prod_qd_cn" ].includes(this.server)) {
+      n = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
     } else if (/official/.test(this.server)) {
-      n = 'okr4obncj8bw5a65hbnn5oo6ixjc3l9w'
+      n = "okr4obncj8bw5a65hbnn5oo6ixjc3l9w"
     }
     let t = Math.round(new Date().getTime() / 1000)
     let r = Math.floor(Math.random() * 900000 + 100000)
@@ -116,29 +116,29 @@ export default class MysSRApi extends MysApi {
     return `${t},${r},${DS}`
   }
 
-  getDS2 () {
+  getDS2() {
     let t = Math.round(new Date().getTime() / 1000)
     let r = randomString(6)
     let sign = md5(`salt=jEpJb9rRARU2rXDA9qYbZ3selxkuct9a&t=${t}&r=${r}`)
     return `${t},${r},${sign}`
   }
 
-  getHeaders (query = '', body = '') {
+  getHeaders(query = "", body = "") {
     const cn = {
-      app_version: '2.44.1',
-      User_Agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.44.1',
-      client_type: '5',
-      Origin: 'https://webstatic.mihoyo.com',
-      X_Requested_With: 'com.mihoyo.hyperion',
-      Referer: 'https://webstatic.mihoyo.com/'
+      app_version: "2.44.1",
+      User_Agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.44.1",
+      client_type: "5",
+      Origin: "https://webstatic.mihoyo.com",
+      X_Requested_With: "com.mihoyo.hyperion",
+      Referer: "https://webstatic.mihoyo.com/"
     }
     const os = {
-      app_version: '2.55.0',
-      User_Agent: 'Mozilla/5.0 (Linux; Android 11; J9110 Build/55.2.A.4.332; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.179 Mobile Safari/537.36 miHoYoBBSOversea/2.55.0',
-      client_type: '2',
-      Origin: 'https://act.hoyolab.com',
-      X_Requested_With: 'com.mihoyo.hoyolab',
-      Referer: 'https://act.hoyolab.com/'
+      app_version: "2.55.0",
+      User_Agent: "Mozilla/5.0 (Linux; Android 11; J9110 Build/55.2.A.4.332; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.179 Mobile Safari/537.36 miHoYoBBSOversea/2.55.0",
+      client_type: "2",
+      Origin: "https://act.hoyolab.com",
+      X_Requested_With: "com.mihoyo.hoyolab",
+      Referer: "https://act.hoyolab.com/"
     }
     let client
     if (/official/.test(this.server)) {
@@ -147,13 +147,13 @@ export default class MysSRApi extends MysApi {
       client = cn
     }
     return {
-      'x-rpc-app_version': client.app_version,
-      'x-rpc-client_type': client.client_type,
+      "x-rpc-app_version": client.app_version,
+      "x-rpc-client_type": client.client_type,
       // 'x-rpc-page': '3.1.3_#/rpg',
-      'User-Agent': client.User_Agent,
-      Referer: client.Referer,
-      DS: this.getDs(query, body),
-      Origin: client.Origin
+      "User-Agent": client.User_Agent,
+      "Referer": client.Referer,
+      "DS": this.getDs(query, body),
+      "Origin": client.Origin
     }
   }
 
@@ -165,9 +165,9 @@ export default class MysSRApi extends MysApi {
    * @param data 查询请求的数据
    * @returns {Promise<*|boolean>}
    */
-  async checkCode (e, res, type, data = {}) {
+  async checkCode(e, res, type, data = {}) {
     if (!res || !e) {
-      this.e.reply('米游社接口请求失败，暂时无法查询')
+      this.e.reply("米游社接口请求失败，暂时无法查询")
       return false
     }
     this.e = e
@@ -177,7 +177,7 @@ export default class MysSRApi extends MysApi {
       case 0:
         break
       case 10102:
-        if (res.message === 'Data is not public for the user') {
+        if (res.message === "Data is not public for the user") {
           this.e.reply(`\nUID:${this.uid}，米游社数据未公开`, false, { at: this.userId })
         } else {
           this.e.reply(`UID:${this.uid}，请先去米游社绑定角色`)
@@ -190,14 +190,14 @@ export default class MysSRApi extends MysApi {
         let handler = this.e.runtime?.handler || {}
 
         // 如果有注册的mys.req.err，调用
-        if (handler.has('mys.req.err')) {
+        if (handler.has("mys.req.err")) {
           logger.mark(`[米游社sr查询失败][UID:${this.uid}][qq:${this.userId}] 账号异常，尝试调用 Handler mys.req.err`)
-          res = await handler.call('mys.req.err', this.e, { mysApi: this, type, res, data, mysInfo: this }) || res
+          res = await handler.call("mys.req.err", this.e, { mysApi: this, type, res, data, mysInfo: this }) || res
         }
         if (res?.retcode == 1034||res?.retcode==10035) {
-          this.e.reply(`UID:${this.uid}，米游社查询遇到验证码，${config().bdsb ? '查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！' : '暂时无法查询'}`)
+          this.e.reply(`UID:${this.uid}，米游社查询遇到验证码，${config().bdsb ? "查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！" : "暂时无法查询"}`)
         }else if(res?.retcode != 0){
-          this.e.reply(`UID:${this.uid}，米游社账号异常，${config().bdsb ? '查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！' : '暂时无法查询'}`)
+          this.e.reply(`UID:${this.uid}，米游社账号异常，${config().bdsb ? "查询失败！\n可发送：设备帮助\n尝试绑定常用设备后查询！" : "暂时无法查询"}`)
         }
         break
       }
@@ -206,7 +206,7 @@ export default class MysSRApi extends MysApi {
           logger.mark(`[ck失效][UID:${this.uid}]`)
           this.e.reply(`UID:${this.uid}，米游社cookie已失效`)
         } else {
-          this.e.reply(`米游社接口报错，暂时无法查询：${res.message || 'error'}`)
+          this.e.reply(`米游社接口报错，暂时无法查询：${res.message || "error"}`)
         }
         break
     }
@@ -217,17 +217,17 @@ export default class MysSRApi extends MysApi {
   }
 }
 
-export function randomString (length) {
-  let randomStr = ''
+export function randomString(length) {
+  let randomStr = ""
   for (let i = 0; i < length; i++) {
-    randomStr += _.sample('abcdefghijklmnopqrstuvwxyz0123456789')
+    randomStr += _.sample("abcdefghijklmnopqrstuvwxyz0123456789")
   }
   return randomStr
 }
 
-export function generateSeed (length = 16) {
-  const characters = '0123456789abcdef'
-  let result = ''
+export function generateSeed(length = 16) {
+  const characters = "0123456789abcdef"
+  let result = ""
   for (let i = 0; i < length; i++) {
     result += characters[Math.floor(Math.random() * characters.length)]
   }
@@ -235,5 +235,5 @@ export function generateSeed (length = 16) {
 }
 
 function config(){
-    return YAML.parse(fs.readFileSync('./plugins/xhh/config/config.yaml', 'utf-8'))
+    return YAML.parse(fs.readFileSync("./plugins/xhh/config/config.yaml", "utf-8"))
 }

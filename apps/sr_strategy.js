@@ -1,36 +1,36 @@
-import { yaml, config } from '#xhh';
-import common from '../../../lib/common/common.js';
-import fetch from 'node-fetch';
-import _ from 'lodash';
-import fs from 'fs';
+import { yaml, config } from "#xhh";
+import common from "../../../lib/common/common.js";
+import fetch from "node-fetch";
+import _ from "lodash";
+import fs from "fs";
 
-let u = 'https://bbs-api.mihoyo.com/post/wapi/getPostFullInCollection?order_type=2&collection_id=';
-let path = './plugins/xhh/resources/srstrategy';
+let u = "https://bbs-api.mihoyo.com/post/wapi/getPostFullInCollection?order_type=2&collection_id=";
+let path = "./plugins/xhh/resources/srstrategy";
 
 let url_;
 export class sr_strategy extends plugin {
   constructor() {
     super({
-      name: '[小花火]星铁攻略图',
-      dsc: '星铁攻略图',
-      event: 'message',
+      name: "[小花火]星铁攻略图",
+      dsc: "星铁攻略图",
+      event: "message",
       priority: -99,
       rule: [
         {
-          reg: '^(#|\\*)?(星铁)?更新\\S+攻略(图)?$',
-          fnc: 'up',
+          reg: "^(#|\\*)?(星铁)?更新\\S+攻略(图)?$",
+          fnc: "up",
         },
         {
-          reg: '^(#|\\*)?(星铁)?\\S+攻略(图)?$',
-          fnc: 'strategy',
+          reg: "^(#|\\*)?(星铁)?\\S+攻略(图)?$",
+          fnc: "strategy",
         },
       ],
     });
     /** 定时任务 */
     this.task = {
       //每天夜晚4点20自动更新全部星铁攻略图,(￢_￢)
-      cron: `0 20 4 * * ?`,
-      name: '[小花火]更新星铁所有角色的攻略图',
+      cron: "0 20 4 * * ?",
+      name: "[小花火]更新星铁所有角色的攻略图",
       fnc: () => this.sch(),
       log: true,
     };
@@ -41,8 +41,8 @@ export class sr_strategy extends plugin {
       fs.mkdirSync(path);
     }
     /** 初始化子目录 */
-    for (let subId of [0, 1, 2]) {
-      let path_ = path + '/' + subId;
+    for (let subId of [ 0, 1, 2 ]) {
+      let path_ = path + "/" + subId;
       if (!fs.existsSync(path_)) {
         fs.mkdirSync(path_);
       }
@@ -52,28 +52,28 @@ export class sr_strategy extends plugin {
   /* 更新攻略 */
   async up(e) {
     if (!config().sr_strategy) return false;
-    let name = e.msg.replace(/\*|#|星铁|更新|攻略|图/g, '');
-    if (name == '全部' || name == '所有') return this.sch(e);
+    let name = e.msg.replace(/\*|#|星铁|更新|攻略|图/g, "");
+    if (name == "全部" || name == "所有") return this.sch(e);
     if (
       [
-        '物主',
-        '物理开拓者',
-        '毁灭开拓者',
-        '存护开拓者',
-        '同谐开拓者',
-        '火主',
-        '同谐主',
-        '巡猎三月七',
-        '仙舟三月七',
-        '存护三月七',
-        '三月七',
-        '记忆开拓者',
-        '记忆主',
+        "物主",
+        "物理开拓者",
+        "毁灭开拓者",
+        "存护开拓者",
+        "同谐开拓者",
+        "火主",
+        "同谐主",
+        "巡猎三月七",
+        "仙舟三月七",
+        "存护三月七",
+        "三月七",
+        "记忆开拓者",
+        "记忆主",
       ].includes(name)
     ) {
       //不处理
     } else {
-      let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
+      let srnames = yaml.get("./plugins/xhh/system/default/sr_js_names.yaml");
       for (let i in srnames) {
         if (srnames[i].includes(name)) {
           name = i;
@@ -85,19 +85,19 @@ export class sr_strategy extends plugin {
     let name_;
     //特殊处理
     const SPECIAL_NAME_MAP = {
-      '丹恒•饮月': '饮月',
-      '阮•梅': '阮',
-      '托帕&账账': '托帕',
-      '丹恒•腾荒': '腾荒',
+      "丹恒•饮月": "饮月",
+      "阮•梅": "阮",
+      "托帕&账账": "托帕",
+      "丹恒•腾荒": "腾荒",
     }
     name = SPECIAL_NAME_MAP[name] || name;
     let imgs = [];
     //紫喵Azunya
-    let url = u + '2145977';
+    let url = u + "2145977";
     name_ = await this.mz(name);
-    let tu = path + '/0/' + name_ + '.jpg';
+    let tu = path + "/0/" + name_ + ".jpg";
     if (await this.getData(name_, url)) {
-      e.reply('正在更新该角色攻略，请稍等…');
+      e.reply("正在更新该角色攻略，请稍等…");
       logger.mark(`[小花火]下载${name_}攻略1`);
       imgs.push(segment.image(tu));
     } else {
@@ -116,9 +116,9 @@ export class sr_strategy extends plugin {
     // }
 
     // HoYo青枫
-    url = u + '1998324';
+    url = u + "1998324";
     name_ = await this.mz(name, 2);
-    tu = path + '/2/' + name_ + '.jpg';
+    tu = path + "/2/" + name_ + ".jpg";
     if (await this.getData(name_, url, 2)) {
       logger.mark(`[小花火]下载${name_}攻略3`);
       imgs.push(segment.image(tu));
@@ -133,26 +133,26 @@ export class sr_strategy extends plugin {
   //获取攻略
   async strategy(e) {
     if (!config().sr_strategy) return false;
-    let name = e.msg.replace(/\*|#|星铁|攻略|图/g, '');
+    let name = e.msg.replace(/\*|#|星铁|攻略|图/g, "");
     if (
       [
-        '物主',
-        '物理开拓者',
-        '毁灭开拓者',
-        '存护开拓者',
-        '同谐开拓者',
-        '火主',
-        '同谐主',
-        '巡猎三月七',
-        '仙舟三月七',
-        '存护三月七',
-        '记忆开拓者',
-        '记忆主',
+        "物主",
+        "物理开拓者",
+        "毁灭开拓者",
+        "存护开拓者",
+        "同谐开拓者",
+        "火主",
+        "同谐主",
+        "巡猎三月七",
+        "仙舟三月七",
+        "存护三月七",
+        "记忆开拓者",
+        "记忆主",
       ].includes(name)
     ) {
       //不处理
     } else {
-      let srnames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml');
+      let srnames = yaml.get("./plugins/xhh/system/default/sr_js_names.yaml");
       for (let i in srnames) {
         if (srnames[i].includes(name)) {
           name = i;
@@ -165,18 +165,18 @@ export class sr_strategy extends plugin {
     let name_;
     //特殊处理
     const SPECIAL_NAME_MAP = {
-      '丹恒•饮月': '饮月',
-      '阮•梅': '阮',
-      '托帕&账账': '托帕',
-      '丹恒•腾荒': '腾荒',
+      "丹恒•饮月": "饮月",
+      "阮•梅": "阮",
+      "托帕&账账": "托帕",
+      "丹恒•腾荒": "腾荒",
     }
     name = SPECIAL_NAME_MAP[name] || name;
     let imgs = [];
 
     //紫喵Azunya
-    let url = u + '2145977';
+    let url = u + "2145977";
     name_ = await this.mz(name);
-    let tu = path + '/0/' + name_ + '.jpg';
+    let tu = path + "/0/" + name_ + ".jpg";
     if (fs.existsSync(tu)) {
       imgs.push(segment.image(tu));
     } else {
@@ -200,9 +200,9 @@ export class sr_strategy extends plugin {
     // }
 
     // HoYo青枫
-    url = u + '1998324';
+    url = u + "1998324";
     name_ = await this.mz(name, 2);
-    tu = path + '/2/' + name_ + '.jpg';
+    tu = path + "/2/" + name_ + ".jpg";
     if (fs.existsSync(tu)) {
       imgs.push(segment.image(tu));
     } else {
@@ -224,12 +224,12 @@ export class sr_strategy extends plugin {
     let res = await response.json();
     res = res.data.posts;
     let imgs = [];
-    let sfPath = path + '/0/' + name + '.jpg';
+    let sfPath = path + "/0/" + name + ".jpg";
     for (let val of res) {
-      if (name == '黑塔') {
+      if (name == "黑塔") {
         if (
           val.post.subject.includes(name) &&
-          !val.post.subject.includes('大黑塔')
+          !val.post.subject.includes("大黑塔")
         ) {
           //小橙子阿,取前三个
           // if(x==1){
@@ -241,14 +241,14 @@ export class sr_strategy extends plugin {
           // val.image_list=list
           // }
           if (x == 2) {
-            sfPath = path + '/2/' + name + '.jpg';
+            sfPath = path + "/2/" + name + ".jpg";
           }
           imgs.push(_.maxBy(val.image_list, v => v.height).url);
         }
       } else {
         if (val.post.subject.includes(name)) {
           if (x == 2) {
-            sfPath = path + '/2/' + name + '.jpg';
+            sfPath = path + "/2/" + name + ".jpg";
           }
           imgs.push(_.maxBy(val.image_list, v => v.height).url);
         }
@@ -266,7 +266,7 @@ export class sr_strategy extends plugin {
           /https:\/\/upload-bbs.miyoushe.com\/upload\/(\d+)\/(\d+)\/(\d+)\//g
         )
         .toString()
-        .replace(/https:\/\/upload-bbs.miyoushe.com\/upload|\//g, '');
+        .replace(/https:\/\/upload-bbs.miyoushe.com\/upload|\//g, "");
       if (i == 0) {
         num = imgs_[0];
         img = imgs[0];
@@ -278,7 +278,7 @@ export class sr_strategy extends plugin {
     }
     if (this.msg_) {
       e.reply(
-        '首次获取该角色攻略图需要下载资源,正在下载中,请稍等一下！',
+        "首次获取该角色攻略图需要下载资源,正在下载中,请稍等一下！",
         true,
         { recallMsg: 60 }
       );
@@ -297,24 +297,24 @@ export class sr_strategy extends plugin {
   async sch(e) {
       if (!config().sr_strategy) return false;
     let js = fs.readFileSync(
-      './plugins/miao-plugin/resources/meta-sr/character/data.json',
-      'utf-8'
+      "./plugins/miao-plugin/resources/meta-sr/character/data.json",
+      "utf-8"
     );
     js = await JSON.parse(js);
     let names = [];
     for (let v in js) {
       names.push(js[v].name);
     }
-    logger.mark(`\x1B[36m[小花火]更新星铁所有角色攻略图\x1B[0m`);
-    if (e) e.reply('开始更新星铁所有角色攻略图');
-    names.push('火主', '物主', '同谐主');
+    logger.mark("\x1B[36m[小花火]更新星铁所有角色攻略图\x1B[0m");
+    if (e) e.reply("开始更新星铁所有角色攻略图");
+    names.push("火主", "物主", "同谐主");
     for (let i of names) {
-      if (i == '丹恒•饮月') i = '饮月';
-      if (i == '阮•梅') i = '阮';
-      if (i == '托帕&账账') i = '托帕';
+      if (i == "丹恒•饮月") i = "饮月";
+      if (i == "阮•梅") i = "阮";
+      if (i == "托帕&账账") i = "托帕";
       let i_;
       //紫喵Azunya
-      url_ = u + '2145977';
+      url_ = u + "2145977";
       i_ = this.mz(i);
       await this.getData(i_, url_);
       //小橙子阿
@@ -322,44 +322,44 @@ export class sr_strategy extends plugin {
       // i_=this.mz(i,1)
       // await this.getData(i_,url_,1,60)
       //HoYo青枫
-      url_ = u + '1998324';
+      url_ = u + "1998324";
       i_ = this.mz(i, 2);
       await this.getData(i_, url_, 2);
     }
-    if (e) e.reply('星铁所有角色攻略图,更新完毕！！！');
-    logger.mark(`\x1B[36m[小花火]更新星铁攻略图,更新完毕\x1B[0m`);
+    if (e) e.reply("星铁所有角色攻略图,更新完毕！！！");
+    logger.mark("\x1B[36m[小花火]更新星铁攻略图,更新完毕\x1B[0m");
     return false;
   }
 
   //特殊名字处理
   mz(name, x = 0) {
     if (x == 0) {
-      if (['物主', '物理开拓者', '毁灭开拓者'].includes(name)) name = '物主';
-      if (['存护开拓者', '火主'].includes(name)) name = '火主';
-      if (['同谐开拓者', '同谐主'].includes(name)) name = '同谐主';
-      if (['记忆开拓者', '记忆主'].includes(name)) name = '记忆主';
-      if (['巡猎三月七', '仙舟三月七', '三月七·巡猎'].includes(name))
-        name = '三月七·巡猎';
-      if (['存护三月七', '三月七'].includes(name)) name = '无处不在的三月七';
+      if ([ "物主", "物理开拓者", "毁灭开拓者" ].includes(name)) name = "物主";
+      if ([ "存护开拓者", "火主" ].includes(name)) name = "火主";
+      if ([ "同谐开拓者", "同谐主" ].includes(name)) name = "同谐主";
+      if ([ "记忆开拓者", "记忆主" ].includes(name)) name = "记忆主";
+      if ([ "巡猎三月七", "仙舟三月七", "三月七·巡猎" ].includes(name))
+        name = "三月七·巡猎";
+      if ([ "存护三月七", "三月七" ].includes(name)) name = "无处不在的三月七";
     }
     if (x == 1) {
-      if (['物主', '物理开拓者', '毁灭开拓者'].includes(name))
-        name = '毁灭开拓者';
-      if (['存护开拓者', '火主'].includes(name)) name = '存护开拓者';
-      if (['同谐开拓者', '同谐主'].includes(name)) name = '同谐开拓者';
-      if (['巡猎三月七', '仙舟三月七', '三月七·巡猎'].includes(name))
-        name = '三月七·巡猎';
-      if (['存护三月七', '三月七'].includes(name)) name = '三月七';
+      if ([ "物主", "物理开拓者", "毁灭开拓者" ].includes(name))
+        name = "毁灭开拓者";
+      if ([ "存护开拓者", "火主" ].includes(name)) name = "存护开拓者";
+      if ([ "同谐开拓者", "同谐主" ].includes(name)) name = "同谐开拓者";
+      if ([ "巡猎三月七", "仙舟三月七", "三月七·巡猎" ].includes(name))
+        name = "三月七·巡猎";
+      if ([ "存护三月七", "三月七" ].includes(name)) name = "三月七";
     }
     if (x == 2) {
-      if (['物主', '物理开拓者', '毁灭开拓者'].includes(name))
-        name = '开拓者-毁灭';
-      if (['存护开拓者', '火主'].includes(name)) name = '开拓者-存护';
-      if (['同谐开拓者', '同谐主'].includes(name)) name = '开拓者-同谐';
-      if (['记忆开拓者', '记忆主'].includes(name)) name = '开拓者-记忆';
-      if (['巡猎三月七', '仙舟三月七', '三月七·巡猎'].includes(name))
-        name = '三月七-巡猎';
-      if (['存护三月七', '三月七'].includes(name)) name = '无处不在的三月七';
+      if ([ "物主", "物理开拓者", "毁灭开拓者" ].includes(name))
+        name = "开拓者-毁灭";
+      if ([ "存护开拓者", "火主" ].includes(name)) name = "开拓者-存护";
+      if ([ "同谐开拓者", "同谐主" ].includes(name)) name = "开拓者-同谐";
+      if ([ "记忆开拓者", "记忆主" ].includes(name)) name = "开拓者-记忆";
+      if ([ "巡猎三月七", "仙舟三月七", "三月七·巡猎" ].includes(name))
+        name = "三月七-巡猎";
+      if ([ "存护三月七", "三月七" ].includes(name)) name = "无处不在的三月七";
     }
     return name;
   }

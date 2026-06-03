@@ -1,35 +1,35 @@
-import fs from 'fs';
-import moment from 'moment';
-import lodash from 'lodash';
-import { bili, yaml, makeForwardMsg, sleep } from '#xhh';
+import fs from "fs";
+import moment from "moment";
+import lodash from "lodash";
+import { bili, yaml, makeForwardMsg, sleep } from "#xhh";
 
-let path = './plugins/xhh/config/bili_group.yaml';
+let path = "./plugins/xhh/config/bili_group.yaml";
 
 if (!fs.existsSync(path)) {
-  fs.writeFileSync(path, '');
+  fs.writeFileSync(path, "");
 }
 
 export class bilibili_push extends plugin {
   constructor(e) {
     super({
-      name: '[小花火]bili推送',
-      dsc: '',
-      event: 'message.group',
+      name: "[小花火]bili推送",
+      dsc: "",
+      event: "message.group",
       priority: -119,
       rule: [
         {
-          reg: '^#*(小花火)?(添加|开启|取消|删除|关闭)(b站|B站|哔哩哔哩|bili|bilibili)推送(\\d+)$',
-          fnc: 'b',
+          reg: "^#*(小花火)?(添加|开启|取消|删除|关闭)(b站|B站|哔哩哔哩|bili|bilibili)推送(\\d+)$",
+          fnc: "b",
         },
         {
-          reg: '^#*(小花火)?(b站|B站|哔哩哔哩|bili|bilibili)(视频)?推送列表$',
-          fnc: 'lb',
+          reg: "^#*(小花火)?(b站|B站|哔哩哔哩|bili|bilibili)(视频)?推送列表$",
+          fnc: "lb",
         },
       ],
     });
     this.task = {
-      cron: '0 0/3 * * * *', //每3分钟跑一次
-      name: '[小花火]bilibili任务',
+      cron: "0 0/3 * * * *", //每3分钟跑一次
+      name: "[小花火]bilibili任务",
       fnc: () => this.ccc(),
       log: false,
     };
@@ -67,16 +67,16 @@ export class bilibili_push extends plugin {
         if (!up) continue;
         const msg = [
           segment.image(up.face),
-          '\nup主名字：',
+          "\nup主名字：",
           up.name,
-          '\n\n最新视频：https://www.bilibili.com/video/',
+          "\n\n最新视频：https://www.bilibili.com/video/",
           bv,
-          '/',
-          '\n',
+          "/",
+          "\n",
           segment.image(data.pic),
-          '\n发稿时间：',
-          moment(new Date(time * 1000)).format('MM-DD HH:mm'),
-          '\n标题：',
+          "\n发稿时间：",
+          moment(new Date(time * 1000)).format("MM-DD HH:mm"),
+          "\n标题：",
           data.title,
         ];
         for (let group of groups) {
@@ -90,7 +90,7 @@ export class bilibili_push extends plugin {
   async lb(e) {
     if (!(await this.Check())) return false;
     let mids = await yaml.get(path);
-    if (!mids) return e.reply('本群当前没有up视频推送任务');
+    if (!mids) return e.reply("本群当前没有up视频推送任务");
     let msgs = [];
     for (let mid in mids) {
       if (!mids[mid].length) continue;
@@ -100,19 +100,19 @@ export class bilibili_push extends plugin {
         if (g == e.group_id) {
           const up = await bili.up_xx(false, Number(mid));
           if (!up) continue;
-          msg = [segment.image(up.face), '\nup主名字：', up.name];
+          msg = [ segment.image(up.face), "\nup主名字：", up.name ];
           msgs.push(msg);
         }
       }
     }
-    if (!msgs.length) return e.reply('本群当前没有up视频推送任务');
-    msgs = await makeForwardMsg(e, msgs, '本群b站视频推送up列表');
+    if (!msgs.length) return e.reply("本群当前没有up视频推送任务");
+    msgs = await makeForwardMsg(e, msgs, "本群b站视频推送up列表");
     e.reply(msgs);
     return;
   }
 
   async Check() {
-    const bilibili = (await yaml.get('./plugins/xhh/config/config.yaml'))
+    const bilibili = (await yaml.get("./plugins/xhh/config/config.yaml"))
       .bilibili;
     return bilibili;
   }
