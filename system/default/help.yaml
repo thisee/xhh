@@ -32,6 +32,10 @@
       desc: '原神,星铁,绝区零的米游社签到'
     - title: '母带'
       desc: '查询绝区零母带'
+    - title: '水晶'
+      desc: '查询崩坏3本月水晶统计'
+    - title: '上月水晶'
+      desc: '查询崩坏3上月水晶统计'
 
 - group: bilibili命令
   list:
