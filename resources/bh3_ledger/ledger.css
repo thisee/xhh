@@ -26,9 +26,9 @@ body {
 .container {
     width: 960px;
     background-color: #1a1a2e;
-    background-image: url(../../img/ledger/img.jpg);
-    background-size: cover;
-    background-position: center top;
+    background-image: linear-gradient(to bottom, transparent 0%, transparent calc(100% - 180px), #1a1a2e calc(100% - 60px)), url(../../img/ledger/img.jpg);
+    background-size: auto, cover;
+    background-position: 0 0, center top;
     background-repeat: no-repeat;
     overflow: hidden;
     padding: 20px 50px 40px;
@@ -130,7 +130,6 @@ body {
     color: hsla(0, 0%, 100%, .65);
     font-size: 24px;
     padding-bottom: 10px;
-    padding-right: 180px;
 }
 
 .user-profile {
@@ -182,7 +181,7 @@ body {
 
 .user-info-corner {
     position: absolute;
-    right: 0;
+    right: 40px;
     top: 20px;
     width: 300px;
     height: 300px;
