@@ -18,6 +18,7 @@ export class zzz extends plugin {
     }
 
     async md(e) {
+        e.reply('正在获取母带，请稍后...');
         let qq, uid, ck
 
         if (e.message.length > 1) {

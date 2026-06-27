@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>崩坏3 舰长手账</title>
+    <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_ledger/ledger.css" />
+</head>
+<body {{sys.scale}}>
+    <div class="container">
+        <div class="content">
+            <div class="content-bg">
+                <div class="bg-top"></div>
+                <div class="bg-mid"></div>
+            </div>
+            <img src="{{ppath}}img/ledger/{{juese_url}}.png"
+                alt="" draggable="false" class="role{{if isLastMonth}} role-small{{/if}}">
+            <div class="titltle">
+                <div class="titltle-top">
+                    <span class="top-month">{{MonthData.month}}</span> 月｜舰长手账
+                </div>
+                <div class="titltle-line"></div>
+                <div class="titltle-bottom">
+                    <span>UID：{{uid}}</span>
+                    <span style="margin-left: 20px;">服务器：{{serverName}}</span>
+                </div>
+            </div>
+            <div class="user-profile">
+                <img src="{{avatarUrl}}" alt="" draggable="false" class="avatar">
+                <div class="user-info-text">
+                    <div class="user-name">{{nickname}}</div>
+                    <div class="user-level">Lv.{{userLevel}}</div>
+                </div>
+            </div>
+            <div class="profile-wrap">
+            <img src="{{ppath}}img/ledger/level{{icon_url}}.png" alt="" draggable="false" class="user-info-corner">
+            <div class="info">
+                <p class="info-date"> {{if isLastMonth}}截止{{date_str}}{{else}}截止至 <span class="special-color">{{date_day}}</span> 月<span class="special-color">{{date_month}}</span> 日{{/if}}</p>
+                <p class="info-tittle">舰长本月已收到</p>
+                <div class="info-bd">
+                    <div class="bd-award">
+                        <img src="{{ppath}}img/ledger/shuijing.png"
+                            alt="" draggable="false" class="award-inner">
+                    </div>
+                    <div class="box-com active1">
+                        <span class="box-arrow"></span>
+                        <div class="box-content">
+                            <span style="font-size: 32px;">水晶：</span>
+                            <span class="font-active" style="color: rgb(240, 206, 110); font-weight: 700; font-size: 32px;">{{MonthData.month_hcoin}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-bd">
+                    <div class="bd-award">
+                        <img src="{{ppath}}img/ledger/shuijing.png"
+                            alt="" draggable="false" class="award-inner">
+                    </div>
+                    <div class="box-com active1">
+                        <span class="box-arrow"></span>
+                        <div class="box-content">
+                            <span style="font-size: 32px;">当前水晶余额：</span>
+                            <span class="font-active" style="color: rgb(100, 200, 255); font-weight: 700; font-size: 32px;">{{hcoinBalance}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-bd">
+                    <div class="bd-award">
+                        <img src="{{ppath}}img/ledger/xingshi.png" alt="" draggable="false" class="award-inner">
+                    </div>
+                    <div class="box-com active2">
+                        <span class="box-arrow"></span>
+                        <div class="box-content"><span style="font-size: 32px;">星石：</span> <span class="font-active" style="color: rgb(240, 206, 110); font-weight: 700; font-size: 32px;">{{MonthData.month_star}}</span></div>
+                    </div>
+                </div>
+                <div class="info-bd">
+                    <div class="bd-award"><img
+                            src="{{ppath}}img/ledger/bujika.png" alt="" draggable="false" class="award-inner"></div>
+                    <div class="box-com active3"><span class="box-arrow"></span>
+                    <div class="box-content"><span style="font-size: 32px;">补给卡：</span> <span class="font-active" style="color: rgb(240, 206, 110); font-weight: 700; font-size: 32px;">{{equipSupplyCardNum}}</span></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+            {{if hcoinList && hcoinList.length}}
+            <div class="breakdown">
+                <div class="breakdown-header">水晶来源</div>
+                <div class="breakdown-main">
+                    <div class="breakdown-left">
+                        <div class="pie-legend">
+                            {{each hcoinList item}}
+                            <div class="legend-item">
+                                <span class="legend-color" style="background:{{item.color}}"></span>
+                                <span class="legend-name">{{item.name}}</span>
+                                <span class="legend-value">{{item.percent}}%</span>
+                            </div>
+                            {{/each}}
+                        </div>
+                    </div>
+                    <div class="breakdown-right">
+                        <canvas id="pieChart" width="400" height="400" data-piedata="{{hcoinListB64}}"></canvas>
+                    </div>
+                </div>
+                <script>
+                    const canvas = document.getElementById("pieChart");
+                    const data = JSON.parse(atob(canvas.dataset.piedata));
+                    const ctx = canvas.getContext("2d");
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const total = data.reduce((sum, d) => sum + d.num, 0);
+                    let startAngle = -Math.PI / 2;
+                    data.forEach((d, i) => {
+                        const sliceAngle = (d.num / total) * 2 * Math.PI;
+                        ctx.beginPath();
+                        ctx.arc(200, 200, 180, startAngle, startAngle + sliceAngle);
+                        ctx.arc(200, 200, 80, startAngle + sliceAngle, startAngle, true);
+                        ctx.closePath();
+                        ctx.fillStyle = d.color;
+                        ctx.fill();
+                        startAngle += sliceAngle;
+                    });
+                </script>
+            {{if isLastMonth}}
+            <div class="breakdown-compare">
+                <div class="compare-text">上月环比:与{{prevMonth}}月相比，舰长的{{MonthData.month}}月的水晶收入{{hcoinDiffPercent >= 0 ? '增加了' : '减少了'}}{{hcoinDiffPercentAbs}}%，星石收入{{starDiffPercent >= 0 ? '增加了' : '减少了'}}{{starDiffPercentAbs}}%。</div>
+            </div>
+            {{/if}}
+            </div>
+            {{/if}}
+            {{if !isLastMonth}}
+            <div class="daily">
+                <p class="daily-title">今日快报</p>
+                <div class="daily-text" style="font-size: 32px;"><span>舰长本日已经获取</span><span class="special-color">{{MonthData.day_hcoin}}</span><span> 水晶，</span><span class="special-color">{{MonthData.day_star}}</span><span>星石，</span><span>{{hitokoto}}</span></div>
+            </div>
+            {{/if}}
+            <div class="footer-subtitle">HONKAI IMPACT 3RD</div>
+            <div class="footer">from 小花火</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -100,6 +100,55 @@ async function api(e, data = {}) {
             obj: {
                 method: 'GET',
             }
+        },
+        //崩三水晶
+        bh3_ledger: {
+            url: `https://api.mihoyo.com/bh3-weekly_finance/api/index?game_biz=bh3_cn&bind_uid=${uid}&bind_region=${server}&month=${data.month || ''}`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三上月水晶
+        bh3_ledger_lastMonth: {
+            url: `https://api.mihoyo.com/bh3-weekly_finance/api/getLastMonthInfo?game_biz=bh3_cn&bind_uid=${uid}&bind_region=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三水晶余额
+        bh3_hcoinBalance: {
+            url: `https://public-operation-common.mihoyo.com/common/bh3_self_help_query/UserMaterialQuery/GetUserHCoin?type=1&community_select_uid=${uid}&page=1&size=10`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三装备补给卡
+        bh3_equipSupplyCard: {
+            url: `https://public-operation-common.mihoyo.com/common/bh3_self_help_query/UserMaterialQuery/GetUserMaterial?type=4&community_select_uid=${uid}&page=${data.page || 1}&size=50`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三角色绑定信息
+        bh3_cn: {
+            url: `https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=bh3_cn`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三用户信息
+        bh3_index: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/appv2/honkai3rd/api/index?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三角色头像
+        bh3_character: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/appv2/honkai3rd/api/characters?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
         }
     };
 
@@ -109,6 +158,26 @@ async function api(e, data = {}) {
     } = api_list[data.type];
 
     obj.headers = data.headers;
+
+    // 崩三API需要4x salt DS并包含query参数
+    if (data.type && (data.type.startsWith('bh3_') || data.type === 'Character')) {
+        const queryString = url.includes('?') ? url.split('?')[1] : '';
+        obj.headers.DS = mhy.getDs2(queryString, '', '4');
+        obj.headers['x-rpc-client_type'] = '5';
+        obj.headers['x-rpc-app_version'] = '2.73.1';
+        obj.headers.Referer = 'https://webstatic.mihoyo.com/';
+        obj.headers['User-Agent'] = 'Mozilla/5.0 (Linux; Android 12; XQ-AT52 Build/58.2.A.7.93; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.88 Mobile Safari/537.36 miHoYoBBS/2.73.1';
+        // 删除xhh额外加的头部，避免Bh3 API拒绝
+        delete obj.headers.Origin;
+        delete obj.headers['X-Requested-With'];
+        delete obj.headers['x-rpc-sys_version'];
+        delete obj.headers['x-rpc-device_id'];
+        delete obj.headers['x-rpc-device_name'];
+        delete obj.headers['x-rpc-device_model'];
+        delete obj.headers['x-rpc-channel'];
+        delete obj.headers['x-rpc-verify_key'];
+        delete obj.headers['x-rpc-app_id'];
+    }
 
     let res
 
