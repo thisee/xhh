@@ -89,15 +89,13 @@ export class bh3_ledger extends plugin {
 
     async getHitokoto() {
         try {
-            const res = await fetch(HITOKOTO_API, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-            })
+            const res = await fetch(HITOKOTO_API)
             if (res) {
                 const data = await res.json()
                 if (data?.hitokoto) {
-                    let text = data.hitokoto
-                    if (text.length > 25) text = text.slice(0, 24) + '…'
-                    return text
+                    let text = data.hitokoto;
+                    if (text.length > 25) text = text.slice(0, 24) + '…';
+                    return text;
                 }
             }
         } catch (e) {
@@ -119,6 +117,7 @@ export class bh3_ledger extends plugin {
         if (res && res.retcode === 0 && res.data?.role) {
             avatarUrl = res.data.role.AvatarUrl || "";
             nickname = res.data.role.nickname || "";
+            logger.mark(`[BH3 Ledger] raw nickname from API: "${nickname}", chars: ${[...nickname].map(c => c + " U+" + c.charCodeAt(0).toString(16).toUpperCase()).join(" ")}`);
             userLevel = res.data.role.level || 0;
             const region = res.data.role.region || "";
             const serverMap = {
