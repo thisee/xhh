@@ -1,6 +1,7 @@
-import { api, mhy, render } from '#xhh';
+import { api, mhy, render, yaml } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
+import fs from 'fs';
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
@@ -46,6 +47,24 @@ export class bh3_ledger extends plugin {
             const mys = e.user.getMysUser('bh3');
             ck = mys?.ck;
             qq = e.user_id;
+        }
+
+        // 如果uid与gs相同，尝试从xhh Stoken YAML查找崩三uid
+        if (uid && String(uid) === String(e.user.getUid('gs')) && qq) {
+            let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+            if (fs.existsSync(stokenPath)) {
+                try {
+                    let stokenData = await yaml.get(stokenPath);
+                    const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+                    for (let key in stokenData) {
+                        let r = stokenData[key].region || '';
+                        if (bh3Regions.includes(r)) {
+                            uid = key;
+                            break;
+                        }
+                    }
+                } catch (_) { }
+            }
         }
 
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
