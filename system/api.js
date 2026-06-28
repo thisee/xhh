@@ -219,6 +219,9 @@ function api_err(e, res, uid, type) {
                 msg = `${uid ? 'UID:' + uid : ''}Cookie失效，请[刷新ck]或[扫码绑定]`;
             }
             break;
+        case -110:
+            msg = `${uid ? 'UID:' + uid : ''}该账号没有绑定崩坏3角色，请检查UID是否正确`;
+            break;
         case -10002:
             msg = `${uid ? 'UID:' + uid : ''}${res.message}`;
             break;
