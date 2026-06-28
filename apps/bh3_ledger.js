@@ -347,8 +347,8 @@ export class bh3_ledger extends plugin {
             hcoinList: [],
             hcoinListB64: "",
         }, { e });
-        if (img && typeof img === 'string') {
-            await e.reply(segment.image(`base64://${img}`));
+        if (img) {
+            await e.reply([segment.image(typeof img === 'string' ? `base64://${img}` : img)]);
         }
         return true;
     }
@@ -441,8 +441,8 @@ export class bh3_ledger extends plugin {
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
         }, { e });
-        if (img && typeof img === 'string') {
-            await e.reply(segment.image(`base64://${img}`));
+        if (img) {
+            await e.reply([segment.image(typeof img === 'string' ? `base64://${img}` : img)]);
         }
         return true;
     }
