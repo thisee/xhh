@@ -49,21 +49,18 @@ export class bh3_ledger extends plugin {
         if (savedUid && savedRegion) {
             uid = savedUid;
             region = savedRegion;
-            // 获取CK：先尝试NoteUser，没有则从Stoken刷新
-            ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
-            if (!ck) {
-                let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
-                if (fs.existsSync(stokenPath)) {
-                    try {
-                        let stokenData = await yaml.get(stokenPath);
-                        let entry = stokenData[savedUid];
-                        if (entry?.stoken && entry?.stuid) {
-                            let hdrs = mhy.getHeaders(e, entry.ck_stoken);
-                            let { ltoken } = await mhy.refresh_cookies(e, hdrs, entry.stoken, entry.stuid);
-                            if (ltoken) ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
-                        }
-                    } catch (_) { }
-                }
+            // 用 SToken 刷新指定 UID 的 CK，不依赖 NoteUser 缓存（可能存的是别的号的CK）
+            let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+            if (fs.existsSync(stokenPath)) {
+                try {
+                    let stokenData = await yaml.get(stokenPath);
+                    let entry = stokenData[savedUid];
+                    if (entry?.stoken && entry?.stuid) {
+                        let hdrs = mhy.getHeaders(e, entry.ck_stoken);
+                        let { ltoken } = await mhy.refresh_cookies(e, hdrs, entry.stoken, entry.stuid);
+                        if (ltoken) ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+                    }
+                } catch (_) { }
             }
         }
 
