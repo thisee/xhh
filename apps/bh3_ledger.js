@@ -4,6 +4,16 @@ import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
 
+async function sendMsg(e, msg) {
+    if (typeof msg === 'string') {
+        if (e.group) await e.group.sendMsg([{ type: 'text', data: { text: msg } }]);
+        else if (e.friend) await e.friend.sendMsg([{ type: 'text', data: { text: msg } }]);
+    } else {
+        if (e.group) await e.group.sendMsg([msg]);
+        else if (e.friend) await e.friend.sendMsg([msg]);
+    }
+}
+
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
 export class bh3_ledger extends plugin {
@@ -260,7 +270,7 @@ export class bh3_ledger extends plugin {
 
     async ledger(e) {
         try {
-            e.reply('正在获取水晶，请稍后...');
+            sendMsg(e, '正在获取水晶，请稍后...');
             const auth = await this.getBh3Auth(e);
             if (!auth) return false;
             const { uid, headers, qq, region } = auth;
@@ -274,7 +284,7 @@ export class bh3_ledger extends plugin {
             });
 
             if (!res || res.retcode !== 0 || !res.data) {
-                e.reply('获取水晶数据失败');
+                sendMsg(e, '获取水晶数据失败');
                 return true;
             }
 
@@ -372,14 +382,14 @@ export class bh3_ledger extends plugin {
         return true;
         } catch (err) {
             logger.error('bh3_ledger ledger error:', err);
-            e.reply('获取水晶数据失败');
+            sendMsg(e, '获取水晶数据失败');
             return true;
         }
     }
 
     async ledgerLastMonth(e) {
         try {
-            e.reply('正在获取上月水晶，请稍后...');
+            sendMsg(e, '正在获取上月水晶，请稍后...');
             const auth = await this.getBh3Auth(e);
             if (!auth) return false;
             const { uid, headers, qq, region } = auth;
@@ -393,7 +403,7 @@ export class bh3_ledger extends plugin {
             });
 
             if (!res || res.retcode !== 0 || !res.data) {
-                e.reply('获取上月水晶数据失败');
+                sendMsg(e, '获取上月水晶数据失败');
                 return true;
             }
 
@@ -489,7 +499,7 @@ export class bh3_ledger extends plugin {
         return true;
         } catch (err) {
             logger.error('bh3_ledger_last error:', err);
-            e.reply('获取上月水晶数据失败');
+            sendMsg(e, '获取上月水晶数据失败');
             return true;
         }
     }
