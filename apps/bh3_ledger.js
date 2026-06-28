@@ -26,7 +26,7 @@ export class bh3_ledger extends plugin {
     }
 
     async getBh3Auth(e) {
-        let qq, uid, ck;
+        let qq, uid, ck, region;
 
         if (e.message.length > 1) {
             for (const message of e.message) {
@@ -37,20 +37,14 @@ export class bh3_ledger extends plugin {
             }
         }
 
-        if (qq) {
-            uid = (await NoteUser.create(qq)).getUid('bh3');
-            ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
-        }
+        if (!qq) qq = e.user_id;
 
+        // 1. 尝试从 genshin NoteUser 获取
+        uid = (await NoteUser.create(qq)).getUid('bh3');
+        ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+
+        // 2. 如果 genshin 没有，从 xhh Stoken YAML 获取
         if (!uid || !ck) {
-            uid = e.user.getUid('bh3');
-            const mys = e.user.getMysUser('bh3');
-            ck = mys?.ck;
-            qq = e.user_id;
-        }
-
-        // 如果uid与gs相同，尝试从xhh Stoken YAML查找崩三uid
-        if (uid && String(uid) === String(e.user.getUid('gs')) && qq) {
             let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
             if (fs.existsSync(stokenPath)) {
                 try {
@@ -60,6 +54,20 @@ export class bh3_ledger extends plugin {
                         let r = stokenData[key].region || '';
                         if (bh3Regions.includes(r)) {
                             uid = key;
+                            region = r;
+                            // 用 SToken 刷新 CK 并绑定到 genshin NoteUser
+                            let ck_stoken = stokenData[key].ck_stoken;
+                            if (ck_stoken) {
+                                let stuid = stokenData[key].stuid;
+                                let stoken = stokenData[key].stoken;
+                                if (stoken && stuid) {
+                                    let hdrs = mhy.getHeaders(e, ck_stoken);
+                                    let { ltoken } = await mhy.refresh_cookies(e, hdrs, stoken, stuid);
+                                    if (ltoken) {
+                                        ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+                                    }
+                                }
+                            }
                             break;
                         }
                     }
@@ -71,14 +79,14 @@ export class bh3_ledger extends plugin {
 
         let headers = mhy.getHeaders(e, ck);
 
-        // 从Redis获取正确Bh3服务器码(如pc01/android01/ios01)
-        let region;
-        try {
-            let usergame = JSON.parse(await redis.get(`genshin:usergame:${uid}:bh3_role`));
-            if (usergame) region = usergame.region;
-        } catch (_) { }
+        // 从Redis获取正确Bh3服务器码
+        if (!region) {
+            try {
+                let usergame = JSON.parse(await redis.get(`genshin:usergame:${uid}:bh3_role`));
+                if (usergame) region = usergame.region;
+            } catch (_) { }
+        }
 
-        // Redis无缓存则直接fetch API获取
         if (!region) {
             try {
                 const queryStr = 'game_biz=bh3_cn';
