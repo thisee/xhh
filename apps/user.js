@@ -32,7 +32,7 @@ export class user extends plugin {
                     fnc: 'fp',
                 },
                 {
-                    reg: '^#?xhh扫码(登录|绑定|登陆)$',
+                    reg: '^#?小花火扫码(登录|绑定|登陆)$',
                     fnc: 'sm',
                 },
                 {
