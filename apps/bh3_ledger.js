@@ -327,7 +327,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        return await render('bh3_ledger/ledger', {
+        let img = await render('bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
             uid,
@@ -346,7 +346,11 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-        }, { e, ret: true });
+        }, { e });
+        if (img && typeof img === 'string') {
+            await e.reply(segment.image(`base64://${img}`));
+        }
+        return true;
     }
 
     async ledgerLastMonth(e) {
@@ -414,7 +418,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        return await render('bh3_ledger/ledger', {
+        let img = await render('bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
             uid,
@@ -436,6 +440,10 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
-        }, { e, ret: true });
+        }, { e });
+        if (img && typeof img === 'string') {
+            await e.reply(segment.image(`base64://${img}`));
+        }
+        return true;
     }
 }
