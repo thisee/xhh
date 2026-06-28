@@ -1,4 +1,5 @@
 import { api, mhy, render, yaml, config } from '#xhh';
+import puppeteer from '../../../lib/puppeteer/puppeteer.js';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
@@ -328,9 +329,10 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let imgPath = path.resolve(`temp/xhh_crystal_${uid}.png`);
+        let scale = (config().img_quality / 100) * 2.4 || 2.4;
+        let imgPath = path.resolve(`temp/xhh_crystal_${uid}.jpg`);
         fs.mkdirSync('temp', { recursive: true });
-        await render('bh3_ledger/ledger', {
+        let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
             uid,
@@ -349,10 +351,16 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-            path: imgPath,
-        }, { e });
-        if (fs.existsSync(imgPath)) {
+            sys: { scale: `style=transform:scale(${scale})` },
+            ppath: '../../../../../plugins/xhh/resources/',
+            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
+            saveId: 'ledger',
+        });
+        if (buf && Buffer.isBuffer(buf)) {
+            fs.writeFileSync(imgPath, buf);
             await e.reply([segment.image(imgPath)]);
+        } else {
+            logger.error(`bh3_ledger: puppeteer.render returned ${typeof buf}`);
         }
         return true;
     }
@@ -422,9 +430,10 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let imgPath = `temp/xhh_crystal_${uid}_last.png`;
+        let scale = (config().img_quality / 100) * 2.4 || 2.4;
+        let imgPath = path.resolve(`temp/xhh_crystal_${uid}_last.jpg`);
         fs.mkdirSync('temp', { recursive: true });
-        await render('bh3_ledger/ledger', {
+        let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
             uid,
@@ -446,10 +455,16 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
-            path: imgPath,
-        }, { e });
-        if (fs.existsSync(imgPath)) {
+            sys: { scale: `style=transform:scale(${scale})` },
+            ppath: '../../../../../plugins/xhh/resources/',
+            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
+            saveId: 'ledger',
+        });
+        if (buf && Buffer.isBuffer(buf)) {
+            fs.writeFileSync(imgPath, buf);
             await e.reply([segment.image(imgPath)]);
+        } else {
+            logger.error(`bh3_ledger_last: puppeteer.render returned ${typeof buf}`);
         }
         return true;
     }
