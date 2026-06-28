@@ -200,15 +200,32 @@ export class bh3_ledger extends plugin {
 
         e.reply(msg);
         this.setContext('switchBh3Uid_confirm');
-        const reply = await e.waitReply();
-        if (!reply || reply.includes('取消')) {
-            this.finish('switchBh3Uid_confirm');
-            return e.reply('已取消切换');
-        }
-        this.finish('switchBh3Uid_confirm');
+        return true;
+    }
 
-        const idx = parseInt(reply.trim()) - 1;
-        if (isNaN(idx) || idx < 0 || idx >= uidList.length) return e.reply('序号无效');
+    async switchBh3Uid_confirm(e) {
+        this.finish('switchBh3Uid_confirm');
+        const qq = e.user_id;
+        const reply = e.msg.trim();
+
+        if (reply.includes('取消')) return e.reply('已取消切换');
+
+        const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+        let stokenData;
+        try { stokenData = await yaml.get(stokenPath); } catch (_) { }
+        if (!stokenData) return e.reply('读取绑定数据失败，请重新 #切换水晶uid');
+
+        const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+        let uidList = [];
+        for (let key in stokenData) {
+            let r = stokenData[key].region || '';
+            if (bh3Regions.includes(r)) {
+                uidList.push({ uid: key, region: r, name: stokenData[key].region_name || '' });
+            }
+        }
+
+        const idx = parseInt(reply) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= uidList.length) return e.reply('序号无效，请重新 #切换水晶uid');
 
         await redis.set(`xhh:bh3_uid:${qq}`, uidList[idx].uid);
         await redis.set(`xhh:bh3_region:${qq}`, uidList[idx].region);
