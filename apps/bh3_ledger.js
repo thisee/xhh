@@ -21,6 +21,10 @@ export class bh3_ledger extends plugin {
                     reg: '^#*上月水晶$',
                     fnc: 'ledgerLastMonth',
                 },
+                {
+                    reg: '^#*切换水晶uid$',
+                    fnc: 'switchBh3Uid',
+                },
             ],
         });
     }
@@ -39,9 +43,35 @@ export class bh3_ledger extends plugin {
 
         if (!qq) qq = e.user_id;
 
+        // 0. 检查是否用户通过 #切换水晶uid 手动指定了uid
+        const savedUid = await redis.get(`xhh:bh3_uid:${qq}`);
+        const savedRegion = savedUid ? await redis.get(`xhh:bh3_region:${qq}`) : null;
+        if (savedUid && savedRegion) {
+            uid = savedUid;
+            region = savedRegion;
+            // 获取CK：先尝试NoteUser，没有则从Stoken刷新
+            ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+            if (!ck) {
+                let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+                if (fs.existsSync(stokenPath)) {
+                    try {
+                        let stokenData = await yaml.get(stokenPath);
+                        let entry = stokenData[savedUid];
+                        if (entry?.stoken && entry?.stuid) {
+                            let hdrs = mhy.getHeaders(e, entry.ck_stoken);
+                            let { ltoken } = await mhy.refresh_cookies(e, hdrs, entry.stoken, entry.stuid);
+                            if (ltoken) ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+                        }
+                    } catch (_) { }
+                }
+            }
+        }
+
         // 1. 尝试从 genshin NoteUser 获取
-        uid = (await NoteUser.create(qq)).getUid('bh3');
-        ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+        if (!uid || !ck) {
+            uid = (await NoteUser.create(qq)).getUid('bh3');
+            ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+        }
 
         // 1.5 如果 uid 实际是原神 uid，从 xhh Stoken YAML 查找真正的崩三 uid
         if (uid && String(uid) === String(e.user.getUid('gs')) && qq) {
@@ -131,6 +161,59 @@ export class bh3_ledger extends plugin {
         }
 
         return { uid, headers, qq, region };
+    }
+
+    async switchBh3Uid(e) {
+        const qq = e.user_id;
+        const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+        if (!fs.existsSync(stokenPath)) return e.reply('请先 #小花火扫码绑定 后再切换UID');
+
+        let stokenData;
+        try { stokenData = await yaml.get(stokenPath); } catch (_) { }
+        if (!stokenData) return e.reply('读取绑定数据失败');
+
+        const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+        let uidList = [];
+        for (let key in stokenData) {
+            let r = stokenData[key].region || '';
+            if (bh3Regions.includes(r)) {
+                uidList.push({ uid: key, region: r, name: stokenData[key].region_name || '' });
+            }
+        }
+
+        if (uidList.length === 0) return e.reply('没有找到已绑定的崩坏3账号');
+        if (uidList.length === 1) {
+            const current = await redis.get(`xhh:bh3_uid:${qq}`);
+            if (current === uidList[0].uid) return e.reply(`当前UID已经是 ${uidList[0].uid}，无需切换`);
+            await redis.set(`xhh:bh3_uid:${qq}`, uidList[0].uid);
+            await redis.set(`xhh:bh3_region:${qq}`, uidList[0].region);
+            return e.reply(`已将水晶查询UID切换为 ${uidList[0].uid}`);
+        }
+
+        const current = await redis.get(`xhh:bh3_uid:${qq}`);
+        let msg = '请选择要查询的崩坏3 UID：\n';
+        uidList.forEach((item, i) => {
+            const isCurrent = item.uid === current ? ' ← 当前' : '';
+            msg += `${i + 1}. ${item.uid} (${item.name || item.region})${isCurrent}\n`;
+        });
+        msg += '\n回复序号(1/2/3...)切换，发送"取消"退出';
+
+        e.reply(msg);
+        this.setContext('switchBh3Uid_confirm');
+        const reply = await e.waitReply();
+        if (!reply || reply.includes('取消')) {
+            this.finish('switchBh3Uid_confirm');
+            return e.reply('已取消切换');
+        }
+        this.finish('switchBh3Uid_confirm');
+
+        const idx = parseInt(reply.trim()) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= uidList.length) return e.reply('序号无效');
+
+        await redis.set(`xhh:bh3_uid:${qq}`, uidList[idx].uid);
+        await redis.set(`xhh:bh3_region:${qq}`, uidList[idx].region);
+        e.reply(`已将水晶查询UID切换为 ${uidList[idx].uid} (${uidList[idx].name || uidList[idx].region})`);
+        return true;
     }
 
     async getHitokoto() {
