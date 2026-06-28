@@ -260,6 +260,8 @@ export class bh3_ledger extends plugin {
 
     async ledger(e) {
         e.reply('正在获取水晶，请稍后...');
+        // 发图测试
+        await e.reply([segment.image('./plugins/xhh/resources/help/bg.png')]);
         const auth = await this.getBh3Auth(e);
         if (!auth) return false;
         const { uid, headers, qq, region } = auth;
