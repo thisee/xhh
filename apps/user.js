@@ -26,7 +26,7 @@ export class user extends plugin {
                 key: 'mys.req.err',
                 fn: 'mysReqErrHandler',
             }, ],
-            priority: -666,
+            priority: -99999999,
             rule: [{
                     reg: '^#?(删除|绑定)*设备(.*)$',
                     fnc: 'fp',
