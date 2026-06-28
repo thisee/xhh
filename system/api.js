@@ -222,6 +222,9 @@ function api_err(e, res, uid, type) {
         case -110:
             msg = `${uid ? 'UID:' + uid : ''}该账号没有绑定崩坏3角色，请检查UID是否正确`;
             break;
+        case -120:
+            msg = `${uid ? 'UID:' + uid : ''}崩坏3角色等级不足，无法查询水晶数据`;
+            break;
         case -10002:
             msg = `${uid ? 'UID:' + uid : ''}${res.message}`;
             break;
