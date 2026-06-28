@@ -259,22 +259,26 @@ export class bh3_ledger extends plugin {
     }
 
     async ledger(e) {
-        e.reply('正在获取水晶，请稍后...');
-        const auth = await this.getBh3Auth(e);
-        if (!auth) return false;
-        const { uid, headers, qq, region } = auth;
+        try {
+            e.reply('正在获取水晶，请稍后...');
+            const auth = await this.getBh3Auth(e);
+            if (!auth) return false;
+            const { uid, headers, qq, region } = auth;
 
-        let res = await api(e, {
-            type: 'bh3_ledger',
-            uid,
-            headers,
-            game: 'bh3',
-            server: region,
-        });
+            let res = await api(e, {
+                type: 'bh3_ledger',
+                uid,
+                headers,
+                game: 'bh3',
+                server: region,
+            });
 
-        if (!res || res.retcode !== 0) return e.reply('获取水晶数据失败');
+            if (!res || res.retcode !== 0 || !res.data) {
+                e.reply('获取水晶数据失败');
+                return true;
+            }
 
-        let MonthData = res.data;
+            let MonthData = res.data;
 
         let hcoinRes = await api(e, {
             type: 'bh3_hcoinBalance',
@@ -366,25 +370,34 @@ export class bh3_ledger extends plugin {
             logger.error('bh3_ledger: error sending image', err);
         }
         return true;
+        } catch (err) {
+            logger.error('bh3_ledger ledger error:', err);
+            e.reply('获取水晶数据失败');
+            return true;
+        }
     }
 
     async ledgerLastMonth(e) {
-        e.reply('正在获取上月水晶，请稍后...');
-        const auth = await this.getBh3Auth(e);
-        if (!auth) return false;
-        const { uid, headers, qq, region } = auth;
+        try {
+            e.reply('正在获取上月水晶，请稍后...');
+            const auth = await this.getBh3Auth(e);
+            if (!auth) return false;
+            const { uid, headers, qq, region } = auth;
 
-        let res = await api(e, {
-            type: 'bh3_ledger_lastMonth',
-            uid,
-            headers,
-            game: 'bh3',
-            server: region,
-        });
+            let res = await api(e, {
+                type: 'bh3_ledger_lastMonth',
+                uid,
+                headers,
+                game: 'bh3',
+                server: region,
+            });
 
-        if (!res || res.retcode !== 0) return e.reply('获取上月水晶数据失败');
+            if (!res || res.retcode !== 0 || !res.data) {
+                e.reply('获取上月水晶数据失败');
+                return true;
+            }
 
-        let lastMonthData = res.data;
+            let lastMonthData = res.data;
 
         let hcoinRes = await api(e, {
             type: 'bh3_hcoinBalance',
@@ -474,5 +487,10 @@ export class bh3_ledger extends plugin {
             logger.error('bh3_ledger_last: error sending image', err);
         }
         return true;
+        } catch (err) {
+            logger.error('bh3_ledger_last error:', err);
+            e.reply('获取上月水晶数据失败');
+            return true;
+        }
     }
 }
