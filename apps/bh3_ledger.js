@@ -260,8 +260,6 @@ export class bh3_ledger extends plugin {
 
     async ledger(e) {
         e.reply('正在获取水晶，请稍后...');
-        // 发图测试
-        await e.reply([segment.image('./plugins/xhh/resources/help/bg.png')]);
         const auth = await this.getBh3Auth(e);
         if (!auth) return false;
         const { uid, headers, qq, region } = auth;
@@ -330,7 +328,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let raw = await puppeteer.render('小花火/bh3_ledger/ledger', {
+        let img = await render('bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
             uid,
@@ -349,14 +347,9 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-            sys: { scale: `style=transform:scale(${(config().img_quality / 100) * 2.4 || 2.4})` },
-            ppath: '../../../../../plugins/xhh/resources/',
-            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
-            saveId: 'ledger',
-        });
-        if (raw && Buffer.isBuffer(raw)) {
-            let b64 = raw.toString('base64');
-            e.reply([segment.image(`base64://${b64}`)]);
+        }, { e });
+        if (typeof img === 'object' && img?.type === 'image') {
+            await e.reply([img]);
         }
         return true;
     }
