@@ -2,6 +2,7 @@ import { api, mhy, render, yaml, config } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
+import path from 'path';
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
@@ -327,7 +328,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let imgPath = `temp/xhh_crystal_${uid}.png`;
+        let imgPath = path.resolve(`temp/xhh_crystal_${uid}.png`);
         fs.mkdirSync('temp', { recursive: true });
         await render('bh3_ledger/ledger', {
             ...MonthData,
