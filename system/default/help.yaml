@@ -36,6 +36,8 @@
       desc: '查询崩坏3本月水晶统计'
     - title: '上月水晶'
       desc: '查询崩坏3上月水晶统计'
+    - title: '切换水晶uid'
+      desc: '切换崩坏3水晶查询的账号'
 
 - group: bilibili命令
   list:
