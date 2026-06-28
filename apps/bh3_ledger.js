@@ -357,8 +357,13 @@ export class bh3_ledger extends plugin {
         try {
             if (buf && Buffer.isBuffer(buf)) {
                 logger.mark(`bh3_ledger: got buffer ${buf.length}B`);
-                await e.reply(segment.image(buf));
-                logger.mark('bh3_ledger: sent image from buffer');
+                let seg = segment.image(buf);
+                if (e.group) {
+                    await e.group.sendMsg([seg]);
+                } else if (e.friend) {
+                    await e.friend.sendMsg([seg]);
+                }
+                logger.mark('bh3_ledger: sent image via sendMsg');
             } else {
                 logger.error(`bh3_ledger: puppeteer.render returned ${typeof buf} ${buf}`);
             }
