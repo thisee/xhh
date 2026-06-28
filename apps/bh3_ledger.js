@@ -330,7 +330,7 @@ export class bh3_ledger extends plugin {
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
         let scale = (config().img_quality / 100) * 2.4 || 2.4;
-        let imgPath = `./temp/xhh_crystal_${uid}.jpg`;
+        let imgPath = `./plugins/xhh/resources/help/crystal_${uid}.jpg`;
         fs.mkdirSync('temp', { recursive: true });
         let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...MonthData,
@@ -437,7 +437,7 @@ export class bh3_ledger extends plugin {
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
         let scale = (config().img_quality / 100) * 2.4 || 2.4;
-        let imgPath = `./temp/xhh_crystal_${uid}_last.jpg`;
+        let imgPath = `./plugins/xhh/resources/help/crystal_${uid}_last.jpg`;
         fs.mkdirSync('temp', { recursive: true });
         let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...lastMonthData,
