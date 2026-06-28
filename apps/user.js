@@ -32,7 +32,7 @@ export class user extends plugin {
                     fnc: 'fp',
                 },
                 {
-                    reg: '^#?扫码(登录|绑定|登陆)$',
+                    reg: '^#?xhh扫码(登录|绑定|登陆)$',
                     fnc: 'sm',
                 },
                 {
@@ -238,7 +238,7 @@ export class user extends plugin {
                     hkrpg_cn国服星铁
                     nap_cn国服绝区零
                     */
-                    const game_list = ['hk4e_cn', 'hkrpg_cn', 'nap_cn'];
+                     const game_list = ['hk4e_cn', 'hkrpg_cn', 'nap_cn', 'bh3_cn'];
                     res.data.list.map(v => {
                         if (game_list.includes(v.game_biz)) {
                             data_[v.game_uid] = {
