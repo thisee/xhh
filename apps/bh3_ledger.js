@@ -206,7 +206,7 @@ export class bh3_ledger extends plugin {
     async switchBh3Uid_confirm(e) {
         this.finish('switchBh3Uid_confirm');
         const qq = e.user_id;
-        const reply = e.msg.trim();
+        const reply = e.msg.replace(/\[CQ:[^\]]+\]/g, '').trim();
 
         if (reply.includes('取消')) return e.reply('已取消切换');
 
