@@ -330,8 +330,6 @@ export class bh3_ledger extends plugin {
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
         let scale = (config().img_quality / 100) * 2.4 || 2.4;
-        let imgPath = `./plugins/xhh/resources/help/crystal_${uid}.jpg`;
-        fs.mkdirSync('temp', { recursive: true });
         let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
@@ -358,10 +356,9 @@ export class bh3_ledger extends plugin {
         });
         try {
             if (buf && Buffer.isBuffer(buf)) {
-                fs.writeFileSync(imgPath, buf);
-                logger.mark(`bh3_ledger: wrote ${imgPath} (${buf.length}B)`);
-                await e.reply([segment.image(imgPath)]);
-                logger.mark('bh3_ledger: sent image');
+                logger.mark(`bh3_ledger: got buffer ${buf.length}B`);
+                await e.reply([segment.image(buf)]);
+                logger.mark('bh3_ledger: sent image from buffer');
             } else {
                 logger.error(`bh3_ledger: puppeteer.render returned ${typeof buf} ${buf}`);
             }
@@ -437,8 +434,6 @@ export class bh3_ledger extends plugin {
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
         let scale = (config().img_quality / 100) * 2.4 || 2.4;
-        let imgPath = `./plugins/xhh/resources/help/crystal_${uid}_last.jpg`;
-        fs.mkdirSync('temp', { recursive: true });
         let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
@@ -468,10 +463,9 @@ export class bh3_ledger extends plugin {
         });
         try {
             if (buf && Buffer.isBuffer(buf)) {
-                fs.writeFileSync(imgPath, buf);
-                logger.mark(`bh3_ledger_last: wrote ${imgPath} (${buf.length}B)`);
-                await e.reply([segment.image(imgPath)]);
-                logger.mark('bh3_ledger_last: sent image');
+                logger.mark(`bh3_ledger_last: got buffer ${buf.length}B`);
+                await e.reply([segment.image(buf)]);
+                logger.mark('bh3_ledger_last: sent image from buffer');
             } else {
                 logger.error(`bh3_ledger_last: puppeteer.render returned ${typeof buf} ${buf}`);
             }
