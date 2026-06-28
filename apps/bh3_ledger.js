@@ -43,6 +43,25 @@ export class bh3_ledger extends plugin {
         uid = (await NoteUser.create(qq)).getUid('bh3');
         ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
 
+        // 1.5 如果 uid 实际是原神 uid，从 xhh Stoken YAML 查找真正的崩三 uid
+        if (uid && String(uid) === String(e.user.getUid('gs')) && qq) {
+            let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+            if (fs.existsSync(stokenPath)) {
+                try {
+                    let stokenData = JSON.parse(JSON.stringify(await yaml.get(stokenPath)));
+                    const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+                    for (let key in stokenData) {
+                        let r = stokenData[key].region || '';
+                        if (bh3Regions.includes(r)) {
+                            uid = key;
+                            region = r;
+                            break;
+                        }
+                    }
+                } catch (_) { }
+            }
+        }
+
         // 2. 如果 genshin 没有，从 xhh Stoken YAML 获取
         if (!uid || !ck) {
             let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
