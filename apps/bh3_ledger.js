@@ -349,7 +349,6 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-            imgType: 'png',
             sys: { scale: `style=transform:scale(${scale})` },
             ppath: '../../../../../plugins/xhh/resources/',
             tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
@@ -358,7 +357,7 @@ export class bh3_ledger extends plugin {
         try {
             if (buf && Buffer.isBuffer(buf)) {
                 logger.mark(`bh3_ledger: got buffer ${buf.length}B`);
-                await e.reply([segment.image(buf)]);
+                await e.reply(segment.image(buf));
                 logger.mark('bh3_ledger: sent image from buffer');
             } else {
                 logger.error(`bh3_ledger: puppeteer.render returned ${typeof buf} ${buf}`);
@@ -457,7 +456,6 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
-            imgType: 'png',
             sys: { scale: `style=transform:scale(${scale})` },
             ppath: '../../../../../plugins/xhh/resources/',
             tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
