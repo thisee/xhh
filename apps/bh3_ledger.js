@@ -275,13 +275,19 @@ export class bh3_ledger extends plugin {
             if (!auth) return false;
             const { uid, headers, qq, region } = auth;
 
-            let res = await api(e, {
-                type: 'bh3_ledger',
-                uid,
-                headers,
-                game: 'bh3',
-                server: region,
-            });
+            let queryStr = `game_biz=bh3_cn&bind_uid=${uid}&bind_region=${region}`;
+            let res = await fetch(`https://api.mihoyo.com/bh3-weekly_finance/api/index?${queryStr}`, {
+                method: 'GET',
+                headers: {
+                    Cookie: headers.Cookie,
+                    DS: mhy.getDs2(queryStr, '', '4'),
+                    'x-rpc-client_type': '5',
+                    'x-rpc-app_version': '2.73.1',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 12; XQ-AT52 Build/58.2.A.7.93; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.88 Mobile Safari/537.36 miHoYoBBS/2.73.1',
+                    Referer: 'https://webstatic.mihoyo.com/',
+                },
+            }).then(r => r.json());
+            logger.error(`bh3_ledger raw response: ${JSON.stringify(res)}`);
 
             if (!res || res.retcode !== 0 || !res.data) {
                 logger.error(`bh3_ledger API err: ${JSON.stringify(res)}`);
