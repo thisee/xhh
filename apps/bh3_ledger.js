@@ -327,7 +327,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        render('bh3_ledger/ledger', {
+        return await render('bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
             uid,
@@ -347,8 +347,6 @@ export class bh3_ledger extends plugin {
             hcoinList: [],
             hcoinListB64: "",
         }, { e, ret: true });
-
-        return true;
     }
 
     async ledgerLastMonth(e) {
@@ -416,7 +414,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        render('bh3_ledger/ledger', {
+        return await render('bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
             uid,
@@ -439,7 +437,5 @@ export class bh3_ledger extends plugin {
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
         }, { e, ret: true });
-
-        return true;
     }
 }
