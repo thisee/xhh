@@ -1,4 +1,4 @@
-import { api, mhy, render, yaml } from '#xhh';
+import { api, mhy, render, yaml, config } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
@@ -327,7 +327,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let img = await render('bh3_ledger/ledger', {
+        let raw = await Renderer.getRenderer().render('小花火/bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
             uid,
@@ -346,9 +346,17 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-        }, { e });
-        if (img) {
-            await e.reply([segment.image(typeof img === 'string' ? `base64://${img}` : img)]);
+            sys: { scale: `style=transform:scale(${(config().img_quality / 100) * 2.4 || 2.4})` },
+            ppath: '../../../../../plugins/xhh/resources/',
+            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
+            saveId: 'ledger',
+        });
+        if (raw && Buffer.isBuffer(raw)) {
+            let tmpPath = `temp/xhh_ledger_${uid}_${Date.now()}.png`;
+            await fs.promises.mkdir('temp', { recursive: true }).catch(()=>{});
+            await fs.promises.writeFile(tmpPath, raw);
+            await e.reply(segment.image(tmpPath));
+            fs.promises.unlink(tmpPath).catch(()=>{});
         }
         return true;
     }
@@ -418,7 +426,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let img = await render('bh3_ledger/ledger', {
+        let raw = await Renderer.getRenderer().render('小花火/bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
             uid,
@@ -440,9 +448,17 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
-        }, { e });
-        if (img) {
-            await e.reply([segment.image(typeof img === 'string' ? `base64://${img}` : img)]);
+            sys: { scale: `style=transform:scale(${(config().img_quality / 100) * 2.4 || 2.4})` },
+            ppath: '../../../../../plugins/xhh/resources/',
+            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
+            saveId: 'ledger',
+        });
+        if (raw && Buffer.isBuffer(raw)) {
+            let tmpPath = `temp/xhh_ledger_${uid}_${Date.now()}.png`;
+            await fs.promises.mkdir('temp', { recursive: true }).catch(()=>{});
+            await fs.promises.writeFile(tmpPath, raw);
+            await e.reply(segment.image(tmpPath));
+            fs.promises.unlink(tmpPath).catch(()=>{});
         }
         return true;
     }
