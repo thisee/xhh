@@ -2,7 +2,6 @@ import { api, mhy, render, yaml, config } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
-import renderLoader from '../../../lib/renderer/loader.js';
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
@@ -328,8 +327,9 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let puppeteerRenderer = renderLoader.getRenderer();
-        let buf = await puppeteerRenderer.render('小花火/bh3_ledger/ledger', {
+        let imgPath = `temp/xhh_crystal_${uid}.png`;
+        fs.mkdirSync('temp', { recursive: true });
+        await render('bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
             uid,
@@ -348,15 +348,10 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-            sys: { scale: `style=transform:scale(${(config().img_quality / 100) * 2.4 || 2.4})` },
-            ppath: '../../../../../plugins/xhh/resources/',
-            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
-            saveId: 'ledger',
-        });
-        if (buf && Buffer.isBuffer(buf)) {
-            let tmpPath = `temp/xhh_crystal_${uid}.png`;
-            await fs.promises.writeFile(tmpPath, buf).catch(()=>{});
-            await e.reply([segment.image(tmpPath)]);
+            path: imgPath,
+        }, { e });
+        if (fs.existsSync(imgPath)) {
+            await e.reply([segment.image(imgPath)]);
         }
         return true;
     }
@@ -426,7 +421,9 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let img = await render('bh3_ledger/ledger', {
+        let imgPath = `temp/xhh_crystal_${uid}_last.png`;
+        fs.mkdirSync('temp', { recursive: true });
+        await render('bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
             uid,
@@ -448,9 +445,10 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
+            path: imgPath,
         }, { e });
-        if (typeof img === 'object' && img?.type === 'image') {
-            await e.reply([img]);
+        if (fs.existsSync(imgPath)) {
+            await e.reply([segment.image(imgPath)]);
         }
         return true;
     }
