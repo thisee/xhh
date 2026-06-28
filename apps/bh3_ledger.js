@@ -2,7 +2,6 @@ import { api, mhy, render, yaml, config } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
-import puppeteer from '../../../lib/puppeteer/puppeteer.js';
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
@@ -419,7 +418,7 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let raw = await puppeteer.render('小花火/bh3_ledger/ledger', {
+        let img = await render('bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
             uid,
@@ -441,14 +440,9 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
-            sys: { scale: `style=transform:scale(${(config().img_quality / 100) * 2.4 || 2.4})` },
-            ppath: '../../../../../plugins/xhh/resources/',
-            tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
-            saveId: 'ledger',
-        });
-        if (raw && Buffer.isBuffer(raw)) {
-            let b64 = raw.toString('base64');
-            e.reply([segment.image(`base64://${b64}`)]);
+        }, { e });
+        if (typeof img === 'object' && img?.type === 'image') {
+            await e.reply([img]);
         }
         return true;
     }
