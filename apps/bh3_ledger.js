@@ -1,9 +1,8 @@
-import { api, mhy, render, yaml, config } from '#xhh';
+import { api, mhy, yaml, config } from '#xhh';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
-import path from 'path';
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
@@ -356,16 +355,12 @@ export class bh3_ledger extends plugin {
         });
         try {
             if (buf && Buffer.isBuffer(buf)) {
-                logger.mark(`bh3_ledger: got buffer ${buf.length}B`);
                 let seg = segment.image(buf);
                 if (e.group) {
                     await e.group.sendMsg([seg]);
                 } else if (e.friend) {
                     await e.friend.sendMsg([seg]);
                 }
-                logger.mark('bh3_ledger: sent image via sendMsg');
-            } else {
-                logger.error(`bh3_ledger: puppeteer.render returned ${typeof buf} ${buf}`);
             }
         } catch (err) {
             logger.error('bh3_ledger: error sending image', err);
@@ -468,11 +463,12 @@ export class bh3_ledger extends plugin {
         });
         try {
             if (buf && Buffer.isBuffer(buf)) {
-                logger.mark(`bh3_ledger_last: got buffer ${buf.length}B`);
-                await e.reply([segment.image(buf)]);
-                logger.mark('bh3_ledger_last: sent image from buffer');
-            } else {
-                logger.error(`bh3_ledger_last: puppeteer.render returned ${typeof buf} ${buf}`);
+                let seg = segment.image(buf);
+                if (e.group) {
+                    await e.group.sendMsg([seg]);
+                } else if (e.friend) {
+                    await e.friend.sendMsg([seg]);
+                }
             }
         } catch (err) {
             logger.error('bh3_ledger_last: error sending image', err);
