@@ -353,11 +353,8 @@ export class bh3_ledger extends plugin {
             saveId: 'ledger',
         });
         if (raw && Buffer.isBuffer(raw)) {
-            let tmpPath = `temp/xhh_ledger_${uid}_${Date.now()}.png`;
-            await fs.promises.mkdir('temp', { recursive: true }).catch(()=>{});
-            await fs.promises.writeFile(tmpPath, raw);
-            await e.reply(segment.image(tmpPath));
-            fs.promises.unlink(tmpPath).catch(()=>{});
+            let b64 = raw.toString('base64');
+            e.reply([segment.image(`base64://${b64}`)]);
         }
         return true;
     }
@@ -455,11 +452,8 @@ export class bh3_ledger extends plugin {
             saveId: 'ledger',
         });
         if (raw && Buffer.isBuffer(raw)) {
-            let tmpPath = `temp/xhh_ledger_${uid}_${Date.now()}.png`;
-            await fs.promises.mkdir('temp', { recursive: true }).catch(()=>{});
-            await fs.promises.writeFile(tmpPath, raw);
-            await e.reply(segment.image(tmpPath));
-            fs.promises.unlink(tmpPath).catch(()=>{});
+            let b64 = raw.toString('base64');
+            e.reply([segment.image(`base64://${b64}`)]);
         }
         return true;
     }
