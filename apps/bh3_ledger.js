@@ -67,6 +67,7 @@ export class bh3_ledger extends plugin {
                     let stokenData = await yaml.get(stokenPath);
                     let entry = stokenData[savedUid];
                     if (entry?.stoken && entry?.stuid) {
+                        region = entry.region || region;
                         let hdrs = mhy.getHeaders(e, entry.ck_stoken);
                         let { ltoken } = await mhy.refresh_cookies(e, hdrs, entry.stoken, entry.stuid);
                         if (ltoken) ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
