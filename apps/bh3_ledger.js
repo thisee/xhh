@@ -284,6 +284,7 @@ export class bh3_ledger extends plugin {
             });
 
             if (!res || res.retcode !== 0 || !res.data) {
+                logger.error(`bh3_ledger API err: ${JSON.stringify(res)}`);
                 sendMsg(e, '获取水晶数据失败');
                 return true;
             }
@@ -403,6 +404,7 @@ export class bh3_ledger extends plugin {
             });
 
             if (!res || res.retcode !== 0 || !res.data) {
+                logger.error(`bh3_ledger_last API err: ${JSON.stringify(res)}`);
                 sendMsg(e, '获取上月水晶数据失败');
                 return true;
             }
