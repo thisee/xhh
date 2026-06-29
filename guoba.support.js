@@ -235,6 +235,12 @@ export const supportGuoba = () => ({
         helpMessage: '解决某些适配器的合并消息内嵌报错',
         component: 'Switch',
       },
+      {
+        field: 'debug',
+        label: '调试模式',
+        helpMessage: '输出水晶查询/扫码绑定的详细日志',
+        component: 'Switch',
+      },
     ],
     getConfigData() {
       const cfg = getCfg()
@@ -268,6 +274,7 @@ export const supportGuoba = () => ({
         wt: !!cfg.wt,
         Tl: !!cfg.Tl,
         hbxx: !!cfg.hbxx,
+        debug: !!cfg.debug,
       }
     },
     setConfigData(data, { Result }) {
@@ -289,6 +296,7 @@ export const supportGuoba = () => ({
         wt: data.wt,
         Tl: data.Tl,
         hbxx: data.hbxx,
+        debug: data.debug,
       }
       for (const [k, v] of Object.entries(boolMap)) {
         yaml.set(_path + 'config.yaml', k, !!v)
