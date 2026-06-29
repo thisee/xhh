@@ -133,7 +133,7 @@ class mhy {
 
   //刷新ck
   async refresh_cookies(e, headers, SToken, id) {
-    //用SToken获取cookie_token和ltoken(v1)
+    if (config().debug) logger.mark('[refresh_cookies] refreshing for id:', id);
     let urls = [
       `https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken?stoken=${SToken}&uid=${id}`,
       'https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken',
@@ -146,13 +146,16 @@ class mhy {
       if (res.data?.cookie_token) Cookie = res.data?.cookie_token;
       if (res.data?.ltoken) ltoken = res.data?.ltoken;
     }
+    if (config().debug) logger.mark('[refresh_cookies] got Cookie:', !!Cookie, 'ltoken:', !!ltoken);
     if (!e.no_reply) e.no_reply = e.reply;
     let sendMsg = [];
     e.reply = msg => {
-      sendMsg.push(msg);
+      if (Array.isArray(msg)) sendMsg.push(...msg);
+      else sendMsg.push(msg);
     };
     if (!Cookie || !ltoken) {
       sendMsg.push(`米游社UID:${id}刷新cookie失败,请重新[扫码绑定]`);
+      if (config().debug) logger.mark('[refresh_cookies] failed for id:', id);
       return { sendMsg };
     }
     e.msg = `ltoken=${ltoken};ltuid=${id};cookie_token=${Cookie}`;
@@ -161,8 +164,8 @@ class mhy {
     ).default;
     e.ck = e.msg;
     await new userck(e).bing();
-    if (config().hbxx) sendMsg = [sendMsg[0]]
-    return { sendMsg, ltoken };
+    if (config().hbxx) sendMsg = sendMsg.filter(m => typeof m === 'string' && m);
+    return { sendMsg, ltoken, ck: e.msg };
   }
 
   //通过uid获取stoken

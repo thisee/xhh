@@ -26,13 +26,13 @@ export class user extends plugin {
                 key: 'mys.req.err',
                 fn: 'mysReqErrHandler',
             }, ],
-            priority: -666,
+            priority: -9999999999,
             rule: [{
                     reg: '^#?(删除|绑定)*设备(.*)$',
                     fnc: 'fp',
                 },
                 {
-                    reg: '^#?扫码(登录|绑定|登陆)$',
+                    reg: '^#?小花火扫码(登录|绑定|登陆)$',
                     fnc: 'sm',
                 },
                 {
@@ -116,6 +116,7 @@ export class user extends plugin {
     }
 
     async sm(e) {
+        if (config().debug) logger.mark('[sm] starting scan login');
         if (!config().sm) return false;
         let CD = config().sm_cd || 0;
         let now_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
@@ -203,6 +204,7 @@ export class user extends plugin {
             }
             
             if (res.data.status == 'Confirmed') {
+                if (config().debug) logger.mark('[sm] confirmed, stuid:', res.data.user_info.aid || res.data.user_info.uid || res.data.user_info.account_id);
 
                 //SToken
                 const SToken = (
@@ -238,7 +240,7 @@ export class user extends plugin {
                     hkrpg_cn国服星铁
                     nap_cn国服绝区零
                     */
-                    const game_list = ['hk4e_cn', 'hkrpg_cn', 'nap_cn'];
+                     const game_list = ['hk4e_cn', 'hkrpg_cn', 'nap_cn', 'bh3_cn'];
                     res.data.list.map(v => {
                         if (game_list.includes(v.game_biz)) {
                             data_[v.game_uid] = {
@@ -266,8 +268,7 @@ export class user extends plugin {
                     }
                 }
                 if (e.no_reply) e.reply = e.no_reply;
-                if (sendMsg.length < 2) e.reply(sendMsg)
-                else e.reply(await makeForwardMsg(e, sendMsg));
+                e.reply(sendMsg.map(m => typeof m === 'string' ? m : '').join('').trim());
                 break;
             }
         }

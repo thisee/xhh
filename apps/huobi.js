@@ -25,18 +25,22 @@ export class hbzz extends plugin {
 
         if (e.message.length > 1) {
             for (const message of e.message) {
-                if (message.type == 'at' && message.qq != Number(Bot.uin)) qq = message.qq
+                if (message.type == 'at') {
+                    qq = message.qq
+                    break
+                }
             }
         }
 
         if (qq) {
             uid = (await NoteUser.create(qq)).getUid('sr');
-            ck = (await NoteUser.create(qq)).getMysUser('sr').ck
-            e.user_id = qq
-        } else {
+            ck = (await NoteUser.create(qq)).getMysUser('sr')?.ck
+        }
+
+        if (!uid || !ck) {
             uid = e.user.getUid('sr');
             const mys = e.user.getMysUser('sr');
-            ck = mys.ck;
+            ck = mys?.ck;
             qq = e.user_id
         }
 

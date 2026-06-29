@@ -18,22 +18,27 @@ export class zzz extends plugin {
     }
 
     async md(e) {
+        e.reply('正在获取母带，请稍后...');
         let qq, uid, ck
 
         if (e.message.length > 1) {
             for (const message of e.message) {
-                if (message.type == 'at' && message.qq != Number(Bot.uin)) qq = message.qq
+                if (message.type == 'at') {
+                    qq = message.qq
+                    break
+                }
             }
         }
 
         if (qq) {
             uid = (await NoteUser.create(qq)).getUid('zzz');
-            ck = (await NoteUser.create(qq)).getMysUser('zzz').ck
-            e.user_id = qq
-        } else {
+            ck = (await NoteUser.create(qq)).getMysUser('zzz')?.ck
+        }
+
+        if (!uid || !ck) {
             uid = e.user.getUid('zzz');
             const mys = e.user.getMysUser('zzz');
-            ck = mys.ck;
+            ck = mys?.ck;
             qq = e.user_id
         }
 

@@ -25,7 +25,7 @@ export class bilibili extends plugin {
           fnc: 'zh',
         },
         {
-          reg: '^#*(小花火)?(b站|B站|哔哩哔哩|bili|bilibili)(扫码)?登(录|路|陆)$',
+          reg: '^#*小花火(b站|B站|哔哩哔哩|bili|bilibili)(扫码)?登(录|路|陆)$',
           fnc: 'sm',
         },
         {
@@ -82,7 +82,12 @@ export class bilibili extends plugin {
     if (await handleBilibiliLink(e)) return true;
 
     //引用回复
-    let source = await getSource(e)
+    let source
+    try {
+      source = await getSource(e)
+    } catch (_) {
+      return false
+    }
 
     if (!source) return false;
 
