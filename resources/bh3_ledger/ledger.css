@@ -16,6 +16,7 @@
 }
 
 body {
+    width: 960px;
     transform: scale(1);
     transform-origin: 0 0;
     font-family: "Chinese", "CJKFallback", sans-serif;
