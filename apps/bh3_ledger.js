@@ -16,6 +16,10 @@ async function sendMsg(e, msg) {
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 
+function debugLog(...args) {
+    if (config().debug) logger.mark(...args);
+}
+
 export class bh3_ledger extends plugin {
     constructor(e) {
         super({
@@ -54,85 +58,120 @@ export class bh3_ledger extends plugin {
 
         if (!qq) qq = e.user_id;
 
-        // 0. 检查是否用户通过 #切换水晶uid 手动指定了uid
         const savedUid = await redis.get(`xhh:bh3_uid:${qq}`);
         const savedRegion = savedUid ? await redis.get(`xhh:bh3_region:${qq}`) : null;
+        debugLog('[水晶] savedUid:', savedUid, 'savedRegion:', savedRegion);
+
         if (savedUid && savedRegion) {
             uid = savedUid;
             region = savedRegion;
-            // 用 SToken 刷新指定 UID 的 CK，不依赖 NoteUser 缓存（可能存的是别的号的CK）
+        }
+
+        if (uid) {
             let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
             if (fs.existsSync(stokenPath)) {
                 try {
                     let stokenData = await yaml.get(stokenPath);
-                    let entry = stokenData[savedUid];
-                    if (entry?.stoken && entry?.stuid) {
+                    let entry = stokenData[uid];
+                    debugLog('[水晶] entry found:', !!entry, 'stuid:', entry?.stuid);
+                    if (entry?.stuid) {
                         region = entry.region || region;
-                        let hdrs = mhy.getHeaders(e, entry.ck_stoken);
-                        let { ltoken } = await mhy.refresh_cookies(e, hdrs, entry.stoken, entry.stuid);
-                        if (ltoken) ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+                        let nu = await NoteUser.create(qq);
+                        for (let ltuid in nu.mysUsers) {
+                            if (String(ltuid) === String(entry.stuid)) {
+                                ck = nu.mysUsers[ltuid].ck;
+                                debugLog('[水晶] matched CK by ltuid:', ltuid);
+                                break;
+                            }
+                        }
+                        if (!ck && entry?.ck_stoken && entry?.stoken && entry?.stuid) {
+                            debugLog('[水晶] refreshing CK for stuid:', entry.stuid);
+                            let hdrs = mhy.getHeaders(e, entry.ck_stoken);
+                            let result = await mhy.refresh_cookies(e, hdrs, entry.stoken, entry.stuid);
+                            debugLog('[水晶] refresh result:', { hasLtoken: !!result.ltoken, hasCk: !!result.ck });
+                            if (result.ltoken && result.ck) {
+                                let nu2 = await NoteUser.create(qq);
+                                for (let ltuid in nu2.mysUsers) {
+                                    if (String(ltuid) === String(entry.stuid)) {
+                                        ck = nu2.mysUsers[ltuid].ck;
+                                        break;
+                                    }
+                                }
+                                if (!ck) ck = result.ck;
+                            }
+                        }
                     }
-                } catch (_) { }
+                } catch (_) {}
             }
         }
 
-        // 1. 尝试从 genshin NoteUser 获取
-        if (!uid || !ck) {
-            uid = (await NoteUser.create(qq)).getUid('bh3');
-            ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
+        if (!uid) {
+            try {
+                uid = (await NoteUser.create(qq)).getUid('bh3');
+                debugLog('[水晶] fallback uid from NoteUser:', uid);
+            } catch (_) {}
+        }
+        if (!ck) {
+            try {
+                let nu = await NoteUser.create(qq);
+                for (let g of ['bh3', 'gs', 'sr', 'zzz']) {
+                    let mu = nu.getMysUser(g);
+                    if (mu) { ck = mu.ck; debugLog('[水晶] fallback CK from:', g); break; }
+                }
+                if (!ck) {
+                    for (let ltuid in nu.mysUsers) {
+                        ck = nu.mysUsers[ltuid].ck;
+                        if (ck) { debugLog('[水晶] fallback CK from mysUsers'); break; }
+                    }
+                }
+            } catch (_) {}
         }
 
-        // 1.5 如果 uid 实际是原神 uid，从 xhh Stoken YAML 查找真正的崩三 uid
         if (uid && String(uid) === String(e.user.getUid('gs')) && qq) {
+            debugLog('[水晶] uid matches gs, searching Stoken YAML');
             let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
             if (fs.existsSync(stokenPath)) {
                 try {
                     let stokenData = JSON.parse(JSON.stringify(await yaml.get(stokenPath)));
                     const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
                     for (let key in stokenData) {
-                        let r = stokenData[key].region || '';
-                        if (bh3Regions.includes(r)) {
+                        if (bh3Regions.includes(stokenData[key].region || '')) {
                             uid = key;
-                            region = r;
+                            region = stokenData[key].region;
+                            debugLog('[水晶] found bh3 uid:', uid, region);
                             break;
                         }
                     }
-                } catch (_) { }
+                } catch (_) {}
             }
         }
 
-        // 2. 如果 genshin 没有，从 xhh Stoken YAML 获取
         if (!uid || !ck) {
+            debugLog('[水晶] step4 scanning Stoken YAML');
             let stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
             if (fs.existsSync(stokenPath)) {
                 try {
                     let stokenData = await yaml.get(stokenPath);
                     const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
                     for (let key in stokenData) {
-                        let r = stokenData[key].region || '';
-                        if (bh3Regions.includes(r)) {
-                            uid = key;
-                            region = r;
-                            // 用 SToken 刷新 CK 并绑定到 genshin NoteUser
-                            let ck_stoken = stokenData[key].ck_stoken;
-                            if (ck_stoken) {
-                                let stuid = stokenData[key].stuid;
-                                let stoken = stokenData[key].stoken;
-                                if (stoken && stuid) {
-                                    let hdrs = mhy.getHeaders(e, ck_stoken);
-                                    let { ltoken } = await mhy.refresh_cookies(e, hdrs, stoken, stuid);
-                                    if (ltoken) {
-                                        ck = (await NoteUser.create(qq)).getMysUser('bh3')?.ck;
-                                    }
-                                }
+                        if (!bh3Regions.includes(stokenData[key].region || '')) continue;
+                        if (!uid) { uid = key; region = stokenData[key].region; }
+                        let e2 = stokenData[key];
+                        if (!ck && e2?.ck_stoken && e2?.stoken && e2?.stuid) {
+                            let hdrs = mhy.getHeaders(e, e2.ck_stoken);
+                            let result = await mhy.refresh_cookies(e, hdrs, e2.stoken, e2.stuid);
+                            debugLog('[水晶] step4 refresh result:', { uid: key, hasLtoken: !!result.ltoken, hasCk: !!result.ck });
+                            if (result.ltoken && result.ck) {
+                                ck = result.ck;
                             }
-                            break;
                         }
+                        if (uid && ck) break;
                     }
-                } catch (_) { }
+                } catch (_) {}
             }
         }
 
+        debugLog('[水晶] final auth:', { uid, hasCk: !!ck, region });
         if (!uid || !ck) return e.reply('请先扫码绑定账号！');
 
         let headers = mhy.getHeaders(e, ck);
@@ -277,6 +316,7 @@ export class bh3_ledger extends plugin {
             const { uid, headers, qq, region } = auth;
 
             let queryStr = `game_biz=bh3_cn&bind_uid=${uid}&bind_region=${region}`;
+            debugLog('[水晶] query:', queryStr);
             let res = await fetch(`https://api.mihoyo.com/bh3-weekly_finance/api/index?${queryStr}`, {
                 method: 'GET',
                 headers: {
@@ -288,6 +328,8 @@ export class bh3_ledger extends plugin {
                     Referer: 'https://webstatic.mihoyo.com/',
                 },
             }).then(r => r.json());
+
+            debugLog('[水晶] API response:', JSON.stringify(res));
 
             if (!res || res.retcode !== 0 || !res.data) {
                 let msg = '获取水晶数据失败';

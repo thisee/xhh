@@ -26,7 +26,7 @@ export class user extends plugin {
                 key: 'mys.req.err',
                 fn: 'mysReqErrHandler',
             }, ],
-            priority: -99999999,
+            priority: -9999999999,
             rule: [{
                     reg: '^#?(删除|绑定)*设备(.*)$',
                     fnc: 'fp',
@@ -116,6 +116,7 @@ export class user extends plugin {
     }
 
     async sm(e) {
+        if (config().debug) logger.mark('[sm] starting scan login');
         if (!config().sm) return false;
         let CD = config().sm_cd || 0;
         let now_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
@@ -203,6 +204,7 @@ export class user extends plugin {
             }
             
             if (res.data.status == 'Confirmed') {
+                if (config().debug) logger.mark('[sm] confirmed, stuid:', res.data.user_info.aid || res.data.user_info.uid || res.data.user_info.account_id);
 
                 //SToken
                 const SToken = (
@@ -266,8 +268,7 @@ export class user extends plugin {
                     }
                 }
                 if (e.no_reply) e.reply = e.no_reply;
-                if (sendMsg.length < 2) e.reply(sendMsg)
-                else e.reply(await makeForwardMsg(e, sendMsg));
+                e.reply(sendMsg.map(m => typeof m === 'string' ? m : '').join('').trim());
                 break;
             }
         }
