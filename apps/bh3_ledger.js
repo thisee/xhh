@@ -393,7 +393,6 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let scale = (config().img_quality / 100) * 2.4 || 2.4;
         let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...MonthData,
             MonthData,
@@ -413,7 +412,7 @@ export class bh3_ledger extends plugin {
             hitokoto,
             hcoinList: [],
             hcoinListB64: "",
-            sys: { scale: `style=transform:scale(${scale})` },
+            sys: { scale: `style=transform:scale(2.4)` },
             ppath: '../../../../../plugins/xhh/resources/',
             tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
             saveId: 'ledger',
@@ -515,7 +514,6 @@ export class bh3_ledger extends plugin {
         let chars = ["Coralie", "Senadina", "Helia"];
         let icons = ["1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3"];
 
-        let scale = (config().img_quality / 100) * 2.4 || 2.4;
         let buf = await puppeteer.render('小花火/bh3_ledger/ledger', {
             ...lastMonthData,
             MonthData: lastMonthData,
@@ -538,7 +536,7 @@ export class bh3_ledger extends plugin {
             prevMonth,
             hcoinDiffPercentAbs,
             starDiffPercentAbs,
-            sys: { scale: `style=transform:scale(${scale})` },
+            sys: { scale: `style=transform:scale(2.4)` },
             ppath: '../../../../../plugins/xhh/resources/',
             tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/ledger.html',
             saveId: 'ledger',
