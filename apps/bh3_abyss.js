@@ -216,7 +216,7 @@ export class bh3_abyss extends plugin {
         const rankClass = isCollab ? 'collab-rank' : 'elf-stars';
         return `<div class="elf-card"><div class="elf-icon">${eImg}</div><div class="${rankClass}">${rankText}</div><div class="elf-name">${elf.name || ''}</div></div>`;
       })() : '';
-      return `<div class="report-card"><div class="card-header"><div class="level-badge">${fmtLevel(r.level)}</div><div class="score">${r.score || 0}</div></div><div class="card-body"><div class="lineup">${lined}${elfHtml}</div><div class="boss-area"><div class="boss-icon">${bossIcon}</div><div class="boss-name-under">${bossName}</div><div class="right-info"><div class="ri-line">#${r.rank || 0}</div><div class="ri-line">${cupText}${cupChange}</div><div class="ri-line time">${fmtTs(r.updated_time_second)}</div></div></div></div></div>`;
+      return `<div class="report-card"><div class="card-header"><div class="level-badge">${fmtLevel(r.level)}</div><div class="score">${r.score || 0}</div></div><div class="card-body"><div class="lineup-wrap"><div class="lineup">${lined}${elfHtml}</div><div class="boss-name-below">${bossName}</div></div><div class="boss-area"><div class="boss-icon">${bossIcon}</div><div class="right-info"><div class="ri-line">#${r.rank || 0}</div><div class="ri-line">${cupText}${cupChange}</div><div class="ri-line time">${fmtTs(r.updated_time_second)}</div></div></div></div></div>`;
     }).join('\n');
 
     const bgs = ['bg', 'bg1', 'IMG_20250717_034154'];
