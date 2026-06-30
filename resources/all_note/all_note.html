@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="{{ppath}}all_note/all_note.css" />
+</head>
+<body {{sys.scale}}>
+  <div class="page" style="background-image: linear-gradient(180deg, rgba(15,18,32,.20), rgba(15,18,32,.78)), url({{ppath}}Tl/imgs/{{bg}}.jpg)">
+    <div class="header">
+      <div class="title">四游戏体力总览</div>
+      <div class="time">{{dataTime}}</div>
+    </div>
+
+    <div class="games-grid">
+      {{each games g}}
+      <div class="game-card game-{{g.gameKey}}">
+        <div class="game-header">
+          <img class="game-icon" src="{{g.icon}}" alt="{{g.game}}">
+          <div class="game-title">{{g.game}}</div>
+        </div>
+        <div class="player-info">
+          <span class="nickname">{{g.nickname}}</span>
+          <span class="meta">Lv.{{g.level}} · {{g.region}}</span>
+        </div>
+
+        <div class="stamina-bar">
+          <div class="stamina-label">{{staminaLabel}}</div>
+          <div class="stamina-progress">
+            <div class="stamina-fill" style="width: {{staminaPercent}}%"></div>
+          </div>
+          <div class="stamina-value">{{g.currentStamina}} / {{g.maxStamina}}</div>
+        </div>
+        <div class="stamina-recover">回满: {{g.staminaRecover}}</div>
+
+        {{if g.expedition !== undefined}}
+        <div class="extra-row">
+          <span>派遣 {{g.expedition}}/4</span>
+          <span>瓶装 {{g.homeCoin}}</span>
+          <span>合成台 {{g.transformer}}</span>
+        </div>
+        {{/if}}
+        {{if g.trainScore !== undefined}}
+        <div class="extra-row">
+          <span>开拓力 {{g.trainScore}}/{{g.maxTrainScore}}</span>
+          <span>模拟 {{g.weeklyMock}}</span>
+          <span>差分 {{g.rogueScore}}</span>
+        </div>
+        {{/if}}
+        {{if g.currentTrain !== undefined}}
+        <div class="extra-row">
+          <span>历练 {{g.currentTrain}}/{{g.maxTrain}}</span>
+        </div>
+        {{/if}}
+        {{if g.ultraEndless && g.ultraEndless.is_open}}
+        <div class="extra-row warn">超弦 {{g.ultraEndless.challenge_score}}分 剩余{{g.ultraEndless.remain}}</div>
+        {{/if}}
+        {{if g.battleField && g.battleField.is_open}}
+        <div class="extra-row warn">战场 {{g.battleField.cur_reward}}/{{g.battleField.max_reward}} 剩余{{g.battleField.remain}}</div>
+        {{/if}}
+        {{if g.godWar && g.godWar.is_open}}
+        <div class="extra-row warn">乐土 {{g.godWar.cur_reward}}/{{g.godWar.max_reward}} 剩余{{g.godWar.remain}}</div>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+
+    <div class="footer">from 小花火 · {{dataTime}}</div>
+  </div>
+</body>
+</html>

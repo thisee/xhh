@@ -1,6 +1,8 @@
 import fetch from 'node-fetch';
 import moment from 'moment';
-import { mhy, render, api, config } from '#xhh';
+import fs from 'fs';
+import NoteUser from '../../genshin/model/mys/NoteUser.js';
+import { mhy, render, api, config, yaml } from '#xhh';
 
 const path = process.cwd();
 
@@ -13,7 +15,7 @@ export class TL extends plugin {
       priority: -99,
       rule: [
         {
-          reg: '^(#|\\*|%)*(原神|星铁|绝区零)*体力$',
+          reg: '^(#|\\*|%)*(小花火|原神|星铁|绝区零|崩三|崩坏3|崩坏三|BH3)*体力$',
           fnc: 'note_',
         },
       ],
@@ -38,9 +40,11 @@ export class TL extends plugin {
   async note_(e) {
     if (!config().Tl) return false;
     let hasAllData = false;
-    const isQueryAll = e.msg === '体力';
+    const rawMsg = (e.msg || '').replace(/^(#|\*|%)*/, '');
+    const isQueryAll = rawMsg === '体力' || rawMsg === '小花火体力';
     const isStarRail = e.msg.includes('星铁');
     const isZZZ = e.msg.includes('绝区零');
+    const isBH3 = /崩三|崩坏3|崩坏三|BH3/i.test(e.msg);
     const getZZZData = async () => {
       const data = await this.note(e, 'zzz', isQueryAll);
       if (
@@ -60,15 +64,17 @@ export class TL extends plugin {
 
     if (isQueryAll) {
       hasAllData = true;
-      const [gsData, srData, zzzData] = await Promise.all([
+      const [gsData, srData, zzzData, bh3Data] = await Promise.all([
         this.note(e, 'gs'),
         this.note(e, 'sr'),
         getZZZData(),
+        this.bh3Note(e, true),
       ]);
       resultData = {
         gs_data: gsData,
         sr_data: srData,
         zzz_data: zzzData,
+        bh3_data: bh3Data,
       };
     } else if (isStarRail) {
       resultData = {
@@ -77,6 +83,10 @@ export class TL extends plugin {
     } else if (isZZZ) {
       resultData = {
         zzz_data: await getZZZData(),
+      };
+    } else if (isBH3) {
+      resultData = {
+        bh3_data: await this.bh3Note(e, false),
       };
     } else {
       resultData = {
@@ -113,6 +123,103 @@ export class TL extends plugin {
       e,
       ret: true,
     });
+  }
+
+
+  async getBh3Auth(e) {
+    let qq = e.user_id;
+    for (const msg of e.message || []) {
+      if (msg.type === 'at') { qq = msg.qq; break; }
+    }
+
+    let uid = await redis.get(`xhh:bh3_uid:${qq}`);
+    let region = uid ? await redis.get(`xhh:bh3_region:${qq}`) : null;
+    let ck = null;
+
+    const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+    if (fs.existsSync(stokenPath)) {
+      const stokenData = yaml.get(stokenPath) || {};
+      if (!uid) {
+        const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+        for (const key of Object.keys(stokenData)) {
+          const entry = stokenData[key];
+          if (bh3Regions.includes(entry?.region || '')) {
+            uid = key;
+            region = entry.region || region;
+            break;
+          }
+        }
+      }
+      const entry = stokenData[uid];
+      if (entry?.stuid) {
+        try {
+          const nu = await NoteUser.create(qq);
+          for (const ltuid in nu.mysUsers || {}) {
+            if (String(ltuid) === String(entry.stuid)) {
+              ck = nu.mysUsers[ltuid].ck;
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (!uid) {
+      try { uid = (await NoteUser.create(qq)).getUid('bh3'); } catch (_) {}
+    }
+    if (!region) region = 'cn_gf01';
+    if (!ck) {
+      try {
+        const nu = await NoteUser.create(qq);
+        for (const ltuid in nu.mysUsers || {}) {
+          if (nu.mysUsers[ltuid]?.ck) { ck = nu.mysUsers[ltuid].ck; break; }
+        }
+      } catch (_) {}
+    }
+    return { uid, region, ck };
+  }
+
+  async bh3Note(e, san = true) {
+    const auth = await this.getBh3Auth(e);
+    if (!auth.uid) {
+      if (!san) e.reply('请先扫码绑定崩坏3账号');
+      return '没有';
+    }
+    if (!auth.ck) {
+      if (!san) e.reply('未找到有效Cookie，请先扫码绑定');
+      return '没有';
+    }
+    const headers = mhy.getHeaders(e, auth.ck);
+    let indexRes, noteRes;
+    try {
+      [indexRes, noteRes] = await Promise.all([
+        api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
+        api(e, { type: 'bh3_note', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
+      ]);
+    } catch (err) {
+      logger.error('[xhh][TL][bh3] API error:', err);
+      return false;
+    }
+    if ([-10001, 10001, -100].includes(indexRes?.retcode) || [-10001, 10001, -100].includes(noteRes?.retcode)) {
+      if (!san) e.reply('米游社验证已过期。请重新：扫码绑定');
+      return '过期';
+    }
+    if (indexRes?.retcode !== 0 || noteRes?.retcode !== 0) return false;
+    const role = indexRes.data?.role || {};
+    const note = noteRes.data || {};
+    return {
+      uid: auth.uid,
+      level: role.level || 0,
+      name: role.nickname || '未知舰长',
+      current_stamina: note.current_stamina || 0,
+      max_stamina: note.max_stamina || 200,
+      time: note.stamina_recover_time ? getTime(note.stamina_recover_time) : '已满',
+      current_train_score: note.current_train_score || 0,
+      max_train_score: note.max_train_score || 500,
+      abyss: note.ultra_endless || note.greedy_endless || null,
+      battle_field: note.battle_field || null,
+      god_war: note.god_war || null,
+    };
   }
 
   //体力

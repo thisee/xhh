@@ -1,0 +1,30 @@
+# 崩坏3深渊/战场/乐土开期与结算提醒
+# groups 填需要提醒的群号；也可以在群里发送 #小花火开启崩三提醒 自动加入
+enable: false
+groups: []
+# 默认按国服常见刷新时间提醒，可在锅巴或本文件里关闭/调整
+items:
+  - key: abyss_start
+    name: 超弦空间开始
+    cron: '0 15 * * 1,5'
+    msg: '超弦空间已经开启啦，记得打深渊，也可以发送 #崩三深渊攻略 查看作业。'
+  - key: abyss_settle
+    name: 超弦空间结算
+    cron: '0 22 * * 1,5'
+    msg: '超弦空间即将/正在结算，没打完记得检查一下。'
+  - key: battlefield_start
+    name: 记忆战场开始
+    cron: '0 4 * * 2'
+    msg: '记忆战场新一期开始啦，可以发送 #崩三战场攻略 查看阵容。'
+  - key: battlefield_settle
+    name: 记忆战场结算
+    cron: '30 3 * * 1'
+    msg: '记忆战场快结算啦，记得检查分数和奖励。'
+  - key: godwar_start
+    name: 往世乐土开始
+    cron: '0 4 * * 1'
+    msg: '往世乐土新一周开始啦，可以发送 #崩三乐土攻略 查看攻略。'
+  - key: godwar_settle
+    name: 往世乐土结算
+    cron: '30 3 * * 1'
+    msg: '往世乐土快结算啦，记得领取本周奖励。'

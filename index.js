@@ -13,7 +13,7 @@ paths.map(path => {
   }
 });
 
-let paths_ = ['config.yaml', 'sign.yaml', 'other.yaml'];
+let paths_ = ['config.yaml', 'sign.yaml', 'other.yaml', 'bh3_remind.yaml'];
 
 for (const _path of paths_) {
   const cfg_path = './plugins/xhh/config/' + _path;

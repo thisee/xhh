@@ -14,6 +14,10 @@ function getSign() {
   return yaml.get(_path + 'sign.yaml') || {}
 }
 
+function getBh3Remind() {
+  return yaml.get(_path + 'bh3_remind.yaml') || {}
+}
+
 export const supportGuoba = () => ({
   pluginInfo: {
     name: 'xhh',
@@ -217,6 +221,34 @@ export const supportGuoba = () => ({
       },
       {
         component: 'Divider',
+        label: '崩坏3扩展',
+      },
+      {
+        field: 'bh3_all_note_enable',
+        label: '四游戏体力聚合',
+        helpMessage: '原神/星铁/绝区零/崩三体力一键查询',
+        component: 'Switch',
+      },
+      {
+        field: 'bh3_all_note_groups',
+        label: '四游戏体力推送群',
+        helpMessage: '多个群号用英文逗号分隔',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'bh3_remind_enable',
+        label: '崩三周期提醒',
+        helpMessage: '深渊/战场/乐土开始和结算提醒',
+        component: 'Switch',
+      },
+      {
+        field: 'bh3_remind_groups',
+        label: '崩三提醒群',
+        helpMessage: '多个群号用英文逗号分隔，也可群内发送 #小花火开启崩三提醒',
+        component: 'InputTextArea',
+      },
+      {
+        component: 'Divider',
         label: '其他',
       },
       {
@@ -246,6 +278,7 @@ export const supportGuoba = () => ({
       const cfg = getCfg()
       const other = getOther()
       const sign = getSign()
+      const bh3Remind = getBh3Remind()
       return {
         update: !!cfg.update,
         img_quality: cfg.img_quality ?? 80,
@@ -275,6 +308,10 @@ export const supportGuoba = () => ({
         Tl: !!cfg.Tl,
         hbxx: !!cfg.hbxx,
         debug: !!cfg.debug,
+        bh3_remind_enable: !!bh3Remind.enable,
+        bh3_all_note_enable: !!cfg.bh3_all_note_enable,
+        bh3_all_note_groups: (cfg.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean).join(','),
+        bh3_remind_groups: (bh3Remind.groups || []).join(','),
       }
     },
     setConfigData(data, { Result }) {
@@ -297,6 +334,8 @@ export const supportGuoba = () => ({
         Tl: data.Tl,
         hbxx: data.hbxx,
         debug: data.debug,
+        bh3_remind_enable: data.bh3_remind_enable,
+        bh3_all_note_enable: data.bh3_all_note_enable,
       }
       for (const [k, v] of Object.entries(boolMap)) {
         yaml.set(_path + 'config.yaml', k, !!v)
@@ -318,6 +357,13 @@ export const supportGuoba = () => ({
 
       yaml.set(_path + 'sign.yaml', 'zd_sign', Number(data.zd_sign) ?? 0)
       yaml.set(_path + 'sign.yaml', 'sbai', !!data.sbai)
+
+      yaml.set(_path + 'bh3_remind.yaml', 'enable', !!data.bh3_remind_enable)
+      yaml.set(_path + 'config.yaml', 'bh3_all_note_enable', !!data.bh3_all_note_enable)
+      const groups = String(data.bh3_remind_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
+      yaml.set(_path + 'bh3_remind.yaml', 'groups', groups)
+      const allNoteGroups = String(data.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
+      yaml.set(_path + 'bh3_remind.yaml', 'all_note_groups', allNoteGroups)
 
       return Result.ok({}, '保存成功，部分配置需重启生效')
     },

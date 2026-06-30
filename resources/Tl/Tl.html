@@ -25,6 +25,8 @@
             <p>崩坏星穹铁道</p>
             {{/if}} {{if zzz_data}}
             <p>绝区零</p>
+            {{/if}} {{if bh3_data}}
+            <p>崩坏3</p>
             {{/if}}
             <img class="xhh" src="{{ppath}}Tl/imgs/小花火.png" />
             <br />
@@ -275,6 +277,57 @@
                 </p>
                 /{{zzz_data.weekly_task.max_point}}{{else}}未解锁{{/if}}
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{/if}}
+
+      {{if bh3_data}}
+      <div class="__box">
+        <div class="game">
+          <img src="{{ppath}}Tl/imgs/崩坏3.svg" />
+          <p>UID：{{bh3_data.uid}}</p>
+          <p>{{bh3_data.level}}级</p>
+          <p>昵称：{{bh3_data.name}}</p>
+        </div>
+        <div class="_box">
+          <div class="left_box">
+            <div class="top_box">
+              <img class="tl" src="{{ppath}}Tl/imgs/水晶.svg" />
+              <div class="k">
+                <p>体力</p>
+                <div class="k_">
+                  <span class="{{bh3_data.current_stamina>=bh3_data.max_stamina ? 'red' : 'blue'}}">{{bh3_data.current_stamina}}</span><span>/{{bh3_data.max_stamina}}</span>
+                </div>
+              </div>
+            </div>
+            <strong class="huifu">预计恢复时间</strong>
+            <strong class="huifu_time">{{bh3_data.time}}</strong>
+          </div>
+          <div class="right_box">
+            <div class="_box_">
+              <img src="{{ppath}}Tl/imgs/水晶.svg" />
+              <p>历练值</p>
+              <div class="right_">
+                <p class="{{bh3_data.current_train_score<bh3_data.max_train_score ? 'red' : 'blue'}}">{{bh3_data.current_train_score}}</p>
+                /{{bh3_data.max_train_score}}
+              </div>
+            </div>
+            <div class="_box_">
+              <img src="{{ppath}}Tl/imgs/水晶.svg" />
+              <p>超弦空间</p>
+              <div class="right_">{{if bh3_data.abyss}}{{bh3_data.abyss.is_open ? '进行中' : '未开启'}}{{else}}暂无{{/if}}</div>
+            </div>
+            <div class="_box_">
+              <img src="{{ppath}}Tl/imgs/水晶.svg" />
+              <p>记忆战场</p>
+              <div class="right_">{{if bh3_data.battle_field}}{{bh3_data.battle_field.cur_reward || 0}}/{{bh3_data.battle_field.max_reward || 0}}{{else}}暂无{{/if}}</div>
+            </div>
+            <div class="_box_">
+              <img src="{{ppath}}Tl/imgs/水晶.svg" />
+              <p>往世乐土</p>
+              <div class="right_">{{if bh3_data.god_war}}{{bh3_data.god_war.cur_reward || 0}}/{{bh3_data.god_war.max_reward || 0}}{{else}}暂无{{/if}}</div>
             </div>
           </div>
         </div>
