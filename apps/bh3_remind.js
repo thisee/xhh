@@ -13,7 +13,7 @@ export class bh3_remind extends plugin {
       name: '[小花火]崩三定时提醒',
       dsc: '深渊/战场/乐土 开启/结算定时提醒',
       event: 'message',
-      priority: 5000,
+      priority: 100,
       rule: [
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)((提醒|定时提醒|开关提醒)(开启|关闭|on|off)|(开启|关闭|on|off)(提醒|定时提醒|开关提醒))$', fnc: 'toggleRemind' },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)提醒状态$', fnc: 'remindStatus' },
