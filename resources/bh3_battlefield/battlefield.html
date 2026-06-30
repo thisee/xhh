@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_battlefield/battlefield.css" />
+</head>
+<body {{sys.scale}}>
+  <div class="container" style="background-image: url({{ppath}}Tl/imgs/{{bg}}.jpg)">
+    <div class="xhh_box">
+      <div class="header">
+        <div class="player">
+          <div class="avatar">
+            {{if avatarUrl}}
+            <img src="{{avatarUrl}}" alt="">
+            {{else}}
+            <span>舰</span>
+            {{/if}}
+          </div>
+          <div class="player-info">
+            <div class="nickname">{{nickname}}</div>
+            <div class="meta">UID {{uid}} · {{region}} · Lv.{{level}}</div>
+            <div class="stats">
+              <span class="stat">登舰 {{activeDays}} 天</span>
+              <span class="stat">评级 {{rating}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="title">记忆战场战报</div>
+      </div>
+
+      <div class="overview">
+        <div class="ov-item"><span class="ov-label">总分</span><span class="ov-val glow-gold">{{totalScore}}</span></div>
+        <div class="ov-item"><span class="ov-label">档位</span><span class="ov-val">{{rank}}</span></div>
+        <div class="ov-item"><span class="ov-label">排名</span><span class="ov-val">前{{rankingPct}}%</span></div>
+        <div class="ov-item"><span class="ov-label">分组</span><span class="ov-val">{{area}}</span></div>
+      </div>
+
+      {{# infoCards}}
+
+      <div class="footer">from 小花火 · {{dataTime}}</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -171,6 +171,20 @@ async function api(e, data = {}) {
                 method: 'GET',
             },
         },
+        //崩三记忆战场
+        bh3_battle_field: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/app/honkai3rd/api/battleFieldReport?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三往世乐土 (v2)
+        bh3_god_war: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/appv2/honkai3rd/api/godWar?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
     };
 
     const {
