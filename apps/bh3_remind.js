@@ -31,6 +31,7 @@ export class bh3_remind extends plugin {
   }
 
   async toggleRemind(e) {
+    logger.info('[bh3_remind] toggleRemind triggered, msg: ' + e.msg);
     if (!e.isMaster) return e.reply('仅主人可操作');
     const action = e.msg.includes('开启') || e.msg.includes('on');
     const subscribers = await this.getSubscribers();
