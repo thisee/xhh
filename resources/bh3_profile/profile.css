@@ -54,4 +54,4 @@ body { width: 1280px; font-family: "Chinese", "CJKFallback", sans-serif; color: 
 .stigma img { width: 24px; height: 24px; border-radius: 5px; object-fit: contain; flex-shrink: 0; }
 .stigma span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .stigma.empty { grid-column: 1 / 4; justify-content: center; color: rgba(255,255,255,.55); }
-.footer { margin-top: 24px; text-align: center; font-size: 18px; color: rgba(255,255,255,.75); text-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.footer { margin-top: 24px; text-align: center; font-size: 18px; color: #00d4aa; text-shadow: 0 2px 6px rgba(0,0,0,.35); }

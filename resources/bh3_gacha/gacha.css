@@ -26,4 +26,4 @@ body { width: 1400px; font-family: "xhh", "SR", sans-serif; color: #fff; backgro
 .gold-name.with-icon { font-size: 18px; max-height: 42px; overflow: hidden; }
 .pull-tag { margin-top: -28px; min-width: 92px; height: 36px; line-height: 36px; text-align: center; border-radius: 999px; background: #fff3b0; color: #29231a; font-size: 24px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.25); z-index: 2; }
 .empty { margin: 26px 42px 0; padding: 28px; text-align: center; font-size: 26px; color: #d7dce8; background: rgba(255,255,255,.07); border-radius: 18px; }
-.footer { margin-top: 34px; text-align: center; color: #b8c1d6; font-size: 20px; }
+.footer { margin-top: 34px; text-align: center; color: #00d4aa; font-size: 20px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }

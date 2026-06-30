@@ -349,7 +349,7 @@ body {
 .footer {
   text-align: center;
   font-size: 12px;
-  color: rgba(255,255,255,0.8);
+  color: #00d4aa;
   text-shadow: 0 1px 3px rgba(0,0,0,0.5);
   padding-top: 4px;
 }
