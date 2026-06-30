@@ -165,9 +165,11 @@ export class bh3_profile extends plugin {
     const stats = indexRes.data?.stats || {};
     const pref = indexRes.data?.preference || {};
     const rawCharacters = charRes.data?.characters || [];
-    const characters = rawCharacters
-      .map(item => this.buildCharacter(item))
-      .sort((a, b) => (b.star - a.star) || (b.level - a.level) || a.name.localeCompare(b.name, 'zh-CN'));
+    const built = rawCharacters.map(item => this.buildCharacter(item));
+    // API returns pinned first (前5为置顶)，保持顺序；其余按星级/等级降序
+    const pinned = built.slice(0, 5);
+    const rest = built.slice(5).sort((a, b) => (b.star - a.star) || (b.level - a.level) || a.name.localeCompare(b.name, 'zh-CN'));
+    const characters = [...pinned, ...rest];
 
     const sssCount = characters.filter(c => c.star >= 5).length;
     const statCards = [
