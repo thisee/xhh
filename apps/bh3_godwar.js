@@ -194,10 +194,10 @@ export class bh3_godwar extends plugin {
 
     function rankBadge(star) {
       if (!star || star <= 1) return '';
-      if (star >= 5) return `<span class="star-badge" style="background:#f44">SSS</span>`;
-      if (star === 4) return `<span class="star-badge" style="background:#f80">SS</span>`;
-      if (star === 3) return `<span class="star-badge" style="background:#fd5">S</span>`;
-      if (star === 2) return `<span class="star-badge" style="background:#8f8">A</span>`;
+      if (star >= 5) return `<span class="star-badge rank-sss" style="background:#f44">SSS</span>`;
+      if (star === 4) return `<span class="star-badge rank-ss" style="background:#f80">SS</span>`;
+      if (star === 3) return `<span class="star-badge rank-s" style="background:#fd5">S</span>`;
+      if (star === 2) return `<span class="star-badge rank-a" style="background:#8f8">A</span>`;
       return '';
     }
 
@@ -242,7 +242,8 @@ export class bh3_godwar extends plugin {
         // 角色列表的 icon_path 有些会偏上，圆形小框里容易只剩头发。
         const icon = absIcon(c.sec_part_icon || charFaceIcons[key] || c.icon_path || '');
         const star = c.star || 0;
-        const badge = rankBadge(star || charStars[key]);
+        // 乐土支援/助战角色在游戏内固定按 SSS 展示，不能用玩家自己的角色阶级覆盖。
+        const badge = rankBadge(label === '出战' ? (star || charStars[key]) : 5);
         if (!icon) return '';
         return `<div class="gw-char"><div class="gw-char-icon">${badge ? `<div class="gw-char-rank">${badge}</div>` : ''}<img src="${icon}" alt=""><div class="gw-char-label">${label}</div></div><div class="gw-char-name">${name}</div></div>`;
       }
@@ -273,7 +274,11 @@ export class bh3_godwar extends plugin {
       }).join('');
 
       const cbuffs = r.challenge_buffs || [];
-      const cbuffHtml = cbuffs.map(cb => `${cb.name} Lv.${cb.cost}`).join('  ·  ');
+      const cbuffHtml = cbuffs.map(cb => {
+        const name = cb.name || '增益';
+        const cost = cb.cost ?? cb.level ?? '';
+        return `<span class="gw-cbuff"><span class="gw-cbuff-name">${name}</span>${cost !== '' ? `<span class="gw-cbuff-level">Lv.${cost}</span>` : ''}</span>`;
+      }).join('');
 
       const settle = fmtTs(r.settle_time_second);
       const cost = fmtCost(r.cost_time);

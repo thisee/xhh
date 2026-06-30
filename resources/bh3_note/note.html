@@ -5,6 +5,32 @@
   <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_note/note.css" />
 </head>
 <body {{sys.scale}}>
+  <svg class="note-icon-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <symbol id="note-icon-stamina" viewBox="0 0 64 64">
+      <path d="M33 7 15 34h14l-5 23 25-33H35z" fill="currentColor"/>
+      <path d="M24 12c4-5 14-5 19 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+    </symbol>
+    <symbol id="note-icon-train" viewBox="0 0 64 64">
+      <path d="M32 7 54 20v24L32 57 10 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M32 16 45 24v16l-13 8-13-8V24z" fill="currentColor" opacity=".9"/>
+      <path d="M32 22v20M22 32h20" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+    </symbol>
+    <symbol id="note-icon-ultra" viewBox="0 0 64 64">
+      <path d="M51 19c-8-10-26-9-35 2-9 12-1 29 15 31 15 2 27-11 23-24" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+      <path d="M43 24c-5-6-16-5-22 1-6 7-1 18 9 19 8 1 16-6 14-14" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity=".72"/>
+      <circle cx="32" cy="32" r="5" fill="currentColor"/>
+    </symbol>
+    <symbol id="note-icon-battle" viewBox="0 0 64 64">
+      <path d="M16 10h8l24 37-6 6L10 22z" fill="currentColor"/>
+      <path d="M48 10h-8L16 47l6 6 32-31z" fill="currentColor" opacity=".72"/>
+      <path d="M18 50h28" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="10" fill="none" stroke="#fff" stroke-width="4" opacity=".9"/>
+    </symbol>
+    <symbol id="note-icon-godwar" viewBox="0 0 64 64">
+      <path d="M35 6c2 11 16 15 16 31 0 12-9 21-21 21S9 49 9 37c0-10 7-17 15-22-1 8 2 13 7 16 5-6 7-14 4-25z" fill="currentColor"/>
+      <path d="M33 31c6 5 9 9 9 15 0 7-5 12-12 12s-12-5-12-12c0-5 3-9 8-13 0 6 2 9 5 11 3-3 4-8 2-13z" fill="#fff" opacity=".82"/>
+    </symbol>
+  </svg>
   <div class="container" style="background-image: url({{ppath}}Tl/imgs/{{bg}}.jpg)">
     <div class="header">
       <div class="player">
@@ -29,7 +55,10 @@
 
     <div class="stamina-card">
       <div class="stamina-header">
-        <div class="stamina-title">体力</div>
+        <div class="title-with-icon">
+          <div class="note-icon stamina-icon"><svg class="note-icon-svg"><use href="#note-icon-stamina"></use></svg></div>
+          <div class="stamina-title">体力</div>
+        </div>
         <div class="stamina-value">{{currentStamina}} <span class="stamina-max">/ {{maxStamina}}</span></div>
       </div>
       <div class="stamina-bar-bg">
@@ -40,7 +69,10 @@
 
     <div class="train-card">
       <div class="train-header">
-        <span class="train-title">历练值</span>
+        <span class="title-with-icon small">
+          <span class="note-icon train-icon"><svg class="note-icon-svg"><use href="#note-icon-train"></use></svg></span>
+          <span class="train-title">历练值</span>
+        </span>
         <span class="train-value">{{currentTrain}} / {{maxTrain}}</span>
       </div>
       <div class="train-bar-bg">
@@ -51,6 +83,7 @@
     <div class="activities">
       {{if ultraEndless && ultraEndless.is_open}}
       <div class="activity">
+        <div class="note-icon activity-icon ultra-icon"><svg class="note-icon-svg"><use href="#note-icon-ultra"></use></svg></div>
         <div class="act-left">
           <div class="act-name">超弦空间</div>
           <div class="act-remain">{{ultraEndless.challenge_score || '?'}} 分</div>
@@ -61,6 +94,7 @@
 
       {{if greedyEndless && greedyEndless.is_open && (!ultraEndless || !ultraEndless.is_open)}}
       <div class="activity">
+        <div class="note-icon activity-icon ultra-icon greedy-icon"><svg class="note-icon-svg"><use href="#note-icon-ultra"></use></svg></div>
         <div class="act-left">
           <div class="act-name">贪婪无尽</div>
           <div class="act-remain">{{greedyEndless.cur_reward || 0}}/{{greedyEndless.max_reward || 0}}</div>
@@ -71,6 +105,7 @@
 
       {{if battleField && battleField.is_open}}
       <div class="activity">
+        <div class="note-icon activity-icon battle-icon"><svg class="note-icon-svg"><use href="#note-icon-battle"></use></svg></div>
         <div class="act-left">
           <div class="act-name">记忆战场</div>
           <div class="act-remain">{{battleField.cur_reward || 0}} / {{battleField.max_reward || 0}}</div>
@@ -81,6 +116,7 @@
 
       {{if godWar && godWar.is_open}}
       <div class="activity">
+        <div class="note-icon activity-icon godwar-icon"><svg class="note-icon-svg"><use href="#note-icon-godwar"></use></svg></div>
         <div class="act-left">
           <div class="act-name">往世乐土</div>
           <div class="act-remain">{{godWar.cur_reward || 0}} / {{godWar.max_reward || 0}}</div>

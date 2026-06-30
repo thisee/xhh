@@ -15,15 +15,26 @@ body {
   background-size: cover;
   padding: 20px 10px 10px;
   width: 640px;
+  position: relative;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.16) 38%, rgba(255,255,255,0.06) 100%);
+  pointer-events: none;
 }
 
 .xhh_box {
+  position: relative;
+  z-index: 1;
   width: 600px;
   padding: 10px 20px 5px;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.68);
   box-shadow: 0 4px 16px 0 rgba(51, 51, 52, 0.5), inset 6px 6px 20px 0px rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border-radius: 30px;
 }
 
@@ -32,7 +43,10 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 16px;
-  padding: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.28);
+  box-shadow: inset 0 0 12px rgba(255,255,255,0.45);
 }
 
 .player {
@@ -59,13 +73,13 @@ body {
 
 .player-info { display: flex; flex-direction: column; gap: 2px; }
 
-.nickname { font-size: 20px; font-weight: bold; color: #1a1a2e; text-shadow: 0 0 6px rgba(255,255,255,0.7); }
+.nickname { font-size: 20px; font-weight: bold; color: #111827; text-shadow: 0 1px 0 rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.8); }
 
-.meta { font-size: 12px; color: #555; text-shadow: 0 0 4px rgba(255,255,255,0.6); }
+.meta { font-size: 12px; color: #333b4f; text-shadow: 0 1px 0 rgba(255,255,255,0.85); }
 
-.stats { display: flex; gap: 12px; font-size: 11px; color: #555; text-shadow: 0 0 4px rgba(255,255,255,0.6); }
+.stats { display: flex; gap: 12px; font-size: 11px; color: #333b4f; text-shadow: 0 1px 0 rgba(255,255,255,0.85); }
 
-.stat { background: rgba(212, 165, 255, 0.15); padding: 1px 8px; border-radius: 8px; }
+.stat { background: rgba(255, 255, 255, 0.45); padding: 1px 8px; border-radius: 8px; }
 
 .title {
   font-size: 18px;
@@ -203,6 +217,7 @@ body {
   margin-bottom: 12px;
   border-radius: 35px;
   padding: 10px 14px;
+  background: rgba(255,255,255,0.54);
   border: 1px solid #e8d5f5;
   box-shadow: 2px 2px 4px 0 rgba(51, 51, 52, 0.5), inset 3px 3px 10px 0px rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(3px);
@@ -273,6 +288,12 @@ body {
   padding: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   border: 2px solid #fff;
+}
+
+.gw-char-rank .rank-s,
+.gw-char-rank .rank-a {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .gw-char-icon img {
@@ -407,9 +428,36 @@ body {
 .gw-cbuffs {
   font-size: 10px;
   color: #777;
-  line-height: 1.5;
   padding-top: 4px;
   border-top: 1px dashed rgba(118, 75, 162, 0.15);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.gw-cbuff {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(118, 75, 162, 0.10);
+  border: 1px solid rgba(118, 75, 162, 0.14);
+  white-space: nowrap;
+  line-height: 1.25;
+}
+
+.gw-cbuff-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gw-cbuff-level {
+  flex-shrink: 0;
+  color: #764ba2;
+  font-weight: 900;
 }
 
 .footer {
