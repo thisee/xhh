@@ -15,8 +15,8 @@ export class bh3_remind extends plugin {
       event: 'message',
       priority: 100,
       rule: [
-        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)((提醒|定时提醒|开关提醒)(开启|关闭|on|off)|(开启|关闭|on|off)(提醒|定时提醒|开关提醒))$', fnc: 'toggleRemind' },
-        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)提醒状态$', fnc: 'remindStatus' },
+        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?(提醒|定时提醒|开关提醒).*?(开启|关闭|on|off).*$', fnc: 'toggleRemind' },
+        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus' },
       ],
     });
   }
