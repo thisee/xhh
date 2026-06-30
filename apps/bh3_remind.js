@@ -1,12 +1,12 @@
-import { config } from '#xhh';
+import { config, yaml } from '#xhh';
 
 logger.info('[bh3_remind] 文件已加载');
 
-const ABYSS_CRON = '0 0 4 * * *'; // 每天 4 点检查深渊
-const BATTLEFIELD_CRON = '0 0 4 * * *'; // 每天 4 点检查战场
-const GODWAR_CRON = '0 0 4 * * *'; // 每天 4 点检查乐土
+const _path = './plugins/xhh/config/';
 
-let notified = new Set();
+function getRemindConfig() {
+  return yaml.get(_path + 'bh3_remind.yaml') || { enable: true, groups: [], items: [] };
+}
 
 export class bh3_remind extends plugin {
   constructor(e) {
@@ -23,6 +23,11 @@ export class bh3_remind extends plugin {
     });
   }
 
+  async testMatch(e) {
+    logger.info('[bh3_remind] testMatch triggered, msg: ' + e.msg);
+    return false;
+  }
+
   async getSubscribers() {
     const list = await redis.get('xhh:bh3_remind:subscribers');
     return list ? JSON.parse(list) : [];
@@ -32,24 +37,18 @@ export class bh3_remind extends plugin {
     await redis.set('xhh:bh3_remind:subscribers', JSON.stringify(list));
   }
 
-  async testMatch(e) {
-    logger.info('[bh3_remind] testMatch triggered, msg: ' + e.msg);
-    return false;
-  }
-
   async toggleRemind(e) {
-    logger.info('[bh3_remind] toggleRemind triggered, msg: ' + e.msg);
     if (!e.isMaster) return e.reply('仅主人可操作');
     const action = e.msg.includes('开启') || e.msg.includes('on');
     const subscribers = await this.getSubscribers();
     const userId = e.user_id;
     if (action) {
-      if (!subscribers.includes(userId)) {
-        subscribers.push(userId);
-        await this.saveSubscribers(subscribers);
-        return e.reply('已开启崩三定时提醒');
+      if (subscribers.includes(userId)) {
+        return e.reply('已开启');
       }
-      return e.reply('已开启');
+      subscribers.push(userId);
+      await this.saveSubscribers(subscribers);
+      return e.reply('已开启崩三定时提醒');
     } else {
       const idx = subscribers.indexOf(userId);
       if (idx > -1) {
@@ -67,32 +66,77 @@ export class bh3_remind extends plugin {
     return e.reply(`崩三定时提醒: ${isSub ? '已开启' : '未开启'}\n订阅人数: ${subscribers.length}`);
   }
 
-  // 深渊/战场/乐土数据检查并推送
+  // 解析 cron 表达式，返回下次触发时间（毫秒时间戳）
+  parseCron(cronStr) {
+    const [min, hour, day, month, week] = cronStr.split(' ');
+    const now = new Date();
+    const next = new Date(now);
+    next.setMinutes(parseInt(min));
+    next.setHours(parseInt(hour));
+    next.setSeconds(0);
+    next.setMilliseconds(0);
+    
+    if (next <= now) {
+      next.setDate(next.getDate() + 1);
+    }
+    
+    // 简单处理：只支持每天固定时间的 cron
+    return next.getTime();
+  }
+
+  // 检查是否需要发送提醒
   async checkAndPush() {
-    if (!config().bh3_remind) return;
+    const cfg = getRemindConfig();
+    if (!cfg.enable) return;
+    
     const subscribers = await this.getSubscribers();
     if (!subscribers.length) return;
 
-    // 这里可以调用 bh3_note/bh3_battlefield/bh3_godwar 的数据获取逻辑
-    // 简化版：仅在每天 4 点检查并推送
-    // 实际实现需根据 note 数据中的 schedule_end 判断是否即将开启/结算
-    // 这里仅提供框架，具体推送逻辑可后续完善
+    const groups = cfg.groups || [];
+    if (!groups.length) return;
+
+    const items = cfg.items || [];
+    const now = Date.now();
+
+    for (const item of items) {
+      if (!item.cron) continue;
+      
+      try {
+        const nextTrigger = this.parseCron(item.cron);
+        const diff = nextTrigger - Date.now();
+        
+        // 如果在未来 5 分钟内触发，发送提醒
+        if (diff > 0 && diff < 5 * 60 * 1000) {
+          const notifiedKey = `bh3_remind_${item.key}_${Math.floor(Date.now() / (60 * 1000))}`;
+          const alreadyNotified = await redis.get(notifiedKey);
+          if (alreadyNotified) continue;
+          
+          // 发送提醒
+          for (const groupId of cfg.groups) {
+            try {
+              await bot.sendGroupMsg(groupId, item.msg, true);
+            } catch (err) {
+              logger.warn(`[bh3_remind] 发送到群 ${groupId} 失败: ${err.message}`);
+            }
+          }
+          await redis.set(notifiedKey, '1', 60); // 1分钟去重
+        }
+      } catch (err) {
+        logger.error(`[bh3_remind] 检查提醒 ${item.key} 失败: ${err.message}`);
+      }
+    }
   }
 }
 
-// 定时任务注册
+// 每分钟检查一次
 if (globalThis.cron) {
-  globalThis.cron.add('bh3_remind_abyss', ABYSS_CRON, async () => {
-    if (!config().bh3_remind) return;
-    // 检查深渊
-  });
-  globalThis.cron.add('bh3_remind_battlefield', BATTLEFIELD_CRON, async () => {
-    if (!config().bh3_remind) return;
-    // 检查战场
-  });
-  globalThis.cron.add('bh3_remind_godwar', GODWAR_CRON, async () => {
-    if (!config().bh3_remind) return;
-    // 检查乐土
+  globalThis.cron.add('bh3_remind_check', '* * * * *', async () => {
+    try {
+      const reminder = new bh3_remind({});
+      await reminder.checkAndPush();
+    } catch (err) {
+      logger.error('[bh3_remind] 定时检查失败:', err);
+    }
   });
 }
 
