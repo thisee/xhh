@@ -1,6 +1,8 @@
 import { config } from '#xhh';
 import { bot } from '../../trss.yunzai/src/bot/Bot';
 
+logger.info('[bh3_remind] 文件已加载');
+
 const ABYSS_CRON = '0 0 4 * * *'; // 每天 4 点检查深渊
 const BATTLEFIELD_CRON = '0 0 4 * * *'; // 每天 4 点检查战场
 const GODWAR_CRON = '0 0 4 * * *'; // 每天 4 点检查乐土
@@ -15,8 +17,9 @@ export class bh3_remind extends plugin {
       event: 'message',
       priority: 100,
       rule: [
-        { reg: '^#*(小花火)?(?=.*(崩三|崩坏3|崩坏三|BH3))(?=.*(提醒|定时提醒|开关提醒))(?=.*(开启|关闭|on|off)).*$', fnc: 'toggleRemind' },
-        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus' },
+        { reg: '^#.*', fnc: 'testMatch', priority: -1000001 },
+        { reg: '^#*(小花火)?(?=.*(崩三|崩坏3|崩坏三|BH3))(?=.*(提醒|定时提醒|开关提醒))(?=.*(开启|关闭|on|off)).*$', fnc: 'toggleRemind', priority: -1000001 },
+        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus', priority: -1000001 },
       ],
     });
   }
@@ -28,6 +31,11 @@ export class bh3_remind extends plugin {
 
   async saveSubscribers(list) {
     await redis.set('xhh:bh3_remind:subscribers', JSON.stringify(list));
+  }
+
+  async testMatch(e) {
+    logger.info('[bh3_remind] testMatch triggered, msg: ' + e.msg);
+    return false;
   }
 
   async toggleRemind(e) {
