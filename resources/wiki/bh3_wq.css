@@ -1,0 +1,192 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'yuan', sans-serif;
+    background: #0d0d0d;
+    color: #fff;
+    width: 960px;
+    transform-origin: top left;
+}
+@font-face { font-family: 'yuan'; src: url('../font/yuan.ttf'); }
+@font-face { font-family: '宋'; src: url('../font/宋.ttf'); }
+@font-face { font-family: 'i'; src: url('../font/i.ttf'); }
+
+.wrapper {
+    position: relative;
+    width: 960px;
+    transform-origin: top left;
+}
+
+.container {
+    width: 960px;
+    padding: 20px;
+}
+
+.bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    z-index: -1;
+    opacity: 0.9;
+}
+
+.header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+    padding: 0 10px;
+}
+
+.left {
+    flex-shrink: 0;
+}
+
+.weapon-img {
+    width: 280px;
+    height: auto;
+    filter: drop-shadow(0 10px 40px rgba(255, 107, 107, 0.4));
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.name-box {
+    margin-bottom: 20px;
+}
+
+.name {
+    font-size: 28px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+}
+
+.type-rarity {
+    font-size: 16px;
+    color: #aaa;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-table td:first-child {
+    color: #888;
+    width: 100px;
+}
+
+.info-table td:last-child {
+    color: #fff;
+    font-weight: bold;
+}
+
+.description, .attributes, .materials {
+    padding: 0 10px;
+    margin-bottom: 25px;
+}
+
+.desc-title, .attr-title, .material-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6b6b;
+    margin-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 107, 107, 0.3);
+    padding-bottom: 5px;
+}
+
+.rich-text {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    line-height: 1.8;
+    font-size: 15px;
+    color: #ddd;
+    white-space: pre-wrap;
+}
+
+.rich-text .lan {
+    color: #00c8ff;
+}
+
+.attr-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.attr-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.attr-table td:first-child {
+    color: #888;
+    width: 140px;
+}
+
+.attr-table td:last-child {
+    color: #fff;
+}
+
+.material-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.material-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.material-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+}
+
+.material-item img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+}
+
+.material-name {
+    font-size: 12px;
+    color: #ddd;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.material-count {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ff6b6b;
+}
+
+.week {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 8px;
+    color: #ff6b6b;
+    font-size: 14px;
+}

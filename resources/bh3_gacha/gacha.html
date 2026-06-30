@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_gacha/gacha.css" />
+</head>
+<body {{sys.scale}}>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="title">崩坏3 抽卡出金记录</div>
+        <div class="sub">UID {{uid}} · 共 {{total}} 抽 · 更新 {{data_time}}</div>
+      </div>
+      <div class="brand">小花火</div>
+    </div>
+    <div class="cards">
+      {{each pools pool}}
+      <div class="pool">
+        <div class="pool-head">
+          <div class="pool-name">{{pool.name}}</div>
+          <div class="pool-count">{{pool.count}} 抽</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><span>出金数</span><b>{{pool.goldCount}}</b></div>
+          <div class="stat"><span>当前垫数</span><b>{{pool.currentPity}}</b></div>
+          <div class="stat"><span>平均出金</span><b>{{pool.avgPulls}}</b></div>
+          <div class="stat"><span>最非一次</span><b>{{pool.maxPulls}}</b></div>
+        </div>
+        <div class="records">
+          {{if pool.items.length}}
+          {{each pool.items r i}}
+          <div class="record rare">
+            <span class="idx">{{i + 1}}</span>
+            <span class="pulls">{{r.pulls}}抽</span>
+            <span class="content">{{r.display || r.content}}</span>
+            <span class="time">{{r.time}}</span>
+          </div>
+          {{/each}}
+          {{else}}
+          <div class="empty">暂无出金记录，已连续 {{pool.currentPity}} 抽未出</div>
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    <div class="tip">角色池显示 S 角色，装备池显示 5星武器，协同者池显示协同者</div>
+  </div>
+</body>
+</html>

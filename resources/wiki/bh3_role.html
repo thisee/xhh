@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/bh3_role.css" />
+</head>
+<body {{sys.scale}}>
+<div class="wrapper">
+    <div class="bg"></div>
+    <div class="container">
+        <div class="top-section">
+            <div class="char-info">
+                <div class="name">{{name}}</div>
+                <div class="stars">
+                    <% for (var i = 0; i < star; i++) { %>
+                        <img class="star" src="{{ppath}}wiki/imgs/star.png">
+                    <% } %>
+                </div>
+                <div class="tags">
+                    <div class="tag attr"><img src="{{ppath}}wiki/imgs/{{attr_icon}}">{{attribute}}</div>
+                    {{if character}}<div class="tag char">{{character}}</div>{{/if}}
+                    {{if specialty}}<div class="tag faction">{{specialty}}</div>{{/if}}
+                </div>
+            </div>
+            <div class="char-image">
+                <img src="{{img}}">
+            </div>
+        </div>
+        <div class="attr-section">
+            <div class="attr-title">角色属性</div>
+            <div class="attr-grid">
+                {{each attr as v i}}
+                    <div class="attr-item">
+                        <span class="attr-key">{{v.key}}</span>
+                        <span class="attr-value">{{v.value}}</span>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+        <div class="material-section">
+            <div class="material-title">晋阶材料</div>
+            <div class="material-grid">
+                {{each material as m i}}
+                    <div class="material-item">
+                        <img src="{{m.icon}}">
+                        <div class="material-name">{{m.name}}</div>
+                        <div class="material-count">x{{m.count}}</div>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

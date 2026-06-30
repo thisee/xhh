@@ -14,7 +14,7 @@ export class Wiki extends plugin {
       priority: pr || -99,
       rule: [
         {
-          reg: '^#*(星铁)*(.*)图鉴$',
+          reg: '^#*(星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3)*(.*)图鉴$',
           fnc: 'illustrated_book',
         },
       ],
@@ -24,14 +24,26 @@ export class Wiki extends plugin {
   async illustrated_book(e) {
     if (!config().wiki) return false;
     const isSr = e.msg.includes('星铁');
-    const name = e.msg.replace(/#|星铁|图鉴/g, '').trim();
+    const isZZZ = e.msg.includes('绝区零') || e.msg.includes('ZZZ');
+    const isBH3 = e.msg.includes('崩坏3') || e.msg.includes('崩坏三') || e.msg.includes('崩三') || e.msg.includes('BH3');
+    const name = e.msg.replace(/#|星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3|图鉴/g, '').trim();
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
       { method: 'role', args: [e, name] },
       { method: 'weapon', args: [e, name] },
       { method: 'syw_yiqi', args: [e, name] },
     ];
-    if (isSr) {
+    if (isZZZ) {
+      for (const { method, args } of checkTypes) {
+        if (await this[method](...args, false, true)) return true;
+      }
+      // 绝区零特有: 邦布
+      if (await this.bangboo(e, name)) return true;
+    } else if (isBH3) {
+      for (const { method, args } of checkTypes) {
+        if (await this[method](...args, false, false, true)) return true;
+      }
+    } else if (isSr) {
       for (const { method, args } of checkTypes) {
         if (await this[method](...args, true)) return true;
       }
@@ -42,12 +54,14 @@ export class Wiki extends plugin {
       }
     }
     //最后查总列表
-    if (/角色|武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓|光锥|圣遗物|遗器/.test(name)) return this.list(e, name, isSr);
+    if (/角色|武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓|光锥|圣遗物|遗器|音擎|驱动盘|邦布|圣痕|人偶|协同者/.test(name)) return this.list(e, name, isSr, isZZZ, isBH3);
     return false;
   }
 
-  async list(e, name, isSr = false) {
+  async list(e, name, isSr = false, isZZZ = false, isBH3 = false) {
     if (/光锥|遗器|虚无|巡猎|物理|量子|虚数|毁灭|智识|同谐|存护|丰饶|记忆/.test(name)) isSr = true;
+    if (/音擎|驱动盘|邦布|以太|强攻|击破|防护|支援|异常/.test(name)) isZZZ = true;
+    if (/圣痕|人偶|协同者|生物|机械|量子|虚数|星尘|异能|火焰|冰冻|雷电/.test(name)) isBH3 = true;
 
     let type, _name
     
@@ -55,15 +69,21 @@ export class Wiki extends plugin {
     if (name=='圣遗物') type = 'syw', _name = '圣遗物';
     if (/武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓/.test(name)) type = 'wq', _name = '武器';
     if (name.includes('光锥')) type = 'gz', _name = '光锥';
+    if (name.includes('音擎')) type = 'wq', _name = '音擎';
+    if (name.includes('驱动盘')) type = 'syw', _name = '驱动盘';
+    if (name.includes('邦布')) type = 'yq', _name = '邦布';
+    if (name.includes('圣痕')) type = 'syw', _name = '圣痕';
+    if (name.includes('人偶')) type = 'yq', _name = '人偶';
+    if (name.includes('协同者')) type = 'yq', _name = '协同者';
     if (name.includes('角色')) type = 'js', _name = '角色';
 
     if(!_name) return false;
     
-    let data = await mys.data('', type, isSr);
+    let data = await mys.data('', type, isSr, isZZZ, isBH3);
 
-    let condition = name.replace(/角色|武器|光锥/g, '');
+    let condition = name.replace(/崩坏3|崩坏三|崩三|角色|武器|光锥|音擎|驱动盘|邦布|圣痕|人偶|协同者/g, '');
 
-    if (!isSr) {
+    if (!isSr && !isZZZ && !isBH3) {
       switch (condition) {
         case '五星':
         case '5星':
@@ -137,100 +157,74 @@ export class Wiki extends plugin {
           _name = '法器武器';
           break;
       }
-    } else {
+} else if (isBH3) {
       switch (condition) {
         case '五星':
         case '5星':
           data = data.filter(item => item.ji === '五星');
           _name = '五星角色';
-          if (type = 'gz') _name = '五星光锥';
+          if (type = 'wq') _name = '五星武器';
+          if (type = 'syw') _name = '五星圣痕';
           break;
         case '四星':
         case '4星':
           data = data.filter(item => item.ji === '四星');
           _name = '四星角色';
-          if (type = 'gz') _name = '四星光锥';
+          if (type = 'wq') _name = '四星武器';
+          if (type = 'syw') _name = '四星圣痕';
           break;
-        case '物理系':
         case '物理':
-          data = data.filter(item => item.shuxing === '物理');
+        case '物理系':
+          data = data.filter(item => item.yuanshu === '物理');
           _name = '物理角色';
           break;
-        case '火系':
         case '火':
-          data = data.filter(item => item.shuxing === '火');
+        case '火系':
+        case '火焰':
+          data = data.filter(item => item.yuanshu === '火' || item.yuanshu === '火焰');
           _name = '火系角色';
           break;
-        case '冰系':
         case '冰':
-          data = data.filter(item => item.shuxing === '冰');
+        case '冰系':
+        case '冰冻':
+          data = data.filter(item => item.yuanshu === '冰' || item.yuanshu === '冰冻');
           _name = '冰系角色';
           break;
-        case '雷系':
         case '雷':
-          data = data.filter(item => item.shuxing === '雷');
+        case '雷系':
+        case '雷电':
+          data = data.filter(item => item.yuanshu === '雷' || item.yuanshu === '雷电');
           _name = '雷系角色';
           break;
-        case '风系':
-        case '风':
-          data = data.filter(item => item.shuxing === '风');
-          _name = '风系角色';
-          break;
-        case '量子系':
+        case '生物':
+        case '生物系':
+          data = data.filter(item => item.yuanshu === '生物');
+          _name = '生物角色';
+          break
         case '量子':
-          data = data.filter(item => item.shuxing === '量子');
+        case '量子系':
+          data = data.filter(item => item.yuanshu === '量子');
           _name = '量子角色';
           break;
-        case '虚数系':
         case '虚数':
-          data = data.filter(item => item.shuxing === '虚数');
+        case '虚数系':
+          data = data.filter(item => item.yuanshu === '虚数');
           _name = '虚数角色';
           break;
-        case '记忆系':
-        case '记忆':
-          data = data.filter(item => item.mingtu === '记忆');
-          _name = '记忆角色';
-          if (type = 'gz') _name = '记忆光锥';
+        case '异能':
+        case '异能系':
+          data = data.filter(item => item.yuanshu === '异能');
+          _name = '异能角色';
           break;
-        case '丰饶系':
-        case '丰饶':
-          data = data.filter(item => item.mingtu === '丰饶');
-          _name = '丰饶角色';
-          if (type = 'gz') _name = '丰饶光锥';
+        case '机械':
+        case '机械系':
+          data = data.filter(item => item.yuanshu === '机械');
+          _name = '机械角色';
           break;
-        case '存护系':
-        case '存护':
-          data = data.filter(item => item.mingtu === '存护');
-          _name = '存护角色';
-          if (type = 'gz') _name = '存护光锥';
-          break;
-        case '巡猎系':
-        case '巡猎':
-          data = data.filter(item => item.mingtu === '巡猎');
-          _name = '巡猎角色';
-          if (type = 'gz') _name = '巡猎光锥';
-          break;
-        case '虚无系':
-        case '虚无':
-          data = data.filter(item => item.mingtu === '虚无');
-          _name = '虚无角色';
-          if (type = 'gz') _name = '虚无光锥';
-          break;
-        case '同谐系':
-        case '同谐':
-          data = data.filter(item => item.mingtu === '同谐');
-          _name = '同谐角色';
-          if (type = 'gz') _name = '同谐光锥';
-          break;
-        case '智识系':
-        case '智识':
-          data = data.filter(item => item.mingtu === '智识');
-          _name = '智识角色';
-          break;
-        case '毁灭系':
-        case '毁灭':
-          data = data.filter(item => item.mingtu === '毁灭');
-          _name = '毁灭角色';
+        case '星尘':
+        case '星尘系':
+          data = data.filter(item => item.yuanshu === '星尘');
+          _name = '星尘角色';
           break;
       }
     }
@@ -276,8 +270,12 @@ export class Wiki extends plugin {
   }
 
   //圣遗物和遗器
-  async syw_yiqi(e, name, isSr = false) {
-    const path = isSr
+  async syw_yiqi(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+    const path = isZZZ
+      ? './plugins/xhh/system/default/zzz_syw_names.yaml'
+      : isBH3
+      ? './plugins/xhh/system/default/bh3_syw_names.yaml'
+      : isSr
       ? './plugins/xhh/system/default/yiqi.yaml'
       : './plugins/xhh/system/default/syw.yaml';
     const _name = yaml.get(path);
@@ -288,12 +286,16 @@ export class Wiki extends plugin {
       }
     }
     if (Object.keys(_name).includes(name)) {
-      let data = await mys.data(name, isSr ? 'yq' : 'syw', isSr);
+      let data = await mys.data(name, isZZZ ? 'syw' : isBH3 ? 'syw' : isSr ? 'yq' : 'syw', isSr, isZZZ, isBH3);
       if (!data) return false;
       data.map(v => {
         if (v.title == name) data = v;
       });
-      if (isSr) {
+      if (isZZZ) {
+        this.zzz_syw_pictures(e, data);
+      } else if (isBH3) {
+        this.bh3_syw_pictures(e, data);
+      } else if (isSr) {
         this.yiqi_pictures(e, data);
       } else {
         this.syw_pictures(e, data);
@@ -304,8 +306,12 @@ export class Wiki extends plugin {
   }
 
   //武器
-  async weapon(e, name, isSr = false) {
-    const path = !isSr
+  async weapon(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+    const path = isZZZ
+      ? './plugins/xhh/system/default/zzz_wq_names.yaml'
+      : isBH3
+      ? './plugins/xhh/system/default/bh3_wq_names.yaml'
+      : !isSr
       ? './plugins/xhh/system/default/wqname.yaml'
       : './plugins/xhh/system/default/gz_names.yaml';
     const wq_name = yaml.get(path);
@@ -316,10 +322,12 @@ export class Wiki extends plugin {
       }
     }
     if (Object.keys(wq_name).includes(name)) {
-      const { id } = await mys.data(name, isSr ? 'gz' : 'wq', isSr);
+      const { id } = await mys.data(name, isZZZ ? 'wq' : isBH3 ? 'wq' : isSr ? 'gz' : 'wq', isSr, isZZZ, isBH3);
       if (!id) return false;
-      let data = await mys.detail(id, isSr);
-      if (isSr) this.sr_gz_pictures(e, data);
+      let data = await mys.detail(id, isSr, isZZZ, isBH3);
+      if (isZZZ) this.zzz_wq_pictures(e, data);
+      else if (isBH3) this.bh3_wq_pictures(e, data);
+      else if (isSr) this.sr_gz_pictures(e, data);
       else this.gs_wq_pictures(e, data);
       return true;
     }
@@ -327,8 +335,12 @@ export class Wiki extends plugin {
   }
 
   //角色
-  async role(e, name, isSr = false) {
-    const path = isSr
+  async role(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+    const path = isZZZ
+      ? './plugins/xhh/system/default/zzz_js_names.yaml'
+      : isBH3
+      ? './plugins/xhh/system/default/bh3_js_names.yaml'
+      : isSr
       ? './plugins/xhh/system/default/sr_js_names.yaml'
       : './plugins/xhh/system/default/gs_js_names.yaml';
     const role_name = yaml.get(path);
@@ -339,10 +351,12 @@ export class Wiki extends plugin {
       }
     }
     if (Object.keys(role_name).includes(name)) {
-      const { id } = await mys.data(name, 'js', isSr);
+      const { id } = await mys.data(name, 'js', isSr, isZZZ, isBH3);
       if (!id) return false;
-      let data = await mys.detail(id, isSr);
-      if (isSr) this.sr_role_pictures(e, data);
+      let data = await mys.detail(id, isSr, isZZZ, isBH3);
+      if (isZZZ) this.zzz_role_pictures(e, data);
+      else if (isBH3) this.bh3_role_pictures(e, data);
+      else if (isSr) this.sr_role_pictures(e, data);
       else this.gs_role_pictures(e, data);
       return true;
     }
@@ -651,146 +665,162 @@ export class Wiki extends plugin {
         path_arr.map(v => {
             const path_ = path + v + '/' + name + '/gacha.webp'
             if (fs.existsSync(path_)) return _path = path_
-        })
+})
         return _path
     }
 */
-}
+// 崩坏3角色
+  async bh3_role_pictures(e, data) {
+    const content = data.content || {};
+    const title = content.title;
+    const icon = content.icon || '';
 
-function extractUnique(text, kg = false) {
-  // 匹配标准正则表达式
-  let Regex = /https:\/\/(?!(baike))(.*?)\.(png|jpg|webp|svg)/gi;
-  if (kg) {
-    Regex = /data-entry-name="(.*?)"/gi;
-    return [...text.matchAll(Regex)].map(m => m[1]);
-  }
-  // 提取所有匹配项并转为Set去重
-  const matches = text.match(Regex) || [];
-  const unique = [...new Set(matches)];
-
-  return unique;
-}
-
-/**
- * 从数组中提取指定索引元素并修改原数组
- * @param {Array} arr - 要处理的原数组
- * @param {Array<number>} indexes - 要提取的索引数组
- * @returns {Array} 提取出的元素组成的新数组
- */
-function extractElements(arr, indexes) {
-  // 验证
-  if (!Array.isArray(arr) || !Array.isArray(indexes)) {
-    logger.error('参数必须是数组类型');
-  }
-
-  // 去重并排序索引
-  const sortedIndexes = [...new Set(indexes)]
-    .sort((a, b) => b - a)
-    .filter(i => i >= 0 && i < arr.length);
-
-  // 提取元素
-  const extracted = sortedIndexes.map(i => arr[i]);
-
-  // 从原数组移除元素
-  sortedIndexes.forEach(i => arr.splice(i, 1));
-
-  return extracted.reverse();
-}
-
-function extractHonkaiStarRailData(htmlString) {
-  // 创建DOM解析器
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlString, 'text/html');
-
-  // 初始化结果对象
-  const result = {
-    img: '',
-    mingtu: '',
-    xiyoudu: '',
-    jineng: ['', ''],
-    miaoshu: '',
-  };
-
-  // 1. 提取图片链接
-  const imgElement = doc.querySelector(
-    'img[src^="https://act-upload.mihoyo.com"]'
-  );
-  if (imgElement) {
-    result.img = imgElement.src;
-  }
-
-  // 2. 提取表格数据
-  const mobileTable = doc.querySelector('.obc-tml-light-table--mobile');
-  if (mobileTable) {
-    const rows = mobileTable.querySelectorAll('tr');
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
-      if (cells.length < 2) return;
-
-      const key = cells[0].textContent.trim();
-      const valueCell = cells[1];
-
-      switch (key) {
-        case '命途':
-          result.mingtu = valueCell.textContent.trim();
-          break;
-
-        case '稀有度':
-          result.xiyoudu = valueCell.textContent.trim();
-          break;
-
-        case '技能':
-          // 提取技能名称
-          const skillName =
-            valueCell.querySelector('h3 span')?.textContent.trim() || '';
-          result.jineng[0] = skillName;
-
-          // 提取技能描述（保留数字和中文）
-          const skillDesc =
-            valueCell
-              .querySelector('p')
-              ?.textContent.replace(/\s+/g, ' ')
-              .trim() || '';
-          result.jineng[1] = skillDesc;
-          break;
-
-        case '光锥描述':
-          // 提取所有段落并处理换行
-          const paragraphs = valueCell.querySelectorAll('p');
-          let fullDescription = '';
-
-          paragraphs.forEach(p => {
-            // 处理段落内容，将<br>转换为\n
-            let paragraphContent = p.innerHTML
-              .replace(/<br\s*\/?>/gi, '\n') // 转换换行标签
-              .replace(/<\/?[^>]+>/g, '') // 移除所有HTML标签
-              .trim();
-
-            fullDescription += paragraphContent + '\n';
-          });
-
-          // 移除最后的换行符并赋值
-          result.miaoshu = fullDescription.trim();
-          break;
+    let basic_info = content.basic_info || {};
+    try {
+      const ext = JSON.parse(content.ext || '{}');
+      const filters = JSON.parse(ext.c_18?.filter?.text || '[]');
+      for (const item of filters) {
+        const [key, value] = item.split('/');
+        if (key && value) basic_info[key] = value;
       }
-    });
+    } catch (_) {}
+
+    const element = basic_info['属性'] || '未知';
+    const character_name = basic_info['角色'] || '';
+    const rarity = basic_info['初始阶级'] || 'S';
+    const type = basic_info['装甲特性'] || '未知';
+
+    const element_icon_map = {
+      '物理': '物理.png',
+      '火': '火.png',
+      '火焰': '火.png',
+      '火伤': '火.png',
+      '冰': '冰.png',
+      '冰冻': '冰.png',
+      '冰伤': '冰.png',
+      '雷': '雷.png',
+      '雷电': '雷.png',
+      '雷伤': '雷.png',
+      '生物': '生物.png',
+      '量子': '量子.png',
+      '虚数': '虚数.png',
+      '异能': '异能.png',
+      '机械': '机械.png',
+      '星尘': '星尘.png'
+    };
+
+    const attr = Object.entries(basic_info)
+      .filter(([key, value]) => key && value)
+      .map(([key, value]) => ({ key, value }));
+
+    const img = icon.startsWith('http') ? icon : `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${icon}`;
+    const element_icon = element_icon_map[element] || '物理.png';
+
+    data = {
+      name: title,
+      star: rarity === 'S' ? 5 : 4,
+      attribute: element,
+      specialty: type,
+      character: character_name,
+      img,
+      attr,
+      attr_icon: element_icon,
+      material: []
+    };
+    return render('wiki/bh3_role', data, { e, ret: true });
   }
 
-  return result;
+  // 崩坏3武器
+  async bh3_wq_pictures(e, data) {
+    const content = data.content;
+    const title = content.title;
+    const weapon_data = content.weapon_data || {};
+    const info = weapon_data.info || {};
+    const skills = weapon_data.skills || [];
+    const materials = weapon_data.materials || [];
+    const gainMethods = weapon_data.gainMethods || [];
+    const roles = weapon_data.roles || [];
+    
+    const type = info.attr?.find(a => a.key === '武器类型')?.value || '未知';
+    const star = info.starValue || 5;
+    const atk = info.attr?.find(a => a.key === '攻击力')?.value || '未知';
+    const sub_attr = info.attr?.find(a => a.key !== '攻击力' && a.key !== '武器类型')?.value || '未知';
+    
+    let week = '未知';
+    for (const gm of gainMethods) {
+      if (gm.key === '获取途径') {
+        week = gm.value;
+        break;
+      }
+    }
+    
+    const img = `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${info.icon}`;
+    
+    data = {
+      name: title,
+      type: type,
+      star: star + '星',
+      img: img,
+      rich_text: skills.map(s => `${s.key}: ${s.value}`).join('\n\n'),
+      attr: info.attr || [],
+      materials: materials.map(m => ({ name: m.name, icon: m.icon, count: m.count })),
+      atk: atk,
+      attr_: { key: '副属性', value: sub_attr },
+      week: week
+    };
+    render('wiki/bh3_wq', data, { e, ret: true });
+  }
+
+  // 崩坏3圣痕
+  async bh3_syw_pictures(e, data) {
+    const content = data.content;
+    const title = content.title;
+    const stigma_data = content.stigma_data || {};
+    const info = stigma_data.info || {};
+    const basicAttr = stigma_data.basicAttr || {};
+    const setSkills = stigma_data.setSkills || [];
+    const stigmaSkill = stigma_data.stigmaSkill || {};
+    const roles = stigma_data.roles || [];
+    const materials = stigma_data.materials || [];
+    const gainMethods = stigma_data.gainMethods || [];
+    
+    const desc2 = stigmaSkill.value || '无';
+    const desc4 = setSkills.map(s => `${s.key}: ${s.value}`).join('\n') || '无';
+    const icon = info.avatar || content.icon;
+    
+    let table = [];
+    if (basicAttr.attr) {
+      table = basicAttr.attr.map(a => ({ key: a.key, value: a.value }));
+    }
+    if (basicAttr.comment) {
+      table.push({ key: '备注', value: basicAttr.comment });
+    }
+    
+    data = {
+      name: title,
+      icon: `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${icon}`,
+      desc2: desc2,
+      desc4: desc4,
+      table: table,
+      star: 5
+    };
+    render('wiki/bh3_syw', data, { e, ret: true });
+  }
+
+  // 崩坏3人偶/协同者
+  async bh3_yq_pictures(e, data) {
+    const content = data.content;
+    const title = content.title;
+    const icon = content.icon;
+    const summary = content.summary || '无';
+    
+    data = {
+      name: title,
+      desc: summary,
+      icon: `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${icon}`
+    };
+    render('wiki/bh3_yq', data, { e, ret: true });
+
 }
 
-function extractUniqueHttpsLinks(htmlString) {
-  // 使用正则表达式匹配所有https://链接
-  const httpsRegex = /https:\/\/[^\s"']+/g;
-  const matches = htmlString.match(httpsRegex) || [];
-
-  return matches;
-}
-
-function extractChineseWords(str) {
-  // 匹配连续的中文字符（包含基本汉字和扩展区）
-  const chineseRegex =
-    /[\u4e00-\u9fa5\u3400-\u4dbf\u{20000}-\u{2a6df}\u{2a700}-\u{2b81f}\u{2b820}-\u{2ceaf}]+/gu;
-  return str.match(chineseRegex) || [];
 }

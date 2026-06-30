@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/bh3_syw.css" />
+</head>
+<body {{sys.scale}}>
+<div class="wrapper">
+    <div class="bg"></div>
+    <div class="container">
+        <div class="header">
+            <div class="name-box">
+                <div class="name">{{name}}</div>
+                <div class="set-icon">
+                    <img src="{{icon}}">
+                </div>
+            </div>
+            <div class="rarity">
+                <% for (var i = 0; i < star; i++) { %>
+                    <img class="star" src="{{ppath}}wiki/imgs/star.png">
+                <% } %>
+            </div>
+        </div>
+        <div class="desc-box">
+            <div class="desc-title">单件效果</div>
+            <div class="desc-text">{{desc2}}</div>
+            <div class="desc-title">套装效果</div>
+            <div class="desc-text">{{desc4}}</div>
+        </div>
+        <table class="attr-table">
+            {{each table as v i}}
+            <tr>
+                <td>{{v.key}}</td>
+                <td>{{v.value}}</td>
+            </tr>
+            {{/each}}
+        </table>
+    </div>
+</div>
+</body>
+</html>

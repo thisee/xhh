@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/bh3_wq.css" />
+</head>
+<body {{sys.scale}}>
+<div class="wrapper">
+    <div class="bg"></div>
+    <div class="container">
+        <div class="header">
+            <div class="left">
+                <img class="weapon-img" src="{{img}}">
+            </div>
+            <div class="right">
+                <div class="name-box">
+                    <div class="name">{{name}}</div>
+                    <div class="type-rarity">{{type}} · {{star}}</div>
+                </div>
+                <table class="info-table">
+                    <tr>
+                        <td>基础攻击力</td>
+                        <td>{{atk}}</td>
+                    </tr>
+                    <tr>
+                        <td>副属性</td>
+                        <td>{{attr_.value}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="description">
+            <div class="desc-title">武器技能</div>
+            <div class="rich-text">{{@rich_text}}</div>
+        </div>
+        <div class="attributes">
+            <div class="attr-title">详细属性</div>
+            <table class="attr-table">
+                {{each attr as v i}}
+                <tr>
+                    <td>{{v.key}}</td>
+                    <td>{{v.value}}</td>
+                </tr>
+                {{/each}}
+            </table>
+        </div>
+        <div class="materials">
+            <div class="material-title">锻造材料</div>
+            <div class="material-grid">
+                {{each materials as v i}}
+                    <div class="material-item">
+                        <img src="{{v.icon}}">
+                        <div class="material-name">{{v.name}}</div>
+                        <div class="material-count">x{{v.count}}</div>
+                    </div>
+                {{/each}}
+            </div>
+            <div class="week">获取途径: {{week}}</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

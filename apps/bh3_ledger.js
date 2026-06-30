@@ -15,6 +15,7 @@ async function sendMsg(e, msg) {
 }
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
+const LEDGER_DATA_DIR = "./data/Bh3Ledger"
 
 function debugLog(...args) {
     if (config().debug) logger.mark(...args);
@@ -42,6 +43,140 @@ export class bh3_ledger extends plugin {
                 },
             ],
         });
+    }
+
+    getDataPath(uid) {
+        return `${LEDGER_DATA_DIR}/${uid}.json`;
+    }
+
+    loadLedgerData(uid) {
+        const path = this.getDataPath(uid);
+        if (!fs.existsSync(path)) return {};
+        try {
+            return JSON.parse(fs.readFileSync(path, 'utf8')) || {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    getLedgerMonthKey(monthData) {
+        if (!monthData) return moment().format('YYYYMM');
+        if (monthData.data_month) return String(monthData.data_month);
+        if (monthData.month_start) return moment(monthData.month_start).format('YYYYMM');
+        if (monthData.date) return moment(monthData.date).format('YYYYMM');
+        if (monthData.month) return moment().format('YYYY') + String(monthData.month).padStart(2, '0');
+        return moment().format('YYYYMM');
+    }
+
+    async saveLedger(uid, monthData) {
+        if (!uid || !monthData) return false;
+        const monthKey = this.getLedgerMonthKey(monthData);
+        const data = this.loadLedgerData(uid);
+        if (data[monthKey] && data[monthKey].isUpdate) {
+            data[monthKey] = { ...data[monthKey], ...monthData, equipSupplyCardNum: monthData.equipSupplyCardNum ?? data[monthKey].equipSupplyCardNum, isUpdate: true };
+        } else {
+            data[monthKey] = { ...monthData, isUpdate: true };
+        }
+        try {
+            fs.mkdirSync(LEDGER_DATA_DIR, { recursive: true });
+            fs.writeFileSync(this.getDataPath(uid), JSON.stringify(data, null, 2));
+            debugLog('[水晶] saveLedger:', uid, monthKey, 'equipSupplyCardNum:', data[monthKey]?.equipSupplyCardNum);
+            return true;
+        } catch (err) {
+            logger.error('[水晶] saveLedger failed:', err);
+            return false;
+        }
+    }
+
+    getHistoryMonth(uid, monthKey) {
+        const data = this.loadLedgerData(uid);
+        return data[monthKey] || null;
+    }
+
+    parseMaterialRecordTime(record, monthRef = moment()) {
+        const candidates = [];
+        for (const key of ['time', 'date', 'created_at', 'create_time', 'createdTime', 'createTime']) {
+            if (record?.[key]) candidates.push(record[key]);
+        }
+        for (const item of record?.item || []) {
+            if (item?.label && /时间|日期/.test(item.label) && item.value) candidates.push(item.value);
+            if (typeof item?.value === 'string' && /\d{1,4}[-/.年]\d{1,2}/.test(item.value)) candidates.push(item.value);
+        }
+        for (let value of candidates) {
+            if (typeof value === 'number' || /^\d{10,13}$/.test(String(value))) {
+                const n = Number(value);
+                const m = moment(n > 1e12 ? n : n * 1000);
+                if (m.isValid()) return m;
+            }
+            value = String(value).trim();
+            const normalized = value.replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '-').replace(/\//g, '-');
+            const formats = ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD HH:mm', 'YYYY-MM-DD', 'MM-DD HH:mm:ss', 'MM-DD HH:mm', 'MM-DD'];
+            for (const fmt of formats) {
+                let m = moment(normalized, fmt, true);
+                if (m.isValid()) {
+                    if (!fmt.startsWith('YYYY')) m.year(monthRef.year());
+                    return m;
+                }
+            }
+            const loose = moment(normalized);
+            if (loose.isValid()) return loose;
+        }
+        return null;
+    }
+
+    async getHandbookSupplyCardCount(uid, headers, region, isLastMonth = false) {
+        const queryStr = `game_biz=bh3_cn&bind_uid=${uid}&bind_region=${region}`;
+        const url = `https://api-takumi.mihoyo.com/event/handbook/${isLastMonth ? 'last_month_count' : 'current_month_count'}?${queryStr}`;
+        try {
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    Cookie: headers.Cookie,
+                    origin: 'https://webstatic.mihoyo.com',
+                    referer: 'https://webstatic.mihoyo.com/',
+                    'x-rpc-client_type': '5',
+                    'x-rpc-app_version': '2.73.1',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 12; XQ-AT52 Build/58.2.A.7.93; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.88 Mobile Safari/537.36 miHoYoBBS/2.73.1',
+                },
+            }).then(r => r.json());
+            debugLog(`[水晶] handbook ${isLastMonth ? 'last' : 'current'} count response:`, JSON.stringify(res));
+            if (res?.retcode === 0 && res.data && Number.isFinite(Number(res.data.count))) {
+                return Number(res.data.count) || 0;
+            }
+        } catch (err) {
+            logger.warn?.('[水晶] handbook count failed:', err);
+        }
+        return null;
+    }
+
+    async getEquipSupplyCardNum(e, uid, headers, monthStart = null, monthEnd = null) {
+        let equipSupplyCardNum = 0;
+        let page = 1;
+        while (page <= 200) {
+            const equipSupplyCard = await api(e, {
+                type: 'bh3_equipSupplyCard',
+                uid,
+                headers,
+                game: 'bh3',
+                page,
+            });
+            if (!equipSupplyCard || equipSupplyCard.retcode !== 0 || !equipSupplyCard.data?.list?.length) break;
+            for (const record of equipSupplyCard.data.list) {
+                const nameItem = record.item?.find(i => i.label === '材料名称' && (i.value === '角色补给卡' || i.value === '装备补给卡'));
+                if (!nameItem) continue;
+                const opItem = record.item?.find(i => i.value === '购买补给卡');
+                if (opItem) continue;
+                if (monthStart && monthEnd) {
+                    const recordTime = this.parseMaterialRecordTime(record, monthStart);
+                    if (!recordTime || recordTime.isBefore(monthStart) || recordTime.isAfter(monthEnd)) continue;
+                }
+                const numItem = record.item?.find(i => i.label === '材料变化数');
+                const change = parseInt(numItem?.value) || 0;
+                if (change > 0) equipSupplyCardNum += change;
+            }
+            page++;
+        }
+        return Math.max(equipSupplyCardNum, 0);
     }
 
     async getBh3Auth(e) {
@@ -314,7 +449,6 @@ export class bh3_ledger extends plugin {
             const auth = await this.getBh3Auth(e);
             if (!auth) return false;
             const { uid, headers, qq, region } = auth;
-
             let queryStr = `game_biz=bh3_cn&bind_uid=${uid}&bind_region=${region}`;
             debugLog('[水晶] query:', queryStr);
             let res = await fetch(`https://api.mihoyo.com/bh3-weekly_finance/api/index?${queryStr}`, {
@@ -353,32 +487,11 @@ export class bh3_ledger extends plugin {
             if (firstItem) hcoinBalance = parseInt(firstItem.value);
         }
 
-        let equipSupplyCardNum = 0;
-        let page = 1;
-        while (page <= 200) {
-            let equipSupplyCard = await api(e, {
-                type: 'bh3_equipSupplyCard',
-                uid,
-                headers,
-                game: 'bh3',
-                page,
-            });
-            if (!equipSupplyCard || equipSupplyCard.retcode !== 0 || !equipSupplyCard.data?.list?.length) break;
-            for (const record of equipSupplyCard.data.list) {
-                const nameItem = record.item?.find(i => i.label === "材料名称" && (i.value === "角色补给卡" || i.value === "装备补给卡"));
-                if (nameItem) {
-                    const opItem = record.item?.find(i => i.value === "购买补给卡");
-                    if (opItem) continue;
-                    const numItem = record.item?.find(i => i.label === "材料变化数");
-                    if (numItem) {
-                        const change = parseInt(numItem.value) || 0;
-                        if (change > 0) equipSupplyCardNum += change;
-                    }
-                }
-            }
-            page++;
-        }
-        if (equipSupplyCardNum < 0) equipSupplyCardNum = 0;
+        let equipSupplyCardNum = await this.getHandbookSupplyCardCount(uid, headers, region, false);
+        if (equipSupplyCardNum === null) equipSupplyCardNum = await this.getEquipSupplyCardNum(e, uid, headers);
+        MonthData.equipSupplyCardNum = equipSupplyCardNum;
+        await this.saveLedger(uid, MonthData);
+
 
         let { avatarUrl, nickname, userLevel, serverName } = await this.getUserInfo(e, headers, uid, region);
 
@@ -443,6 +556,8 @@ export class bh3_ledger extends plugin {
             const auth = await this.getBh3Auth(e);
             if (!auth) return false;
             const { uid, headers, qq, region } = auth;
+            const lastMonthKey = moment().subtract(1, 'month').format('YYYYMM');
+            const cachedLastMonthData = this.getHistoryMonth(uid, lastMonthKey);
 
             let queryStr = `game_biz=bh3_cn&bind_uid=${uid}&bind_region=${region}`;
             let res = await fetch(`https://api.mihoyo.com/bh3-weekly_finance/api/getLastMonthInfo?${queryStr}`, {
@@ -457,15 +572,23 @@ export class bh3_ledger extends plugin {
                 },
             }).then(r => r.json());
 
-            if (!res || res.retcode !== 0 || !res.data) {
-                let msg = '获取上月水晶数据失败';
-                if (res?.retcode === -110) msg = `UID:${uid} 该账号没有绑定崩坏3角色`;
-                else if (res?.retcode === -120) msg = `UID:${uid} 崩坏3角色等级不足`;
-                sendMsg(e, msg);
-                return true;
+            let lastMonthData = res?.data;
+            if (!res || res.retcode !== 0 || !lastMonthData) {
+                if (cachedLastMonthData) {
+                    lastMonthData = cachedLastMonthData;
+                    debugLog('[上月水晶] API失败，使用本地缓存:', lastMonthKey);
+                } else {
+                    let msg = '获取上月水晶数据失败';
+                    if (res?.retcode === -110) msg = `UID:${uid} 该账号没有绑定崩坏3角色`;
+                    else if (res?.retcode === -120) msg = `UID:${uid} 崩坏3角色等级不足`;
+                    sendMsg(e, msg);
+                    return true;
+                }
             }
-
-            let lastMonthData = res.data;
+            if (cachedLastMonthData?.equipSupplyCardNum && !lastMonthData.equipSupplyCardNum) {
+                lastMonthData.equipSupplyCardNum = cachedLastMonthData.equipSupplyCardNum;
+                debugLog('[上月水晶] equipSupplyCardNum from cache:', lastMonthData.equipSupplyCardNum);
+            }
 
         let hcoinRes = await api(e, {
             type: 'bh3_hcoinBalance',
@@ -479,7 +602,15 @@ export class bh3_ledger extends plugin {
             if (firstItem) hcoinBalance = parseInt(firstItem.value);
         }
 
-        let equipSupplyCardNum = lastMonthData?.equipSupplyCardNum || 0;
+        let equipSupplyCardNum = await this.getHandbookSupplyCardCount(uid, headers, region, true);
+        if (equipSupplyCardNum === null) {
+            const lastMonthStart = moment().subtract(1, 'month').startOf('month');
+            const lastMonthEnd = moment().subtract(1, 'month').endOf('month');
+            equipSupplyCardNum = await this.getEquipSupplyCardNum(e, uid, headers, lastMonthStart, lastMonthEnd);
+        }
+        if (!equipSupplyCardNum) equipSupplyCardNum = Number(lastMonthData?.equipSupplyCardNum || cachedLastMonthData?.equipSupplyCardNum || 0);
+        lastMonthData.equipSupplyCardNum = equipSupplyCardNum;
+        await this.saveLedger(uid, lastMonthData);
 
         let { avatarUrl, nickname, userLevel, serverName } = await this.getUserInfo(e, headers, uid, region);
 

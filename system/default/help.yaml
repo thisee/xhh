@@ -38,6 +38,12 @@
       desc: '查询崩坏3上月水晶统计'
     - title: '切换水晶uid'
       desc: '切换崩坏3水晶查询的账号'
+    - title: '抽卡记录'
+      desc: '查看崩坏3抽卡记录统计'
+    - title: '刷新抽卡记录'
+      desc: '增量更新崩坏3抽卡记录（需要stoken）'
+    - title: '全量刷新抽卡记录'
+      desc: '全量更新崩坏3抽卡记录（需要stoken）'
 
 - group: bilibili命令
   list:
