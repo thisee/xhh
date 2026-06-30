@@ -1,5 +1,4 @@
 import { config } from '#xhh';
-import { bot } from '../../trss.yunzai/src/bot/Bot';
 
 logger.info('[bh3_remind] 文件已加载');
 
