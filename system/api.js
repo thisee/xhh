@@ -149,7 +149,28 @@ async function api(e, data = {}) {
             obj: {
                 method: 'GET',
             },
-        }
+        },
+        //崩三体力便笺
+        bh3_note: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/app/honkai3rd/api/note?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三深渊战报 (超弦空间)
+        bh3_new_abyss: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/app/honkai3rd/api/newAbyssReport?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
+        //崩三深渊战报 (旧深渊)
+        bh3_old_abyss: {
+            url: `https://api-takumi-record.mihoyo.com/game_record/app/honkai3rd/api/latestOldAbyssReport?role_id=${uid}&server=${server}`,
+            obj: {
+                method: 'GET',
+            },
+        },
     };
 
     const {

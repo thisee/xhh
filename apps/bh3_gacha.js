@@ -543,6 +543,7 @@ export class bh3_gacha extends plugin {
       const buf = await puppeteer.render('小花火/bh3_gacha/gacha', {
         ...data,
         ...player,
+        bg: ['bg', 'bg1', 'IMG_20250717_034154'][Math.floor(Math.random() * 3)],
         sys: { scale: 'style=transform:scale(1)' },
         ppath: '../../../../../plugins/xhh/resources/',
         tplFile: process.cwd() + '/plugins/xhh/resources/bh3_gacha/gacha.html',

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_note/note.css" />
+</head>
+<body {{sys.scale}}>
+  <div class="container" style="background-image: url({{ppath}}Tl/imgs/{{bg}}.jpg)">
+    <div class="header">
+      <div class="player">
+        <div class="avatar">
+          {{if avatarUrl}}
+          <img src="{{avatarUrl}}" alt="">
+          {{else}}
+          <span>舰</span>
+          {{/if}}
+        </div>
+        <div class="player-info">
+          <div class="nickname">{{nickname}}</div>
+          <div class="meta">UID {{uid}} · {{region}} · Lv.{{level}}</div>
+          <div class="stats">
+            <span class="stat">登舰 {{activeDays}} 天</span>
+            <span class="stat">评级 {{rating}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="time">{{dataTime}}</div>
+    </div>
+
+    <div class="stamina-card">
+      <div class="stamina-header">
+        <div class="stamina-title">体力</div>
+        <div class="stamina-value">{{currentStamina}} <span class="stamina-max">/ {{maxStamina}}</span></div>
+      </div>
+      <div class="stamina-bar-bg">
+        <div class="stamina-bar-fill" style="width: {{staminaPercent}}%"></div>
+      </div>
+      <div class="stamina-recover">{{staminaRecover}}</div>
+    </div>
+
+    <div class="train-card">
+      <div class="train-header">
+        <span class="train-title">历练值</span>
+        <span class="train-value">{{currentTrain}} / {{maxTrain}}</span>
+      </div>
+      <div class="train-bar-bg">
+        <div class="train-bar-fill" style="width: {{trainPercent}}%"></div>
+      </div>
+    </div>
+
+    <div class="activities">
+      {{if ultraEndless && ultraEndless.is_open}}
+      <div class="activity">
+        <div class="act-left">
+          <div class="act-name">超弦空间</div>
+          <div class="act-remain">{{ultraEndless.challenge_score || '?'}} 分</div>
+        </div>
+        <div class="act-right">{{ultraEndless.remain}}</div>
+      </div>
+      {{/if}}
+
+      {{if greedyEndless && greedyEndless.is_open && (!ultraEndless || !ultraEndless.is_open)}}
+      <div class="activity">
+        <div class="act-left">
+          <div class="act-name">贪婪无尽</div>
+          <div class="act-remain">{{greedyEndless.cur_reward || 0}}/{{greedyEndless.max_reward || 0}}</div>
+        </div>
+        <div class="act-right">{{greedyEndless.remain}}</div>
+      </div>
+      {{/if}}
+
+      {{if battleField && battleField.is_open}}
+      <div class="activity">
+        <div class="act-left">
+          <div class="act-name">记忆战场</div>
+          <div class="act-remain">{{battleField.cur_reward || 0}} / {{battleField.max_reward || 0}}</div>
+        </div>
+        <div class="act-right">{{battleField.remain}}</div>
+      </div>
+      {{/if}}
+
+      {{if godWar && godWar.is_open}}
+      <div class="activity">
+        <div class="act-left">
+          <div class="act-name">往世乐土</div>
+          <div class="act-remain">{{godWar.cur_reward || 0}} / {{godWar.max_reward || 0}}</div>
+        </div>
+        <div class="act-right">{{godWar.remain}}</div>
+      </div>
+      {{/if}}
+
+      {{if (!ultraEndless || !ultraEndless.is_open) && (!greedyEndless || !greedyEndless.is_open) && (!battleField || !battleField.is_open) && (!godWar || !godWar.is_open)}}
+      <div class="activity empty">暂无进行中的活动</div>
+      {{/if}}
+    </div>
+
+    <div class="footer">from 小花火</div>
+  </div>
+</body>
+</html>

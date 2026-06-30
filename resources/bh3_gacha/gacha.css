@@ -14,11 +14,10 @@ body { width: 1400px; font-family: "xhh", "SR", sans-serif; color: #fff; backgro
 .total-label { margin-top: 8px; font-size: 20px; color: #cfd6e6; }
 .pool { margin-top: 30px; }
 .pool-banner { min-height: 126px; padding: 0 56px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, rgba(56,67,91,.95), rgba(38,47,70,.95)); border-radius: 12px; border-left: 10px solid #fee772; box-shadow: 0 8px 24px rgba(0,0,0,.35); position: relative; overflow: hidden; }
-.pool-banner::after { content: ""; position: absolute; inset: 0; background: url("./banner.png") center / 100% 100% no-repeat; opacity: .38; pointer-events: none; }
 .pool-title { position: relative; z-index: 1; font-size: 38px; font-weight: 900; color: #fff; max-width: 480px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pool-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, 135px); gap: 16px; text-align: center; }
-.pool-stats b { display: block; font-size: 42px; line-height: 1; color: #fff; font-style: italic; }
-.pool-stats span { display: block; margin-top: 8px; font-size: 18px; color: #d7dce8; }
+.pool-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, 145px); gap: 20px; text-align: center; }
+.pool-stats b { display: block; font-size: 42px; line-height: 1; color: #fff; font-style: italic; font-synthesis: none; }
+.pool-stats span { display: block; margin-top: 8px; font-size: 18px; color: #e8ecf5; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
 .gold-grid { padding: 28px 40px 4px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px 26px; }
 .gold-item { height: 198px; position: relative; display: flex; flex-direction: column; align-items: center; }
 .frame { width: 158px; height: 158px; padding: 8px 8px 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: linear-gradient(180deg, rgba(255,231,114,.95), rgba(176,112,31,.95)); border: 4px solid rgba(255,255,255,.75); border-radius: 18px; box-shadow: 0 8px 22px rgba(0,0,0,.35), inset 0 0 0 3px rgba(80,44,14,.25); overflow: hidden; }
