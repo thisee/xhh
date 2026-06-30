@@ -18,20 +18,23 @@
           <p class="name">{{qqname}}</p>
           <hr />
           <div class="zi_">
-            <p class="game_list">游戏列表：</p>
-            {{if gs_data}}
-            <p>原神</p>
-            {{/if}} {{if sr_data}}
-            <p>崩坏星穹铁道</p>
-            {{/if}} {{if zzz_data}}
-            <p>绝区零</p>
-            {{/if}} {{if bh3_data}}
-            <p>崩坏3</p>
-            {{/if}}
+            <div class="game-tags">
+              <p class="game_list">游戏列表：</p>
+              {{if gs_data}}
+              <p>原神</p>
+              {{/if}} {{if sr_data}}
+              <p>崩坏星穹铁道</p>
+              {{/if}} {{if zzz_data}}
+              <p>绝区零</p>
+              {{/if}} {{if bh3_data}}
+              <p>崩坏3</p>
+              {{/if}}
+            </div>
             <img class="xhh" src="{{ppath}}Tl/imgs/小花火.png" />
-            <br />
-            <p class="n_time">获取时间：</p>
-            <p class="n_time_">{{time}}</p>
+            <div class="time-line">
+              <p class="n_time">获取时间：</p>
+              <p class="n_time_">{{time}}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -307,7 +310,13 @@
           </div>
           <div class="right_box">
             <div class="_box_">
-              <img src="{{ppath}}Tl/imgs/水晶.svg" />
+              <span class="bh3-note-icon bh3-train-icon">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <path d="M32 7 54 20v24L32 57 10 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
+                  <path d="M32 16 45 24v16l-13 8-13-8V24z" fill="currentColor" opacity=".9"/>
+                  <path d="M32 22v20M22 32h20" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+                </svg>
+              </span>
               <p>历练值</p>
               <div class="right_">
                 <p class="{{bh3_data.current_train_score<bh3_data.max_train_score ? 'red' : 'blue'}}">{{bh3_data.current_train_score}}</p>
