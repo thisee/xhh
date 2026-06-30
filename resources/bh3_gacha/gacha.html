@@ -5,45 +5,60 @@
   <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_gacha/gacha.css" />
 </head>
 <body {{sys.scale}}>
-  <div class="container">
-    <div class="header">
-      <div>
-        <div class="title">崩坏3 抽卡出金记录</div>
-        <div class="sub">UID {{uid}} · 共 {{total}} 抽 · 更新 {{data_time}}</div>
-      </div>
-      <div class="brand">小花火</div>
-    </div>
-    <div class="cards">
-      {{each pools pool}}
-      <div class="pool">
-        <div class="pool-head">
-          <div class="pool-name">{{pool.name}}</div>
-          <div class="pool-count">{{pool.count}} 抽</div>
-        </div>
-        <div class="stat-row">
-          <div class="stat"><span>出金数</span><b>{{pool.goldCount}}</b></div>
-          <div class="stat"><span>当前垫数</span><b>{{pool.currentPity}}</b></div>
-          <div class="stat"><span>平均出金</span><b>{{pool.avgPulls}}</b></div>
-          <div class="stat"><span>最非一次</span><b>{{pool.maxPulls}}</b></div>
-        </div>
-        <div class="records">
-          {{if pool.items.length}}
-          {{each pool.items r i}}
-          <div class="record rare">
-            <span class="idx">{{i + 1}}</span>
-            <span class="pulls">{{r.pulls}}抽</span>
-            <span class="content">{{r.display || r.content}}</span>
-            <span class="time">{{r.time}}</span>
-          </div>
-          {{/each}}
+  <div class="page">
+    <div class="user-card">
+      <div class="user-left">
+        <div class="avatar">
+          {{if avatarUrl}}
+          <img src="{{avatarUrl}}" alt="">
           {{else}}
-          <div class="empty">暂无出金记录，已连续 {{pool.currentPity}} 抽未出</div>
+          <span>舰</span>
           {{/if}}
         </div>
+        <div>
+          <div class="main-title">崩坏3抽卡记录</div>
+          <div class="meta">{{if nickname}}{{nickname}}　{{/if}}UID {{uid}}{{if userLevel}}　Lv.{{userLevel}}{{/if}}{{if serverName}}　{{serverName}}{{/if}}　数据更新时间：{{data_time}}</div>
+        </div>
       </div>
-      {{/each}}
+      <div class="total-box">
+        <div class="total-num">{{total}}</div>
+        <div class="total-label">总抽数</div>
+      </div>
     </div>
-    <div class="tip">角色池显示 S 角色，装备池显示 5星武器，协同者池显示协同者</div>
+
+    {{each pools pool}}
+    <section class="pool">
+      <div class="pool-banner">
+        <div class="pool-title">{{pool.name}}</div>
+        <div class="pool-stats">
+          <div><b>{{pool.avgPulls}}</b><span>平均抽数</span></div>
+          <div><b>{{pool.count}}</b><span>抽卡总数</span></div>
+          <div><b>{{pool.currentPity}}</b><span>当前垫数</span></div>
+          <div><b>{{pool.goldCount}}</b><span>出金次数</span></div>
+        </div>
+      </div>
+
+      {{if pool.items.length}}
+      <div class="gold-grid">
+        {{each pool.items item}}
+        <div class="gold-item">
+          <div class="frame">
+            {{if item.icon}}
+            <img class="item-icon" src="{{item.icon}}" alt="">
+            {{/if}}
+            <div class="gold-name {{if item.icon}}with-icon{{/if}}">{{item.display || item.content}}</div>
+          </div>
+          <div class="pull-tag">{{item.pulls}}抽</div>
+        </div>
+        {{/each}}
+      </div>
+      {{else}}
+      <div class="empty">暂未记录到出金，已连续 {{pool.currentPity}} 抽未出</div>
+      {{/if}}
+    </section>
+    {{/each}}
+
+    <div class="footer">from 小花火</div>
   </div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { yaml, mhy } from '#xhh';
+import { yaml, mhy, api } from '#xhh';
 import fs from 'fs';
 import path from 'path';
 import moment from 'moment';
@@ -11,6 +11,7 @@ const GACHA_MENUS_URL = 'https://public-operation-common.mihoyo.com/common/bh3_s
 const GACHA_LOG_URL = 'https://public-operation-common.mihoyo.com/common/bh3_self_help_query/UserGachaQuery/GetUserGacha';
 const BH3_WIKI_BASE = 'https://api-takumi-static.mihoyo.com/common/blackboard/bh3_wiki/v1/home/content/list?app_sn=bh3_wiki';
 let starMapCache = null;
+const ICON_CACHE_DIR = './plugins/xhh/data/bh3_gacha/icons';
 
 
 async function sendMsg(e, msg) {
@@ -74,6 +75,7 @@ export class bh3_gacha extends plugin {
     let uid = await redis.get(`xhh:bh3_uid:${qq}`);
     let region = uid ? await redis.get(`xhh:bh3_region:${qq}`) : null;
     let stokenCookie = null;
+    let ck = null;
 
     const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
     if (fs.existsSync(stokenPath)) {
@@ -92,6 +94,17 @@ export class bh3_gacha extends plugin {
       if (entry) {
         region = entry.region || region;
         stokenCookie = entry.ck_stoken || (entry.stuid && entry.stoken ? `stuid=${entry.stuid};stoken=${entry.stoken};${entry.mid ? `mid=${entry.mid};` : ''}` : null);
+        if (entry.stuid) {
+          try {
+            const nu = await NoteUser.create(qq);
+            for (const ltuid in nu.mysUsers || {}) {
+              if (String(ltuid) === String(entry.stuid)) {
+                ck = nu.mysUsers[ltuid].ck;
+                break;
+              }
+            }
+          } catch (_) {}
+        }
       }
     }
 
@@ -103,7 +116,18 @@ export class bh3_gacha extends plugin {
     if (!stokenCookie) {
       return { error: '未找到 stoken，抽卡记录需要先扫码绑定/保存 stoken 后才能生成 authkey。' };
     }
-    return { qq, uid, region, stokenCookie };
+    if (!ck) {
+      try {
+        const nu = await NoteUser.create(qq);
+        for (const ltuid in nu.mysUsers || {}) {
+          if (nu.mysUsers[ltuid]?.ck) {
+            ck = nu.mysUsers[ltuid].ck;
+            break;
+          }
+        }
+      } catch (_) {}
+    }
+    return { qq, uid, region, stokenCookie, ck };
   }
 
   async getAuthKey(uid, region, stokenCookie) {
@@ -158,6 +182,16 @@ export class bh3_gacha extends plugin {
     });
   }
 
+  isValidGachaMenuName(name = '') {
+    name = String(name);
+    if (!name) return false;
+    // GetMenus 的不同 type 会混入自助查询菜单，例如水晶记录/充值记录/礼包币记录/材料等，
+    // 这些不是补给卡池，不能作为抽卡池统计。
+    if (/水晶|充值|礼包币|材料/.test(name)) return false;
+    if (/^(角色|武器|圣痕)$/.test(name)) return false;
+    return /补给|扩充|精准|家园|协同者|人偶|服装/.test(name);
+  }
+
   async getMenus(uid, authkey) {
     const menus = [];
     const seen = new Set();
@@ -171,10 +205,12 @@ export class bh3_gacha extends plugin {
       logger.mark(`[xhh][bh3_gacha] GetMenus type=${menuType} response:`, JSON.stringify(res));
       const list = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.list) ? res.data.list : Array.isArray(res?.data?.menus) ? res.data.menus : [];
       for (const menu of list) {
-        const key = `${menu.type || ''}:${menu.label || menu.name || ''}`;
+        const label = menu.label || menu.name || '';
+        if (!this.isValidGachaMenuName(label)) continue;
+        const key = `${menu.type || ''}:${label}`;
         if (!seen.has(key)) {
           seen.add(key);
-          menus.push(menu);
+          menus.push({ ...menu, label });
         }
       }
     }
@@ -281,6 +317,8 @@ export class bh3_gacha extends plugin {
     if (starMapCache) return starMapCache;
     const char = {};
     const weapon = {};
+    const charIcon = {};
+    const weaponIcon = {};
     try {
       const [chars, weapons] = await Promise.all([
         fetch(`${BH3_WIKI_BASE}&channel_id=18`).then(r => r.json()),
@@ -296,6 +334,7 @@ export class bh3_gacha extends plugin {
           else if (filters.some(v => v === '初始阶级/B')) rank = 2;
         } catch (_) {}
         if (rank) char[item.title] = rank;
+        if (item.icon) charIcon[item.title] = item.icon;
       }
       for (const item of weapons?.data?.list?.[0]?.list || []) {
         let rank = 0;
@@ -311,13 +350,118 @@ export class bh3_gacha extends plugin {
           }
         } catch (_) {}
         if (rank) weapon[item.title] = rank;
+        if (item.icon) weaponIcon[item.title] = item.icon;
       }
       logger.mark(`[xhh][bh3_gacha] star maps: char=${Object.keys(char).length}, weapon=${Object.keys(weapon).length}`);
     } catch (err) {
       logger.warn?.('[xhh][bh3_gacha] 获取出金星级映射失败:', err);
     }
-    starMapCache = { char, weapon };
+    starMapCache = { char, weapon, charIcon, weaponIcon };
     return starMapCache;
+  }
+
+  async getPlayerInfo(e, auth = {}) {
+    const uid = auth.uid;
+    const server = auth.region || mhy.getServer(uid, 'bh3');
+    const info = {
+      avatarUrl: '',
+      nickname: '',
+      userLevel: 0,
+      serverName: '',
+    };
+    if (!uid || !auth.ck) return info;
+    try {
+      const headers = mhy.getHeaders(e, auth.ck);
+      const res = await api(e, {
+        type: 'bh3_index',
+        uid,
+        headers,
+        game: 'bh3',
+        server,
+      });
+      if (res?.retcode === 0 && res.data?.role) {
+        info.avatarUrl = res.data.role.AvatarUrl || '';
+        info.nickname = res.data.role.nickname || '';
+        info.userLevel = res.data.role.level || 0;
+        const region = res.data.role.region || server || '';
+        const serverMap = {
+          cn_gf01: '官服',
+          cn_qd01: 'B服',
+          os_usa: '美服',
+          os_euro: '欧服',
+          os_asia: '亚服',
+          os_cht: '港澳台服',
+          android01: '安卓官服',
+          ios01: 'iOS服',
+          bb01: '哔哩哔哩',
+          pc01: '全平台（桌面）服',
+          yyb01: '应用宝服',
+          hun01: '渠道1服',
+          hun02: '渠道2服',
+        };
+        info.serverName = serverMap[region] || region || '';
+      }
+      if (!info.avatarUrl) {
+        const char = await api(e, {
+          type: 'bh3_character',
+          uid,
+          headers,
+          game: 'bh3',
+          server,
+        });
+        if (char?.retcode === 0 && char.data?.characters?.length) {
+          info.avatarUrl = char.data.characters[0].character?.avatar?.icon_path || '';
+        }
+      }
+      if (info.avatarUrl) {
+        info.avatarUrl = await this.cacheIcon(`player_${uid}`, info.avatarUrl, 'avatar') || await this.ensureAbsoluteUrl(info.avatarUrl) || info.avatarUrl;
+      }
+    } catch (err) {
+      logger.warn?.('[xhh][bh3_gacha] 获取玩家头像失败:', err);
+    }
+    return info;
+  }
+
+  async ensureAbsoluteUrl(url) {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('//')) return `https:${url}`;
+    if (url.startsWith('/')) return `https://api-takumi-static.mihoyo.com${url}`;
+    return `https://${url}`;
+  }
+
+  async cacheIcon(name, url, type = 'item') {
+    if (!url) return '';
+    const absUrl = await this.ensureAbsoluteUrl(url);
+    try {
+      fs.mkdirSync(ICON_CACHE_DIR, { recursive: true });
+      const safe = `${type}_${name}`.replace(/[\\/:*?"<>|\s]/g, '_');
+      const ext = new URL(absUrl).pathname.split('.').pop()?.split('?')[0] || 'png';
+      const file = path.join(ICON_CACHE_DIR, `${safe}.${ext}`);
+      if (!fs.existsSync(file)) {
+        const res = await fetch(absUrl);
+        if (!res.ok) return absUrl;
+        const buf = Buffer.from(await res.arrayBuffer());
+        fs.writeFileSync(file, buf);
+      }
+      const relPath = path.relative(process.cwd(), file);
+      return `../../../../../${relPath}`;
+    } catch (err) {
+      logger.warn?.('[xhh][bh3_gacha] icon cache failed:', name, err);
+      return absUrl;
+    }
+  }
+
+  async getItemIcon(content = '', poolType = 'char', maps = {}) {
+    if (poolType === 'char') {
+      const name = this.extractCharacterName(content);
+      return this.cacheIcon(name, maps.charIcon?.[name], 'char');
+    }
+    if (poolType === 'weapon') {
+      const name = this.extractWeaponName(content);
+      return this.cacheIcon(name, maps.weaponIcon?.[name], 'weapon');
+    }
+    return '';
   }
 
   isRareRecord(content = '', poolType = 'char', maps = { char: {}, weapon: {} }) {
@@ -334,7 +478,7 @@ export class bh3_gacha extends plugin {
     const log = this.loadGacha(uid);
     if (!log?.data || !Object.keys(log.data).length) return null;
     const maps = await this.getStarMaps();
-    const pools = Object.entries(log.data).map(([name, records]) => {
+    const pools = await Promise.all(Object.entries(log.data).filter(([name]) => this.isValidGachaMenuName(name)).map(async ([name, records]) => {
       const poolType = this.getPoolType(name);
       const sorted = [...records].sort((a, b) => String(a.time).localeCompare(String(b.time)));
       const items = [];
@@ -343,7 +487,12 @@ export class bh3_gacha extends plugin {
       for (const r of sorted) {
         pullSinceLast++;
         if (this.isRareRecord(r.content, poolType, maps)) {
-          items.push({ ...r, pulls: pullSinceLast, display: poolType === 'char' ? this.extractCharacterName(r.content) : poolType === 'weapon' ? this.extractWeaponName(r.content) : r.content });
+          items.push({
+            ...r,
+            pulls: pullSinceLast,
+            display: poolType === 'char' ? this.extractCharacterName(r.content) : poolType === 'weapon' ? this.extractWeaponName(r.content) : r.content,
+            icon: await this.getItemIcon(r.content, poolType, maps),
+          });
           pullCounts.push(pullSinceLast);
           pullSinceLast = 0;
         }
@@ -362,8 +511,9 @@ export class bh3_gacha extends plugin {
         latest: records[0]?.time || '',
         items: items.slice(0, 12),
       };
-    });
+    }));
     const total = pools.reduce((sum, p) => sum + p.count, 0);
+    if (!pools.length) return null;
     return { uid, total, data_time: log.data_time || '未知', pools };
   }
 
@@ -385,12 +535,14 @@ export class bh3_gacha extends plugin {
     return lines.join('\n');
   }
 
-  async renderSummary(e, uid) {
+  async renderSummary(e, uid, auth = {}) {
     const data = await this.makeSummaryData(uid);
     if (!data) return sendMsg(e, `UID${uid} 还没有抽卡记录，请先使用 #刷新抽卡记录`);
     try {
+      const player = await this.getPlayerInfo(e, { ...auth, uid });
       const buf = await puppeteer.render('小花火/bh3_gacha/gacha', {
         ...data,
+        ...player,
         sys: { scale: 'style=transform:scale(1)' },
         ppath: '../../../../../plugins/xhh/resources/',
         tplFile: process.cwd() + '/plugins/xhh/resources/bh3_gacha/gacha.html',
@@ -411,7 +563,7 @@ export class bh3_gacha extends plugin {
   async gachaSummary(e) {
     const auth = await this.getAuth(e);
     if (auth.error) return sendMsg(e, auth.error);
-    return this.renderSummary(e, auth.uid);
+    return this.renderSummary(e, auth.uid, auth);
   }
 
   async refreshGacha(e) {
