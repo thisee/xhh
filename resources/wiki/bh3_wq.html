@@ -5,59 +5,56 @@
   <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/bh3_wq.css" />
 </head>
 <body {{sys.scale}}>
-<div class="wrapper">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="header">
-            <div class="left">
-                <img class="weapon-img" src="{{img}}">
-            </div>
-            <div class="right">
-                <div class="name-box">
-                    <div class="name">{{name}}</div>
-                    <div class="type-rarity">{{type}} · {{star}}</div>
-                </div>
-                <table class="info-table">
-                    <tr>
-                        <td>基础攻击力</td>
-                        <td>{{atk}}</td>
-                    </tr>
-                    <tr>
-                        <td>副属性</td>
-                        <td>{{attr_.value}}</td>
-                    </tr>
-                </table>
-            </div>
+<div class="wiki-page">
+  <div class="grid-light"></div>
+  <main class="weapon-card">
+    <section class="hero">
+      <div class="weapon-stage">
+        <div class="halo"></div>
+        <img class="weapon-img" src="{{img}}">
+      </div>
+      <div class="hero-info">
+        <div class="eyebrow">Honkai Impact 3rd · Weapon File</div>
+        <h1 class="name">{{name}}</h1>
+        <p class="subtitle">{{type}} · {{star}} · 攻击力 {{atk}}</p>
+        <div class="quick-stats">
+          <div class="stat"><span>武器类型</span><b>{{type}}</b></div>
+          <div class="stat"><span>基础攻击力</span><b>{{atk}}</b></div>
+          <div class="stat"><span>副属性</span><b>{{attr_.value}}</b></div>
         </div>
-        <div class="description">
-            <div class="desc-title">武器技能</div>
-            <div class="rich-text">{{@rich_text}}</div>
-        </div>
-        <div class="attributes">
-            <div class="attr-title">详细属性</div>
-            <table class="attr-table">
-                {{each attr as v i}}
-                <tr>
-                    <td>{{v.key}}</td>
-                    <td>{{v.value}}</td>
-                </tr>
-                {{/each}}
-            </table>
-        </div>
-        <div class="materials">
-            <div class="material-title">锻造材料</div>
-            <div class="material-grid">
-                {{each materials as v i}}
-                    <div class="material-item">
-                        <img src="{{v.icon}}">
-                        <div class="material-name">{{v.name}}</div>
-                        <div class="material-count">x{{v.count}}</div>
-                    </div>
-                {{/each}}
-            </div>
-            <div class="week">获取途径: {{week}}</div>
-        </div>
-    </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span>SKILL</span><h2>武器技能</h2><p>保留 Wiki 原文结构，使用更清晰的阅读卡片展示。</p></div>
+      <div class="rich-text">{{@rich_text}}</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span>DETAIL</span><h2>详细属性</h2><p>核心数值集中展示，截图时更容易对照。</p></div>
+      <div class="attr-list">
+        {{each attr as v i}}
+        <div class="attr-row"><span>{{v.key}}</span><b>{{v.value}}</b></div>
+        {{/each}}
+      </div>
+    </section>
+
+    {{if materials && materials.length}}
+    <section class="panel">
+      <div class="panel-head"><span>MATERIAL</span><h2>锻造材料</h2><p>材料数量与图标分块排列，避免长名称互相挤压。</p></div>
+      <div class="material-grid">
+        {{each materials as v i}}
+          <div class="material-item">
+            <img src="{{v.icon}}">
+            <div class="material-name">{{v.name}}</div>
+            <div class="material-count">×{{v.count}}</div>
+          </div>
+        {{/each}}
+      </div>
+      <div class="week">获取途径：{{week}}</div>
+    </section>
+    {{/if}}
+  </main>
 </div>
 </body>
 </html>

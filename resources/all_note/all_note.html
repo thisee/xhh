@@ -24,26 +24,30 @@
         </div>
 
         <div class="stamina-bar">
-          <div class="stamina-label">{{staminaLabel}}</div>
+          <div class="stamina-label">{{g.staminaLabel}}</div>
           <div class="stamina-progress">
-            <div class="stamina-fill" style="width: {{staminaPercent}}%"></div>
+            <div class="stamina-fill" style="width: {{g.staminaPercent}}%"></div>
           </div>
           <div class="stamina-value">{{g.currentStamina}} / {{g.maxStamina}}</div>
         </div>
         <div class="stamina-recover">回满: {{g.staminaRecover}}</div>
 
-        {{if g.expedition !== undefined}}
+        {{if g.finishedTask !== undefined}}
         <div class="extra-row">
-          <span>派遣 {{g.expedition}}/4</span>
-          <span>瓶装 {{g.homeCoin}}</span>
-          <span>合成台 {{g.transformer}}</span>
+          <span>委托 {{g.finishedTask}}/{{g.totalTask}}</span>
+          <span>派遣 {{g.expedition}}/{{g.maxExpedition}}</span>
         </div>
         {{/if}}
         {{if g.trainScore !== undefined}}
         <div class="extra-row">
-          <span>开拓力 {{g.trainScore}}/{{g.maxTrainScore}}</span>
-          <span>模拟 {{g.weeklyMock}}</span>
-          <span>差分 {{g.rogueScore}}</span>
+          <span>实训 {{g.trainScore}}/{{g.maxTrainScore}}</span>
+          <span>后备 {{g.reserveStamina}}</span>
+        </div>
+        {{/if}}
+        {{if g.vitalityCurrent !== undefined}}
+        <div class="extra-row">
+          <span>活跃 {{g.vitalityCurrent}}/{{g.vitalityMax}}</span>
+          <span>周纪 {{g.weeklyCur}}/{{g.weeklyMax}}</span>
         </div>
         {{/if}}
         {{if g.currentTrain !== undefined}}

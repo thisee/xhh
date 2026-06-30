@@ -15,7 +15,7 @@ export class TL extends plugin {
       priority: -99,
       rule: [
         {
-          reg: '^(#|\\*|%)*(小花火|原神|星铁|绝区零|崩三|崩坏3|崩坏三|BH3)*体力$',
+          reg: '^(#|\\*|%)*(原神|星铁|绝区零)*体力$',
           fnc: 'note_',
         },
       ],

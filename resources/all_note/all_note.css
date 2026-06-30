@@ -1,11 +1,13 @@
 @font-face { font-family: "Chinese"; src: url("../font/SR.ttf") format("truetype"); }
 @font-face { font-family: "CJKFallback"; src: url("../font/wqy-microhei.ttc") format("truetype"); }
+@font-face { font-family: "SystemFallback"; src: local("WenQuanYi Zen Hei"), local("Droid Sans Fallback"), local("Noto Sans SC"), local("Noto Sans CJK SC"), local("Unifont"); }
+@font-face { font-family: "RareCJK"; src: url("../font/unifont.otf") format("opentype"); }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   width: 1280px;
-  font-family: "Chinese", "CJKFallback", sans-serif;
+  font-family: "Chinese", "CJKFallback", "SystemFallback", "WenQuanYi Zen Hei", "Droid Sans Fallback", "Noto Sans SC", "Noto Sans CJK SC", "Unifont", "RareCJK", sans-serif;
   color: #f7fbff;
   background: #171b2b;
 }
@@ -36,7 +38,6 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
- 0;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(255,255,255,.12);
 }

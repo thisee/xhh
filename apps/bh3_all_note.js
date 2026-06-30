@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import { yaml, mhy, api } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
@@ -71,7 +72,7 @@ export class bh3_all_note extends plugin {
       event: 'message',
       priority: 100,
       rule: [
-        { reg: '^#*(全体力|四游戏体力|米游社体力|体力总览)$', fnc: 'allNote' },
+        { reg: '^#*(小花火体力|全体力|四游戏体力|米游社体力|体力总览)$', fnc: 'allNote' },
       ],
     });
   }
@@ -148,7 +149,7 @@ export class bh3_all_note extends plugin {
   }
 
   getDefaultRegion(game) {
-    const defaults = { gs: 'cn_gf01', sr: 'cn_gf_gf01', zzz: 'cn_gf01', bh3: 'android01' };
+    const defaults = { gs: 'cn_gf01', sr: 'cn_gf01', zzz: 'cn_gf01', bh3: 'android01' };
     return defaults[game] || 'cn_gf01';
   }
 
@@ -156,145 +157,27 @@ export class bh3_all_note extends plugin {
     await e.reply('正在获取四游戏体力数据...', true);
 
     const results = [];
-    let hasAny = false;
+    const add = (item) => {
+      if (!item) return;
+      item.staminaPercent = Math.min(Math.round((item.currentStamina || 0) / (item.maxStamina || 1) * 100), 100);
+      results.push(item);
+    };
 
-    // 原神
-    try {
-      const gsAuth = await this.getAuth(e, 'gs');
-      if (gsAuth.uid && gsAuth.ck) {
-        const headers = mhy.getHeaders(e, gsAuth.ck);
-        const [indexRes, noteRes] = await Promise.all([
-          api(e, { type: 'GameRoles', uid: gsAuth.uid, headers, game: 'gs', server: gsAuth.region }),
-          api(e, { type: 'note', uid: gsAuth.uid, headers, game: 'gs', server: gsAuth.region }),
-        ]);
-        if (indexRes?.retcode === 0 && noteRes?.retcode === 0) {
-          const role = indexRes.data?.list?.[0] || {};
-          const note = noteRes.data || {};
-          results.push({
-            game: '原神',
-            icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/ys_icon.png',
-            nickname: role.nickname || '未知',
-            level: role.level || 0,
-            region: 'cn_gf01',
-            currentStamina: note.current_resin || 0,
-            maxStamina: note.max_resin || 160,
-            staminaRecover: note.resin_recovery_time ? this.fmtRecover(note.resin_recovery_time) : '已回满',
-            expedition: note.finished_task_num || 0,
-            homeCoin: note.current_home_coin || 0,
-            transformer: note.transformer?.recovery_time ? this.fmtRecover(note.transformer.recovery_time) : null,
-          });
-          hasAny = true;
-        }
-      }
-    } catch (err) {
-      logger.warn('[all_note] 原神体力获取失败:', err.message);
-    }
+    // 原神/星铁/绝区零小组件接口
+    await Promise.all([
+      this.getWidgetNote(e, 'gs').then(add).catch(err => logger.warn('[all_note] 原神体力获取失败:', err.message)),
+      this.getWidgetNote(e, 'sr').then(add).catch(err => logger.warn('[all_note] 星铁体力获取失败:', err.message)),
+      this.getWidgetNote(e, 'zzz').then(add).catch(err => logger.warn('[all_note] 绝区零体力获取失败:', err.message)),
+      this.getBh3Note(e).then(add).catch(err => logger.warn('[all_note] 崩三体力获取失败:', err.message)),
+    ]);
 
-    // 星穹铁道
-    try {
-      const srAuth = await this.getAuth(e, 'sr');
-      if (srAuth.uid && srAuth.ck) {
-        const headers = mhy.getHeaders(e, srAuth.ck);
-        const [indexRes, noteRes] = await Promise.all([
-          api(e, { type: 'GameRoles', uid: srAuth.uid, headers, game: 'sr', server: srAuth.region }),
-          api(e, { type: 'note', uid: srAuth.uid, headers, game: 'sr', server: srAuth.region }),
-        ]);
-        if (indexRes?.retcode === 0 && noteRes?.retcode === 0) {
-          const role = indexRes.data?.list?.[0] || {};
-          const note = noteRes.data || {};
-          results.push({
-            game: '星穹铁道',
-            icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/sr_icon.png',
-            nickname: role.nickname || '未知',
-            level: role.level || 0,
-            region: 'cn_gf01',
-            currentStamina: note.current_stamina || 0,
-            maxStamina: note.max_stamina || 240,
-            staminaRecover: note.stamina_recover_time ? this.fmtRecover(note.stamina_recover_time) : '已回满',
-            trainScore: note.current_train_score || 0,
-            maxTrainScore: note.max_train_score || 18000,
-            rogueScore: note.rogue_score || 0,
-            weeklyMock: note.weekly_mock_score || 0,
-          });
-          hasAny = true;
-        }
-      }
-    } catch (err) {
-      logger.warn('[all_note] 星铁体力获取失败:', err.message);
-    }
+    if (!results.length) return sendMsg(e, '未获取到任何体力数据，请先绑定账号或检查 Cookie');
 
-    // 绝区零
-    try {
-      const zzzAuth = await this.getAuth(e, 'zzz');
-      if (zzzAuth.uid && zzzAuth.ck) {
-        const headers = mhy.getHeaders(e, zzzAuth.ck);
-        const [indexRes, noteRes] = await Promise.all([
-          api(e, { type: 'GameRoles', uid: zzzAuth.uid, headers, game: 'zzz', server: zzzAuth.region }),
-          api(e, { type: 'note', uid: zzzAuth.uid, headers, game: 'zzz', server: zzzAuth.region }),
-        ]);
-        if (indexRes?.retcode === 0 && noteRes?.retcode === 0) {
-          const role = indexRes.data?.list?.[0] || {};
-          const note = noteRes.data || {};
-          results.push({
-            game: '绝区零',
-            icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/zzz_icon.png',
-            nickname: role.nickname || '未知',
-            level: role.level || 0,
-            region: 'cn_gf01',
-            currentStamina: note.battery_charge || 0,
-            maxStamina: note.max_battery_charge || 180,
-            staminaRecover: note.battery_recovery_time ? this.fmtRecover(note.battery_recovery_time) : '已回满',
-          });
-          hasAny = true;
-        }
-      }
-    } catch (err) {
-      logger.warn('[all_note] 绝区零体力获取失败:', err.message);
-    }
-
-    // 崩坏3
-    try {
-      const bh3Auth = await this.getAuth(e, 'bh3');
-      if (bh3Auth.uid && bh3Auth.ck) {
-        const headers = mhy.getHeaders(e, bh3Auth.ck);
-        const [indexRes, noteRes] = await Promise.all([
-          api(e, { type: 'bh3_index', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region }),
-          api(e, { type: 'bh3_note', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region }),
-        ]);
-        if (indexRes?.retcode === 0 && noteRes?.retcode === 0) {
-          const role = indexRes.data?.role || {};
-          const stats = indexRes.data?.stats || {};
-          const pref = indexRes.data?.preference || {};
-          const note = noteRes.data || {};
-          results.push({
-            game: '崩坏3',
-            icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/bh3_icon.png',
-            nickname: role.nickname || '未知舰长',
-            level: role.level || 0,
-            region: 'cn_gf01',
-            currentStamina: note.current_stamina || 0,
-            maxStamina: note.max_stamina || 200,
-            staminaRecover: this.fmtRecover(note.stamina_recover_time),
-            currentTrain: note.current_train_score || 0,
-            maxTrain: note.max_train_score || 500,
-            ultraEndless: note.ultra_endless ? { ...note.ultra_endless, remain: this.fmtEndTs(note.ultra_endless.schedule_end) } : null,
-            greedyEndless: note.greedy_endless ? { ...note.greedy_endless, remain: this.fmtEndTs(note.greedy_endless.schedule_end) } : null,
-            battleField: note.battle_field ? { ...note.battle_field, remain: this.fmtEndTs(note.battle_field.schedule_end) } : null,
-            godWar: note.god_war ? { ...note.god_war, remain: this.fmtEndTs(note.god_war.schedule_end) } : null,
-            activeDays: stats.active_day_number || 0,
-            rating: pref.comprehensive_rating || 'C',
-          });
-          hasAny = true;
-        }
-      }
-    } catch (err) {
-      logger.warn('[all_note] 崩三体力获取失败:', err.message);
-    }
-
-    if (!hasAny) return sendMsg(e, '未获取到任何体力数据，请先绑定账号或检查 Cookie');
-
-    // 渲染聚合卡片
-    const data = { games: results, dataTime: moment().format('MM-DD HH:mm') };
+    const data = {
+      games: results.sort((a, b) => ['gs', 'sr', 'zzz', 'bh3'].indexOf(a.gameKey) - ['gs', 'sr', 'zzz', 'bh3'].indexOf(b.gameKey)),
+      bg: ['bg', 'bg1', 'IMG_20250717_034154'][Math.floor(Math.random() * 3)],
+      dataTime: moment().format('MM-DD HH:mm'),
+    };
     let buf;
     try {
       buf = await puppeteer.render('小花火/all_note/all_note', {
@@ -311,26 +194,125 @@ export class bh3_all_note extends plugin {
 
     if (buf && Buffer.isBuffer(buf)) return sendMsg(e, buf);
 
-    // 文本兜底
     const lines = ['📊 四游戏体力总览'];
     for (const g of results) {
       lines.push(`\n【${g.game}】${g.nickname} Lv.${g.level}`);
-      lines.push(`  体力: ${g.currentStamina} / ${g.maxStamina}  (${g.staminaRecover})`);
-      if (g.game === '原神') {
-        lines.push(`  派遣: ${g.expedition}/4  瓶装: ${g.homeCoin}  合成台: ${g.transformer || '已回满'}`);
-      } else if (g.game === '星穹铁道') {
-        lines.push(`  开拓力: ${g.trainScore} / ${g.maxTrainScore}  模拟: ${g.weeklyMock}  差分: ${g.rogueScore}`);
-      } else if (g.game === '绝区零') {
-        lines.push(`  电池: ${g.currentStamina} / ${g.maxStamina}  (${g.staminaRecover})`);
-      } else if (g.game === '崩坏3') {
+      lines.push(`  ${g.staminaLabel}: ${g.currentStamina} / ${g.maxStamina}  (${g.staminaRecover})`);
+      if (g.gameKey === 'gs') lines.push(`  委托: ${g.finishedTask}/${g.totalTask}  派遣: ${g.expedition}/${g.maxExpedition}`);
+      if (g.gameKey === 'sr') lines.push(`  实训: ${g.trainScore}/${g.maxTrainScore}  后备: ${g.reserveStamina}`);
+      if (g.gameKey === 'zzz') lines.push(`  活跃: ${g.vitalityCurrent}/${g.vitalityMax}  周纪: ${g.weeklyCur}/${g.weeklyMax}`);
+      if (g.gameKey === 'bh3') {
         lines.push(`  历练: ${g.currentTrain} / ${g.maxTrain}`);
-        if (g.ultraEndless?.is_open) lines.push(`  超弦: ${g.ultraEndless.challenge_score}分 剩余${g.ultraEndless.remain}`);
-        if (g.battleField?.is_open) lines.push(`  战场: ${g.battleField.cur_reward}/${g.battleField.max_reward} 剩余${g.battleField.remain}`);
-        if (g.godWar?.is_open) lines.push(`  乐土: ${g.godWar.cur_reward}/${g.godWar.max_reward} 剩余${g.godWar.remain}`);
+        if (g.ultraEndless?.is_open) lines.push(`  超弦: ${g.ultraEndless.challenge_score || '?'}分 剩余${g.ultraEndless.remain}`);
+        if (g.battleField?.is_open) lines.push(`  战场: ${g.battleField.cur_reward || 0}/${g.battleField.max_reward || 0} 剩余${g.battleField.remain}`);
+        if (g.godWar?.is_open) lines.push(`  乐土: ${g.godWar.cur_reward || 0}/${g.godWar.max_reward || 0} 剩余${g.godWar.remain}`);
       }
     }
     lines.push(`\n更新: ${moment().format('MM-DD HH:mm')}`);
     return sendMsg(e, lines.join('\n'));
+  }
+
+  async getRoleInfo(e, headers, uid) {
+    const roles = await api(e, { type: 'GameRoles', headers });
+    return roles?.data?.list?.find(v => String(v.game_uid) === String(uid)) || {};
+  }
+
+  async getWidgetNote(e, game) {
+    const auth = await this.getAuth(e, game);
+    if (!auth.uid || !auth.ck) return null;
+    const headers = mhy.getHeaders(e, auth.ck, false);
+    const urls = {
+      gs: 'https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2',
+      sr: 'https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget',
+      zzz: 'https://api-takumi-record.mihoyo.com/event/game_record_zzz/api/zzz/widget',
+    };
+    const [role, res] = await Promise.all([
+      this.getRoleInfo(e, headers, auth.uid),
+      fetch(urls[game], { method: 'get', headers }).then(r => r.json()),
+    ]);
+    if (res?.retcode !== 0) return null;
+    const note = res.data || {};
+    const common = {
+      gameKey: game,
+      uid: auth.uid,
+      nickname: role.nickname || '未知',
+      level: role.level || 0,
+      region: (game === 'sr' ? srServerMap : game === 'zzz' ? zzzServerMap : gsServerMap)[auth.region] || auth.region,
+    };
+    if (game === 'gs') {
+      return {
+        ...common,
+        game: '原神',
+        icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/ys_icon.png',
+        staminaLabel: '原粹树脂',
+        currentStamina: note.current_resin || 0,
+        maxStamina: note.max_resin || 200,
+        staminaRecover: note.resin_recovery_time ? this.fmtRecover(note.resin_recovery_time) : '已回满',
+        finishedTask: note.finished_task_num || 0,
+        totalTask: note.total_task_num || 4,
+        expedition: note.current_expedition_num || 0,
+        maxExpedition: note.max_expedition_num || 5,
+      };
+    }
+    if (game === 'sr') {
+      return {
+        ...common,
+        game: '星穹铁道',
+        icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/sr_icon.png',
+        staminaLabel: '开拓力',
+        currentStamina: note.current_stamina || 0,
+        maxStamina: note.max_stamina || 300,
+        staminaRecover: note.stamina_recover_time ? this.fmtRecover(note.stamina_recover_time) : '已回满',
+        trainScore: note.current_train_score || 0,
+        maxTrainScore: note.max_train_score || 500,
+        reserveStamina: note.current_reserve_stamina || 0,
+      };
+    }
+    return {
+      ...common,
+      game: '绝区零',
+      icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/zzz_icon.png',
+      staminaLabel: '电量',
+      currentStamina: note.energy?.progress?.current ?? note.battery_charge ?? 0,
+      maxStamina: note.energy?.progress?.max ?? note.max_battery_charge ?? 240,
+      staminaRecover: note.energy?.restore ? this.fmtRecover(note.energy.restore) : (note.battery_recovery_time ? this.fmtRecover(note.battery_recovery_time) : '已回满'),
+      vitalityCurrent: note.vitality?.current || 0,
+      vitalityMax: note.vitality?.max || 400,
+      weeklyCur: note.weekly_task?.cur_point || 0,
+      weeklyMax: note.weekly_task?.max_point || 800,
+    };
+  }
+
+  async getBh3Note(e) {
+    const bh3Auth = await this.getAuth(e, 'bh3');
+    if (!bh3Auth.uid || !bh3Auth.ck) return null;
+    const headers = mhy.getHeaders(e, bh3Auth.ck);
+    const [indexRes, noteRes] = await Promise.all([
+      api(e, { type: 'bh3_index', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region }),
+      api(e, { type: 'bh3_note', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region }),
+    ]);
+    if (indexRes?.retcode !== 0 || noteRes?.retcode !== 0) return null;
+    const role = indexRes.data?.role || {};
+    const note = noteRes.data || {};
+    return {
+      gameKey: 'bh3',
+      game: '崩坏3',
+      icon: 'https://api-takumi-static.mihoyo.com/hoyowiki/pc/icon/bh3_icon.png',
+      uid: bh3Auth.uid,
+      nickname: role.nickname || '未知舰长',
+      level: role.level || 0,
+      region: serverMap[bh3Auth.region] || bh3Auth.region,
+      staminaLabel: '体力',
+      currentStamina: note.current_stamina || 0,
+      maxStamina: note.max_stamina || 200,
+      staminaRecover: this.fmtRecover(note.stamina_recover_time),
+      currentTrain: note.current_train_score || 0,
+      maxTrain: note.max_train_score || 500,
+      ultraEndless: note.ultra_endless ? { ...note.ultra_endless, remain: this.fmtEndTs(note.ultra_endless.schedule_end) } : null,
+      greedyEndless: note.greedy_endless ? { ...note.greedy_endless, remain: this.fmtEndTs(note.greedy_endless.schedule_end) } : null,
+      battleField: note.battle_field ? { ...note.battle_field, remain: this.fmtEndTs(note.battle_field.schedule_end) } : null,
+      godWar: note.god_war ? { ...note.god_war, remain: this.fmtEndTs(note.god_war.schedule_end) } : null,
+    };
   }
 
   fmtRecover(seconds) {

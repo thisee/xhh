@@ -267,8 +267,7 @@ export class user extends plugin {
                         await this.process_files(yaml_url, data_);
                     }
                 }
-                if (e.no_reply) e.reply = e.no_reply;
-                e.reply(sendMsg.map(m => typeof m === 'string' ? m : '').join('').trim());
+                await this.replyBindResult(e, sendMsg, '小花火扫码绑定结果');
                 break;
             }
         }
@@ -338,8 +337,73 @@ export class user extends plugin {
         msgs.map((v, i) => {
             if (typeof msgs[i] === 'string') msgs[i] = msgs[i].replace(/绑定Cookie/g, '刷新Cookie');
         })
-        if (msgs.length < 2) e.reply(msgs)
-        else e.reply(await makeForwardMsg(e, msgs));
+        await this.replyBindResult(e, msgs, '小花火刷新Cookie结果');
+    }
+
+    normalizeBindMessages(msgs = []) {
+        const ret = [];
+        const pick = m => {
+            if (!m) return;
+            if (Array.isArray(m)) return m.forEach(pick);
+            if (typeof m === 'string') {
+                const text = m.trim();
+                if (text) ret.push(text);
+                return;
+            }
+            if (m.type === 'text') {
+                const text = (m.text || m.data?.text || '').trim();
+                if (text) ret.push(text);
+                return;
+            }
+            if (typeof m.message === 'string') {
+                const text = m.message.trim();
+                if (text) ret.push(text);
+                return;
+            }
+            if (m.data?.text) {
+                const text = String(m.data.text).trim();
+                if (text) ret.push(text);
+            }
+        };
+        pick(msgs);
+        const text = [...new Set(ret)]
+            .join('\n')
+            .replace(/绑定Cookie成功\s*【/g, '绑定Cookie成功\n【')
+            .replace(/(\d)(使用命令说明)/g, '$1\n$2')
+            .replace(/使用命令说明\s*#/g, '使用命令说明 #')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+        if (!text) return [];
+        const chunks = [];
+        let cur = '';
+        for (const line of text.split('\n')) {
+            if ((cur + '\n' + line).length > 900) {
+                if (cur) chunks.push(cur);
+                cur = line;
+            } else {
+                cur = cur ? `${cur}\n${line}` : line;
+            }
+        }
+        if (cur) chunks.push(cur);
+        return chunks;
+    }
+
+    async replyBindResult(e, msgs = [], title = '小花火绑定结果') {
+        if (e.no_reply) e.reply = e.no_reply;
+        const list = this.normalizeBindMessages(msgs);
+        if (!list.length) return e.reply('操作完成，但没有可展示的文本结果', true);
+        if (list.length === 1 && list[0].length < 500) return e.reply(list[0], true);
+        try {
+            const forward = await makeForwardMsg(e, list, title);
+            return e.reply(forward);
+        } catch (err) {
+            logger.warn(`[xhh][user] 合并转发失败，回退为分段文本: ${err?.message || err}`);
+            const text = list.join('\n\n');
+            if (text.length <= 1800) return e.reply(text, true);
+            for (let i = 0; i < text.length; i += 1600) {
+                await e.reply(text.slice(i, i + 1600), true);
+            }
+        }
     }
 
     async process_files(yaml_url, data_) {

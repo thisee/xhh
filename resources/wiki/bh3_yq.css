@@ -1,72 +1,20 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    font-family: 'yuan', sans-serif;
-    background: #0a0a12;
-    color: #fff;
-    min-width: 800px;
-    transform-origin: top left;
-}
 @font-face { font-family: 'yuan'; src: url('../font/yuan.ttf'); }
-@font-face { font-family: '宋'; src: url('../font/宋.ttf'); }
-@font-face { font-family: 'i'; src: url('../font/i.ttf'); }
-
-.wrapper {
-    position: relative;
-    width: 800px;
-    min-height: 500px;
-}
-.bg {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    z-index: -1;
-}
-.container {
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.header {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid rgba(255, 200, 100, 0.3);
-}
-.avatar-box { position: relative; }
-.avatar {
-    width: 180px;
-    height: 180px;
-    border-radius: 25px;
-    box-shadow: 0 10px 50px rgba(255, 165, 0, 0.4);
-    background: linear-gradient(135deg, #ff8c00, #ffd700);
-    padding: 5px;
-}
-.info { text-align: left; }
-.name {
-    font-size: 36px;
-    font-weight: bold;
-    background: linear-gradient(90deg, #ffd700, #ff8c00, #ff4500);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 5px;
-}
-
-.desc-box {
-    width: 100%;
-    max-width: 600px;
-}
-.desc-text {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 165, 0, 0.3);
-    border-radius: 15px;
-    padding: 25px;
-    line-height: 1.9;
-    font-size: 16px;
-    color: #eee;
-    text-align: center;
-    box-shadow: inset 0 0 30px rgba(255, 165, 0, 0.1);
-}
+@font-face { font-family: 'RareCJK'; src: url('../font/unifont.otf'); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { width: 860px; min-width: 860px; background: #080d18; color: #fff; font-family: 'yuan','RareCJK','Microsoft YaHei',sans-serif; transform-origin: top left; }
+.wiki-page { width: 860px; min-height: 620px; padding: 28px; overflow: hidden; background: radial-gradient(circle at 80% 18%, rgba(255,210,112,.22), transparent 32%), radial-gradient(circle at 12% 18%, rgba(90,226,255,.20), transparent 30%), linear-gradient(145deg, #111a31, #080e1b 58%, #181226); }
+.elf-card { position: relative; }
+.hero, .desc-card { border: 1px solid rgba(143,219,255,.22); background: linear-gradient(145deg, rgba(18,31,58,.88), rgba(13,17,34,.74)); box-shadow: 0 18px 58px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08); }
+.hero { min-height: 250px; border-radius: 30px; padding: 30px; display: flex; align-items: center; gap: 30px; }
+.avatar-stage { position: relative; width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.halo { position: absolute; width: 170px; height: 170px; border-radius: 38px; background: linear-gradient(135deg, rgba(255,211,112,.44), rgba(90,226,255,.18)); filter: blur(1px); transform: rotate(10deg); }
+.avatar { position: relative; width: 156px; height: 156px; object-fit: cover; border-radius: 30px; box-shadow: 0 18px 34px rgba(0,0,0,.35); }
+.eyebrow { color: #88e9ff; font-size: 15px; letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 14px; }
+.name { font-size: 46px; line-height: 1.12; font-weight: 900; text-shadow: 0 0 25px rgba(255,210,112,.28); }
+.subtitle { margin-top: 12px; color: #d7e7fb; font-size: 18px; line-height: 1.6; }
+.desc-card { margin-top: 24px; padding: 26px; border-radius: 26px; }
+.panel-head { margin-bottom: 18px; }
+.panel-head span { color: #ffd16e; font-size: 13px; letter-spacing: 2px; }
+.panel-head h2 { font-size: 28px; margin-top: 4px; }
+.panel-head p { margin-top: 8px; color: #aebdd3; font-size: 15px; line-height: 1.6; }
+.desc-text { padding: 20px; border-radius: 20px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); color: #edf7ff; line-height: 1.9; font-size: 17px; word-break: break-word; white-space: pre-wrap; }

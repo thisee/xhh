@@ -5,37 +5,40 @@
   <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/bh3_syw.css" />
 </head>
 <body {{sys.scale}}>
-<div class="wrapper">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="header">
-            <div class="name-box">
-                <div class="name">{{name}}</div>
-                <div class="set-icon">
-                    <img src="{{icon}}">
-                </div>
-            </div>
-            <div class="rarity">
-                <% for (var i = 0; i < star; i++) { %>
-                    <img class="star" src="{{ppath}}wiki/imgs/star.png">
-                <% } %>
-            </div>
+<div class="wiki-page">
+  <div class="soft-glow"></div>
+  <main class="stigma-card">
+    <section class="hero">
+      <div class="title-area">
+        <div class="eyebrow">Honkai Impact 3rd · Stigma Archive</div>
+        <h1 class="name">{{name}}</h1>
+        <p class="subtitle">圣痕资料卡 · 单件效果 / 套装效果 / 基础属性整理</p>
+        <div class="rarity">
+          <% for (var i = 0; i < star; i++) { %>
+            <img class="star" src="{{ppath}}wiki/imgs/star.png">
+          <% } %>
         </div>
-        <div class="desc-box">
-            <div class="desc-title">单件效果</div>
-            <div class="desc-text">{{desc2}}</div>
-            <div class="desc-title">套装效果</div>
-            <div class="desc-text">{{desc4}}</div>
-        </div>
-        <table class="attr-table">
-            {{each table as v i}}
-            <tr>
-                <td>{{v.key}}</td>
-                <td>{{v.value}}</td>
-            </tr>
-            {{/each}}
-        </table>
-    </div>
+      </div>
+      <div class="icon-stage"><div class="halo"></div><img src="{{icon}}"></div>
+    </section>
+
+    <section class="panel effect-panel">
+      <div class="panel-head"><span>EFFECT</span><h2>圣痕效果</h2><p>将单件与套装效果分区展示，减少长文本阅读压力。</p></div>
+      <div class="effect-grid">
+        <div class="effect-card"><h3>单件效果</h3><div class="desc-text">{{desc2}}</div></div>
+        <div class="effect-card"><h3>套装效果</h3><div class="desc-text">{{desc4}}</div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span>ATTRIBUTE</span><h2>基础属性</h2><p>属性与备注按行排列，长内容自动换行保留完整信息。</p></div>
+      <div class="attr-list">
+        {{each table as v i}}
+        <div class="attr-row"><span>{{v.key}}</span><b>{{v.value}}</b></div>
+        {{/each}}
+      </div>
+    </section>
+  </main>
 </div>
 </body>
 </html>

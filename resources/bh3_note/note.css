@@ -1,5 +1,7 @@
 @font-face { font-family: "xhh"; src: url("../font/NotoSansCJKsc-Regular.ttf"); }
 @font-face { font-family: "yuan"; src: url("../font/yuan.ttf"); }
+@font-face { font-family: "SystemFallback"; src: local("WenQuanYi Zen Hei"), local("Droid Sans Fallback"), local("Noto Sans SC"), local("Noto Sans CJK SC"), local("Unifont"); }
+@font-face { font-family: "RareCJK"; src: url("../font/unifont.otf") format("opentype"); }
 
 * {
   margin: 0;
@@ -8,7 +10,7 @@
 }
 
 body {
-  font-family: 'xhh', 'yuan', sans-serif;
+  font-family: 'xhh', 'yuan', 'SystemFallback', 'WenQuanYi Zen Hei', 'Droid Sans Fallback', 'Noto Sans SC', 'Noto Sans CJK SC', 'Unifont', 'RareCJK', sans-serif;
   font-size: 14px;
   width: 520px;
   color: #2c3e50;
@@ -190,6 +192,19 @@ body {
 
 .stamina-icon {
   background: radial-gradient(circle at 28% 22%, rgba(255,255,255,0.72) 0 13%, transparent 14%), linear-gradient(135deg, #ffb86b 0%, #ff5f6d 52%, #d946ef 100%);
+}
+
+.official-stamina-icon {
+  background: rgba(255,255,255,0.78);
+  padding: 2px;
+}
+
+.official-stamina-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transform: scale(1.22);
 }
 
 .stamina-title {
