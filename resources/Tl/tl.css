@@ -49,9 +49,8 @@ body {
 .one_box {
   display: flex;
   width: 580px;
-  height: 160px;
+  height: 180px;
   position: relative;
-  overflow: hidden;
 }
 
 .tx {
@@ -78,7 +77,7 @@ body {
 
 .zi {
   width: 420px;
-  height: 160px;
+  height: 180px;
 }
 
 .zi p {
@@ -126,7 +125,7 @@ body {
   right: -20px;
   top: 0px;
   width: 173px;
-  height: 160px;
+  height: 180px;
 }
 
 .__box {
