@@ -2,6 +2,7 @@ import {
     config,
     MysSign,
     zd_MysSign,
+    BbsSign,
     yaml,
     sleep,
     pluginPriority
@@ -25,6 +26,10 @@ export class Sign extends plugin {
                     reg: '^#(小花火|xhh)*(本群)*开始签到$',
                     fnc: 'scheduled_sign',
                     permission: 'master',
+                },
+                {
+                    reg: '^#*(小花火|xhh)*(社区|米游社|论坛)签到$',
+                    fnc: 'bbsSign',
                 },
             ],
         });
@@ -62,6 +67,20 @@ export class Sign extends plugin {
             await MysSign(e, ['gs', 'sr', 'zzz', 'bh3']);
         } catch (error) {
             logger.error(`签到异常: ${error.message}`);
+        } finally {
+            signing = false;
+        }
+        return true;
+    }
+
+    async bbsSign(e) {
+        if (!config().sign) return false;
+        if (signing) return e.reply('有签到任务进行中, 过会儿再试吧！');
+        signing = true;
+        try {
+            await BbsSign(e);
+        } catch (error) {
+            logger.error(`社区签到异常: ${error.message}`);
         } finally {
             signing = false;
         }

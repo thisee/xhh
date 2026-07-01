@@ -88,6 +88,20 @@ async function api(e, data = {}) {
                 }),
             },
         },
+        //米游社社区签到
+        bbs_sign_info: {
+            url: 'https://bbs-api.miyoushe.com/apihub/api/checkInInfo',
+            obj: {
+                method: 'GET',
+            },
+        },
+        bbs_sign: {
+            url: 'https://bbs-api.miyoushe.com/apihub/api/checkIn',
+            obj: {
+                method: 'POST',
+                body: '{}',
+            },
+        },
         //货币战争
         huobi: {
             url: `https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/grid_fight?server=${server}&role_id=${uid}`,

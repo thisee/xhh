@@ -136,6 +136,33 @@ function add(e) {
     return yaml.set(path, 'sign', data.sign);
 }
 
+async function BbsSign(e) {
+    const mys = e.user.getMysUser('gs');
+    if (!mys) return e.reply('未绑定米游社,请发送[扫码绑定]', true);
+    const ck = mys.ck;
+    let headers = mhy.getHeaders(e, ck);
+    headers.DS = mhy.getDsSign();
+    headers.Origin = 'https://act.mihoyo.com';
+    headers.Referer = 'https://act.mihoyo.com';
+
+    const data = { headers, type: 'bbs_sign_info' };
+    let res = await api(e, data);
+    if (typeof res == 'string') return e.reply(`社区签到失败：${res}`, true);
+    if (res?.retcode !== 0) return e.reply('社区签到查询失败', true);
+
+    const info = res.data || {};
+    if (info.is_sign) {
+        return e.reply(`✅ 今日已签到米游社社区\n连续签到 ${info.total_sign_day || 0} 天`, true);
+    }
+
+    data.type = 'bbs_sign';
+    const signRes = await api(e, data);
+    if (signRes?.retcode === 0) {
+        return e.reply(`✅ 社区签到成功！\n连续签到 ${(info.total_sign_day || 0) + 1} 天`, true);
+    }
+    return e.reply('❌ 社区签到失败，请稍后重试', true);
+}
+
 async function reward(e, data) {
     let rew = await redis.get(`xhh:sign:${data.game}`);
     if (rew) return JSON.parse(rew);
@@ -262,5 +289,6 @@ async function zd_MysSign(qqs) {
 
 export {
     MysSign,
-    zd_MysSign
+    zd_MysSign,
+    BbsSign,
 };
