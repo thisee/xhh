@@ -383,11 +383,15 @@ strong {
   align-items: center;
 }
 .zi_ .game-tags-grid p {
-  padding: 2px 8px;
+  padding: 2px 6px;
   background: pink;
   border-radius: 4px;
   color: #fff;
   margin: 0;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .zi_ .time-line {
