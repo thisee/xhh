@@ -167,7 +167,7 @@ export class bh3_note extends plugin {
     const ultraRaw = note.ultra_endless || null;
     const greedyRaw = note.greedy_endless || null;
     const displayAbyss = isOldAbyss ? (greedyRaw || ultraRaw) : (ultraRaw || greedyRaw);
-    const displayAbyssName = isOldAbyss ? '量子流行' : (ultraRaw ? '超弦空间' : greedyRaw ? '量子流行' : '深渊');
+    const displayAbyssName = isOldAbyss ? '量子流形' : (ultraRaw ? '超弦空间' : greedyRaw ? '量子流形' : '深渊');
     const displayAbyssValue = displayAbyss
       ? (isOldAbyss
         ? `${displayAbyss.cur_reward ?? displayAbyss.challenge_score ?? 0}/${displayAbyss.max_reward ?? '?'}`

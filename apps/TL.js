@@ -246,7 +246,7 @@ export class TL extends plugin {
     const abyss = isOldAbyss
       ? (greedy || ultra || null)
       : (ultra?.is_open ? ultra : greedy?.is_open ? greedy : ultra || greedy || null);
-    const abyssName = isOldAbyss ? '量子流行' : (ultra ? '超弦空间' : greedy ? '量子流行' : '超弦空间');
+    const abyssName = isOldAbyss ? '量子流形' : (ultra ? '超弦空间' : greedy ? '量子流形' : '超弦空间');
     return {
       uid: auth.uid,
       level,
