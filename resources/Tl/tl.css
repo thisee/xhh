@@ -51,6 +51,7 @@ body {
   width: 580px;
   height: 160px;
   position: relative;
+  overflow: hidden;
 }
 
 .tx {
