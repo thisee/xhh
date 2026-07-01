@@ -359,10 +359,10 @@ strong {
   position: relative;
   z-index: 2;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   margin-bottom: 4px;
+  padding-right: 180px; /* 给右边小花火留空间 */
 }
 
 .zi_ .game_label {
@@ -378,7 +378,7 @@ strong {
 
 .zi_ .game-tags-grid {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px;
   align-items: center;
 }
@@ -393,11 +393,11 @@ strong {
 .zi_ .time-line {
   position: relative;
   z-index: 2;
-  margin-top: 2px;
+  margin-top: 8px;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .zi_ .time_label {
