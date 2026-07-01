@@ -39,6 +39,21 @@ const attrClassMap = {
 };
 const rankMap = ['', 'B', 'A', 'S', 'SS', 'SSS'];
 
+function getMysRating(pref = {}) {
+  const score = Number(pref.comprehensive_score || 0);
+  // 米游社前端按百分制综合分展示档位；接口里的 comprehensive_rating 会出现滞后/旧档位。
+  if (score > 0) {
+    if (score >= 90) return 'SSS';
+    if (score >= 75) return 'SS';
+    if (score >= 60) return 'S';
+    if (score >= 45) return 'A';
+    if (score >= 30) return 'B';
+    return 'C';
+  }
+  const r = pref.comprehensive_rating;
+  return r && /^[A-Z]{1,3}$/.test(r) ? r : 'C';
+}
+
 export class bh3_profile extends plugin {
   constructor(e) {
     super({
@@ -186,17 +201,7 @@ export class bh3_profile extends plugin {
       nickname: role.nickname || '未知舰长',
       level: role.level || 0,
       avatarUrl: absIcon(role.AvatarUrl || ''),
-      rating: (() => {
-        const r = pref.comprehensive_rating;
-        if (r && /^[A-Z]{1,3}$/.test(r)) return r;
-        const s = pref.comprehensive_score || 0;
-        if (s >= 4000) return 'SSS';
-        if (s >= 3500) return 'SS';
-        if (s >= 3000) return 'S';
-        if (s >= 2500) return 'A';
-        if (s >= 2000) return 'B';
-        return 'C';
-      })(),
+      rating: getMysRating(pref),
       score: pref.comprehensive_score || 0,
       statCards,
       characters,

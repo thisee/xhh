@@ -64,6 +64,20 @@ const attrMap = {
   1: 'fire', 2: 'ice', 3: 'thunder', 4: 'psychic', 5: 'physical', 7: 'quantum', 8: 'imaginary',
 };
 
+function getMysRating(pref = {}) {
+  const score = Number(pref.comprehensive_score || 0);
+  if (score > 0) {
+    if (score >= 90) return 'SSS';
+    if (score >= 75) return 'SS';
+    if (score >= 60) return 'S';
+    if (score >= 45) return 'A';
+    if (score >= 30) return 'B';
+    return 'C';
+  }
+  const r = pref.comprehensive_rating;
+  return r && /^[A-Z]{1,3}$/.test(r) ? r : 'C';
+}
+
 export class bh3_godwar extends plugin {
   constructor(e) {
     super({
@@ -296,7 +310,7 @@ export class bh3_godwar extends plugin {
       level: role.level || 0,
       avatarUrl: absIcon(role.AvatarUrl || ''),
       activeDays: stats.active_day_number || 0,
-      rating: pref.comprehensive_rating || 'C',
+      rating: getMysRating(pref),
       bg,
       summaryHtml,
       transHtml,

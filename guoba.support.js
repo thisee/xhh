@@ -144,8 +144,14 @@ export const supportGuoba = () => ({
       },
       {
         field: 'sign_group',
-        label: '签到白名单群',
+        label: '游戏签到白名单群',
         helpMessage: '多个群号用英文逗号分隔，留空则不限制',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'bbs_sign_group',
+        label: '社区签到白名单群',
+        helpMessage: '米游社社区/全部签到可用群，多个群号用英文逗号分隔，留空则不限制',
         component: 'InputTextArea',
       },
       {
@@ -396,6 +402,7 @@ export const supportGuoba = () => ({
         zd_sign: sign.zd_sign ?? 0,
         sbai: !!sign.sbai,
         sign_group: (sign.sign_group || []).join(','),
+        bbs_sign_group: (sign.bbs_sign_group || []).join(','),
         sm: !!cfg.sm,
         sm_cd: cfg.sm_cd ?? 60,
         bilibili: !!cfg.bilibili,
@@ -474,6 +481,8 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'sign.yaml', 'sbai', !!data.sbai)
       const signGroups = String(data.sign_group || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
       yaml.set(_path + 'sign.yaml', 'sign_group', signGroups)
+      const bbsSignGroups = String(data.bbs_sign_group || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
+      yaml.set(_path + 'sign.yaml', 'bbs_sign_group', bbsSignGroups)
 
       yaml.set(_path + 'bh3_remind.yaml', 'enable', !!data.bh3_remind_enable)
       yaml.set(_path + 'config.yaml', 'bh3_all_note_enable', !!data.bh3_all_note_enable)

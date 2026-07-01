@@ -6,6 +6,30 @@ import { mhy, render, api, config, yaml, pluginPriority } from '#xhh';
 
 const path = process.cwd();
 
+function cookiePart(ck = '', key) {
+  const m = String(ck).match(new RegExp(`(?:^|;\\s*)${key}=([^;]+)`));
+  return m ? m[1] : '';
+}
+
+async function ensureCookieToken(e, ck, entry = null) {
+  if (!ck || /(?:^|;\s*)cookie_token=/.test(ck)) return ck;
+  const stuid = entry?.stuid || cookiePart(ck, 'stuid') || cookiePart(ck, 'ltuid');
+  const stoken = entry?.stoken || cookiePart(ck, 'stoken');
+  if (!stuid || !stoken) return ck;
+  try {
+    const headers = mhy.getHeaders(e, ck);
+    const cookieRes = await fetch(`https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken?stoken=${encodeURIComponent(stoken)}&uid=${encodeURIComponent(stuid)}`, { method: 'GET', headers }).then(r => r.json());
+    const ltokenRes = await fetch('https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken', { method: 'GET', headers }).then(r => r.json());
+    const cookieToken = cookieRes?.data?.cookie_token;
+    const ltoken = ltokenRes?.data?.ltoken || entry?.ltoken;
+    if (cookieToken && ltoken) return `ltoken=${ltoken};ltuid=${stuid};cookie_token=${cookieToken};account_id=${stuid};`;
+    if (cookieToken) return `stuid=${stuid};stoken=${stoken};cookie_token=${cookieToken};account_id=${stuid};`;
+  } catch (err) {
+    logger.debug?.(`[xhh][TL][bh3] refresh cookie_token failed: ${err.message}`);
+  }
+  return ck;
+}
+
 export class TL extends plugin {
   constructor(e) {
     super({
@@ -135,6 +159,7 @@ export class TL extends plugin {
     let uid = await redis.get(`xhh:bh3_uid:${qq}`);
     let region = uid ? await redis.get(`xhh:bh3_region:${qq}`) : null;
     let ck = null;
+    let signEntry = null;
 
     const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
     if (fs.existsSync(stokenPath)) {
@@ -151,6 +176,7 @@ export class TL extends plugin {
         }
       }
       const entry = stokenData[uid];
+      if (entry) signEntry = entry;
       if (entry?.stuid) {
         try {
           const nu = await NoteUser.create(qq);
@@ -176,7 +202,7 @@ export class TL extends plugin {
         }
       } catch (_) {}
     }
-    return { uid, region, ck };
+    return { uid, region, ck, signEntry };
   }
 
   async bh3Note(e, san = true) {
@@ -190,12 +216,14 @@ export class TL extends plugin {
       return '没有';
     }
     const headers = mhy.getHeaders(e, auth.ck);
+    const signCk = await ensureCookieToken(e, auth.signEntry?.ck_stoken || auth.ck, auth.signEntry);
+    const signHeaders = mhy.getHeaders(e, signCk);
     let indexRes, noteRes, signRes;
     try {
       [indexRes, noteRes, signRes] = await Promise.all([
         api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
         api(e, { type: 'bh3_note', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
-        api(e, { type: 'sign_info', uid: auth.uid, headers, game: 'bh3', server: auth.region }).catch(() => null),
+        api(e, { type: 'sign_info', uid: auth.uid, headers: signHeaders, game: 'bh3', server: auth.region }).catch(() => null),
       ]);
     } catch (err) {
       logger.error('[xhh][TL][bh3] API error:', err);
@@ -208,6 +236,10 @@ export class TL extends plugin {
     if (indexRes?.retcode !== 0 || noteRes?.retcode !== 0) return false;
     const role = indexRes.data?.role || {};
     const note = noteRes.data || {};
+    const ultra = note.ultra_endless || null;
+    const greedy = note.greedy_endless || null;
+    const abyss = ultra?.is_open ? ultra : greedy?.is_open ? greedy : ultra || greedy || null;
+    const abyssName = ultra?.is_open ? '超弦空间' : greedy ? '量子流形' : ((role.level || 0) >= 81 ? '超弦空间' : '量子流形');
     return {
       uid: auth.uid,
       level: role.level || 0,
@@ -217,7 +249,8 @@ export class TL extends plugin {
       time: note.stamina_recover_time ? getTime(note.stamina_recover_time) : '已满',
       current_train_score: note.current_train_score || 0,
       max_train_score: note.max_train_score || 500,
-      abyss: note.ultra_endless || note.greedy_endless || null,
+      abyss,
+      abyss_name: abyssName,
       battle_field: note.battle_field || null,
       god_war: note.god_war || null,
       is_sign: signRes?.data?.is_sign === true,

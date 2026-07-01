@@ -28,7 +28,7 @@ export class Sign extends plugin {
                     permission: 'master',
                 },
                 {
-                    reg: '^#*(小花火|xhh)*(社区|米游社|论坛)签到$',
+                    reg: '^#*(小花火|xhh)*((米游社|社区|论坛)(全部)?(米游社|社区|论坛)?|全部(米游社|社区|论坛))签到$',
                     fnc: 'bbsSign',
                 },
             ],
@@ -58,7 +58,6 @@ export class Sign extends plugin {
             崩坏3: ['bh3'],
             崩坏三: ['bh3'],
             BH3: ['bh3'],
-            '#': ['gs'],
         };
         try {
             for (const [key, value] of Object.entries(GAME_MAP)) {
@@ -81,8 +80,14 @@ export class Sign extends plugin {
     async bbsSign(e) {
         if (!config().sign) return false;
         if (signing) return e.reply('有签到任务进行中, 过会儿再试吧！');
+        if (e.isGroup) {
+            const signData = yaml.get('./plugins/xhh/config/sign.yaml') || {};
+            const wl = signData.bbs_sign_group || [];
+            if (wl.length > 0 && !wl.includes(String(e.group_id)) && !wl.includes(Number(e.group_id))) return false;
+        }
         signing = true;
         try {
+            await e.reply('正在进行米游社社区签到，请稍等……', true);
             await BbsSign(e);
         } catch (error) {
             logger.error(`社区签到异常: ${error.message}`);

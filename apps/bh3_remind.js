@@ -1,11 +1,31 @@
-import { config, yaml, pluginPriority } from '#xhh';
-
-logger.info('[bh3_remind] 文件已加载');
+import { yaml, pluginPriority } from '#xhh';
 
 const _path = './plugins/xhh/config/';
+const cfgFile = _path + 'bh3_remind.yaml';
 
 function getRemindConfig() {
-  return yaml.get(_path + 'bh3_remind.yaml') || { enable: true, groups: [], items: [] };
+  return yaml.get(cfgFile) || { enable: false, groups: [], items: [] };
+}
+
+function normalizeGroups(groups = []) {
+  return [...new Set((groups || []).map(v => String(v).trim()).filter(Boolean))];
+}
+
+function cronValues(field, min, max) {
+  if (field === '*' || field == null) return null;
+  const values = [];
+  for (const part of String(field).split(',')) {
+    if (/^\d+$/.test(part)) values.push(Number(part));
+    else if (/^\d+-\d+$/.test(part)) {
+      const [a, b] = part.split('-').map(Number);
+      for (let i = a; i <= b; i++) values.push(i);
+    }
+  }
+  return values.filter(v => v >= min && v <= max);
+}
+
+function sameMinute(a, b) {
+  return Math.floor(a.getTime() / 60000) === Math.floor(b.getTime() / 60000);
 }
 
 export class bh3_remind extends plugin {
@@ -16,128 +36,113 @@ export class bh3_remind extends plugin {
       event: 'message',
       priority: pluginPriority('bh3_remind', 100),
       rule: [
-        { reg: '^#.*', fnc: 'testMatch', priority: pluginPriority('bh3_remind', -1000001) },
         { reg: '^#*(小花火)?(?=.*(崩三|崩坏3|崩坏三|BH3))(?=.*(提醒|定时提醒|开关提醒))(?=.*(开启|关闭|on|off)).*$', fnc: 'toggleRemind', priority: pluginPriority('bh3_remind', -1000001) },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus', priority: pluginPriority('bh3_remind', -1000001) },
       ],
     });
+
+    this.task = {
+      cron: '0 * * * * *',
+      name: '[小花火]崩三提醒检查',
+      fnc: () => this.checkAndPush(),
+      log: false,
+    };
   }
 
-  async testMatch(e) {
-    logger.info('[bh3_remind] testMatch triggered, msg: ' + e.msg);
-    return false;
-  }
+  getDueTime(item, now = new Date()) {
+    const parts = String(item.cron || '').trim().split(/\s+/);
+    if (parts.length !== 5) return null;
+    const [minField, hourField, dayField, monthField, weekField] = parts;
+    const mins = cronValues(minField, 0, 59);
+    const hours = cronValues(hourField, 0, 23);
+    const days = cronValues(dayField, 1, 31);
+    const months = cronValues(monthField, 1, 12);
+    const weeks = cronValues(weekField, 0, 7);
+    if (!mins?.length || !hours?.length) return null;
 
-  async getSubscribers() {
-    const list = await redis.get('xhh:bh3_remind:subscribers');
-    return list ? JSON.parse(list) : [];
-  }
-
-  async saveSubscribers(list) {
-    await redis.set('xhh:bh3_remind:subscribers', JSON.stringify(list));
+    const advance = Number(item.advance_minutes || 0);
+    for (let offset = -1; offset <= 7; offset++) {
+      const base = new Date(now);
+      base.setDate(now.getDate() + offset);
+      base.setSeconds(0, 0);
+      const cronWeek = base.getDay();
+      const weekOk = !weeks || weeks.includes(cronWeek) || (cronWeek === 0 && weeks.includes(7));
+      const dayOk = !days || days.includes(base.getDate());
+      const monthOk = !months || months.includes(base.getMonth() + 1);
+      if (!weekOk || !dayOk || !monthOk) continue;
+      for (const h of hours) {
+        for (const m of mins) {
+          const eventTime = new Date(base);
+          eventTime.setHours(h, m, 0, 0);
+          const pushTime = new Date(eventTime.getTime() - advance * 60000);
+          if (sameMinute(pushTime, now)) return { eventTime, pushTime };
+        }
+      }
+    }
+    return null;
   }
 
   async toggleRemind(e) {
     if (!e.isMaster) return e.reply('仅主人可操作');
-    const action = e.msg.includes('开启') || e.msg.includes('on');
-    const subscribers = await this.getSubscribers();
-    const userId = e.user_id;
+    if (!e.isGroup) return e.reply('请在需要提醒的群聊里操作');
+    const cfg = getRemindConfig();
+    const groups = normalizeGroups(cfg.groups);
+    const gid = String(e.group_id);
+    const action = /开启|on/i.test(e.msg || '');
+
     if (action) {
-      if (subscribers.includes(userId)) {
-        return e.reply('已开启');
-      }
-      subscribers.push(userId);
-      await this.saveSubscribers(subscribers);
-      return e.reply('已开启崩三定时提醒');
-    } else {
-      const idx = subscribers.indexOf(userId);
-      if (idx > -1) {
-        subscribers.splice(idx, 1);
-        await this.saveSubscribers(subscribers);
-        return e.reply('已关闭崩三定时提醒');
-      }
-      return e.reply('未开启');
+      if (!groups.includes(gid)) groups.push(gid);
+      yaml.set(cfgFile, 'enable', true);
+      yaml.set(cfgFile, 'groups', groups);
+      return e.reply(`已开启本群崩三定时提醒\n当前提醒群：${groups.join('、')}`);
     }
+
+    const nextGroups = groups.filter(v => v !== gid);
+    yaml.set(cfgFile, 'groups', nextGroups);
+    if (!nextGroups.length) yaml.set(cfgFile, 'enable', false);
+    return e.reply(`已关闭本群崩三定时提醒${nextGroups.length ? `\n剩余提醒群：${nextGroups.join('、')}` : ''}`);
   }
 
   async remindStatus(e) {
-    const subscribers = await this.getSubscribers();
-    const isSub = subscribers.includes(e.user_id);
-    return e.reply(`崩三定时提醒: ${isSub ? '已开启' : '未开启'}\n订阅人数: ${subscribers.length}`);
+    const cfg = getRemindConfig();
+    const groups = normalizeGroups(cfg.groups);
+    const enabled = !!cfg.enable && groups.length > 0;
+    const inThisGroup = e.isGroup ? groups.includes(String(e.group_id)) : false;
+    const itemLines = (cfg.items || []).map(item => {
+      const adv = Number(item.advance_minutes || 0);
+      return `- ${item.name || item.key}: ${item.cron}${adv ? `，提前${adv}分钟` : '，准时'}`;
+    }).join('\n');
+    return e.reply(`崩三定时提醒：${enabled ? '已开启' : '未开启'}${e.isGroup ? `\n本群：${inThisGroup ? '已开启' : '未开启'}` : ''}\n提醒群：${groups.join('、') || '无'}\n${itemLines}`);
   }
 
-  // 解析 cron 表达式，返回下次触发时间（毫秒时间戳）
-  parseCron(cronStr) {
-    const [min, hour, day, month, week] = cronStr.split(' ');
-    const now = new Date();
-    const next = new Date(now);
-    next.setMinutes(parseInt(min));
-    next.setHours(parseInt(hour));
-    next.setSeconds(0);
-    next.setMilliseconds(0);
-    
-    if (next <= now) {
-      next.setDate(next.getDate() + 1);
-    }
-    
-    // 简单处理：只支持每天固定时间的 cron
-    return next.getTime();
-  }
-
-  // 检查是否需要发送提醒
   async checkAndPush() {
     const cfg = getRemindConfig();
-    if (!cfg.enable) return;
-    
-    const subscribers = await this.getSubscribers();
-    if (!subscribers.length) return;
-
-    const groups = cfg.groups || [];
-    if (!groups.length) return;
-
+    const groups = normalizeGroups(cfg.groups);
+    if (!cfg.enable || !groups.length) return;
     const items = cfg.items || [];
-    const now = Date.now();
+    const now = new Date();
 
     for (const item of items) {
-      if (!item.cron) continue;
-      
-      try {
-        const nextTrigger = this.parseCron(item.cron);
-        const diff = nextTrigger - Date.now();
-        
-        // 如果在未来 5 分钟内触发，发送提醒
-        if (diff > 0 && diff < 5 * 60 * 1000) {
-          const notifiedKey = `bh3_remind_${item.key}_${Math.floor(Date.now() / (60 * 1000))}`;
-          const alreadyNotified = await redis.get(notifiedKey);
-          if (alreadyNotified) continue;
-          
-          // 发送提醒
-          for (const groupId of cfg.groups) {
-            try {
-              await bot.sendGroupMsg(groupId, item.msg, true);
-            } catch (err) {
-              logger.warn(`[bh3_remind] 发送到群 ${groupId} 失败: ${err.message}`);
-            }
-          }
-          await redis.set(notifiedKey, '1', 60); // 1分钟去重
+      if (!item.cron || !item.msg) continue;
+      const due = this.getDueTime(item, now);
+      if (!due) continue;
+      const dedupKey = `xhh:bh3_remind:sent:${item.key}:${Math.floor(due.pushTime.getTime() / 60000)}`;
+      if (await redis.get(dedupKey)) continue;
+
+      const msg = String(item.msg)
+        .replace(/\{time\}/g, `${String(due.eventTime.getHours()).padStart(2, '0')}:${String(due.eventTime.getMinutes()).padStart(2, '0')}`)
+        .replace(/\{advance\}/g, String(item.advance_minutes || 0));
+
+      for (const groupId of groups) {
+        try {
+          await bot.sendGroupMsg(groupId, msg);
+        } catch (err) {
+          logger.warn(`[bh3_remind] 发送到群 ${groupId} 失败: ${err.message}`);
         }
-      } catch (err) {
-        logger.error(`[bh3_remind] 检查提醒 ${item.key} 失败: ${err.message}`);
       }
+      await redis.set(dedupKey, '1', { EX: 7 * 24 * 3600 });
     }
   }
-}
-
-// 每分钟检查一次
-if (globalThis.cron) {
-  globalThis.cron.add('bh3_remind_check', '* * * * *', async () => {
-    try {
-      const reminder = new bh3_remind({});
-      await reminder.checkAndPush();
-    } catch (err) {
-      logger.error('[bh3_remind] 定时检查失败:', err);
-    }
-  });
 }
 
 export default bh3_remind;

@@ -50,6 +50,20 @@ function fmtArea(area) {
   return areaMap[area] || `第${area}组`;
 }
 
+function getMysRating(pref = {}) {
+  const score = Number(pref.comprehensive_score || 0);
+  if (score > 0) {
+    if (score >= 90) return 'SSS';
+    if (score >= 75) return 'SS';
+    if (score >= 60) return 'S';
+    if (score >= 45) return 'A';
+    if (score >= 30) return 'B';
+    return 'C';
+  }
+  const r = pref.comprehensive_rating;
+  return r && /^[A-Z]{1,3}$/.test(r) ? r : 'C';
+}
+
 export class bh3_battlefield extends plugin {
   constructor(e) {
     super({
@@ -226,7 +240,7 @@ export class bh3_battlefield extends plugin {
       level: role.level || 0,
       avatarUrl: absIcon(role.AvatarUrl || ''),
       activeDays: stats.active_day_number || 0,
-      rating: pref.comprehensive_rating || 'C',
+      rating: getMysRating(pref),
       totalScore,
       rank,
       rankingPct,

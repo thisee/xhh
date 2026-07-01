@@ -48,6 +48,20 @@ const serverMap = {
   bb01: '哔哩哔哩', pc01: '桌面服', yyb01: '应用宝服', hun01: '渠道1服', hun02: '渠道2服',
 };
 
+function getMysRating(pref = {}) {
+  const score = Number(pref.comprehensive_score || 0);
+  if (score > 0) {
+    if (score >= 90) return 'SSS';
+    if (score >= 75) return 'SS';
+    if (score >= 60) return 'S';
+    if (score >= 45) return 'A';
+    if (score >= 30) return 'B';
+    return 'C';
+  }
+  const r = pref.comprehensive_rating;
+  return r && /^[A-Z]{1,3}$/.test(r) ? r : 'C';
+}
+
 export class bh3_note extends plugin {
   constructor(e) {
     super({
@@ -156,7 +170,7 @@ export class bh3_note extends plugin {
       level: role.level || 0,
       avatarUrl: role.AvatarUrl || '',
       activeDays: stats.active_day_number || 0,
-      rating: pref.comprehensive_rating || 'C',
+      rating: getMysRating(pref),
       currentStamina: note.current_stamina || 0,
       maxStamina: note.max_stamina || 200,
       staminaPercent: Math.min((note.current_stamina || 0) / (note.max_stamina || 200) * 100, 100),
@@ -194,6 +208,8 @@ export class bh3_note extends plugin {
     ];
     if (data.ultraEndless?.is_open) {
       lines.push(`超弦空间: ${data.ultraEndless.challenge_score || '?'}分  剩余${fmtEndTs(data.ultraEndless.schedule_end)}`);
+    } else if (data.greedyEndless?.is_open) {
+      lines.push(`量子流形: ${data.greedyEndless.cur_reward || 0}/${data.greedyEndless.max_reward || 0}  剩余${fmtEndTs(data.greedyEndless.schedule_end)}`);
     }
     if (data.battleField?.is_open) {
       lines.push(`记忆战场: ${data.battleField.cur_reward || 0}/${data.battleField.max_reward || 0}  剩余${fmtEndTs(data.battleField.schedule_end)}`);

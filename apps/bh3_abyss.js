@@ -28,6 +28,10 @@ function fmtTs(ts) {
   }
 }
 
+function getSettleTs(r = {}) {
+  return r.schedule_end || r.time_second || r.settled_time_second || r.settle_time_second || r.settle_time || r.end_time || r.finish_time || r.updated_time_second;
+}
+
 const ICON_BASE = 'https://api-takumi-static.mihoyo.com';
 
 function absIcon(iconPath) {
@@ -52,6 +56,20 @@ const abyssLevelMap = {
 
 function fmtLevel(level) {
   return abyssLevelMap[level] || `Lv.${level}`;
+}
+
+function getMysRating(pref = {}) {
+  const score = Number(pref.comprehensive_score || 0);
+  if (score > 0) {
+    if (score >= 90) return 'SSS';
+    if (score >= 75) return 'SS';
+    if (score >= 60) return 'S';
+    if (score >= 45) return 'A';
+    if (score >= 30) return 'B';
+    return 'C';
+  }
+  const r = pref.comprehensive_rating;
+  return r && /^[A-Z]{1,3}$/.test(r) ? r : 'C';
 }
 
 export class bh3_abyss extends plugin {
@@ -132,7 +150,7 @@ export class bh3_abyss extends plugin {
   async abyss(e) {
     return this._abyss(e, [
       { type: 'bh3_new_abyss', label: '超弦空间' },
-      { type: 'bh3_old_abyss', label: '量子流行' },
+      { type: 'bh3_old_abyss', label: '量子流形' },
     ]);
   }
 
@@ -159,25 +177,31 @@ export class bh3_abyss extends plugin {
     }
     if (!indexRes || indexRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取玩家信息失败`);
 
-    let abyssRes, label = apiList[0].label;
-    // Try multiple server values: hun01 (region), cn_gf01 (official), cn_qd01 (channel)
-    const serverValues = [region, 'cn_gf01', mhy.getServer(uid, 'bh3', region)];
+    const role = indexRes.data?.role || {};
+    const level = Number(role.level || 0);
+    const queryList = level > 0 && level <= 80 && apiList.some(ap => ap.type === 'bh3_old_abyss')
+      ? [{ type: 'bh3_old_abyss', label: '量子流形' }, ...apiList.filter(ap => ap.type !== 'bh3_old_abyss')]
+      : apiList;
+
+    let abyssRes, label = queryList[0].label;
+    // Try multiple server values: bound region, inferred official/B服. 80级未突破玩家优先查量子流形。
+    const serverValues = [...new Set([region, mhy.getServer(uid, 'bh3'), 'cn_gf01', 'cn_qd01'].filter(Boolean))];
     for (const sv of serverValues) {
-      for (const [i, ap] of apiList.entries()) {
+      for (const ap of queryList) {
+        label = ap.label;
         try {
           abyssRes = await api(e, { type: ap.type, uid, headers, game: 'bh3', server: sv, silent: true });
-          if (abyssRes?.retcode === 0) { label = ap.label; break; }
+          if (abyssRes?.retcode === 0) break;
         } catch (_) {}
       }
       if (abyssRes?.retcode === 0) break;
     }
     if (!abyssRes || abyssRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取${label}数据失败`);
 
-    const role = indexRes.data?.role || {};
     const stats = indexRes.data?.stats || {};
     const pref = indexRes.data?.preference || {};
     const reports = (abyssRes.data?.reports || []).sort(
-      (a, b) => parseInt(b.updated_time_second || b.settled_time_second || b.settle_time_second || b.schedule_end || b.settle_time || b.end_time || b.finish_time || 0) - parseInt(a.updated_time_second || a.settled_time_second || a.settle_time_second || a.schedule_end || a.settle_time || a.end_time || a.finish_time || 0)
+      (a, b) => parseInt(b.updated_time_second || b.time_second || b.settled_time_second || b.settle_time_second || b.schedule_end || b.settle_time || b.end_time || b.finish_time || 0) - parseInt(a.updated_time_second || a.time_second || a.settled_time_second || a.settle_time_second || a.schedule_end || a.settle_time || a.end_time || a.finish_time || 0)
     );
 
     if (!reports.length) return sendMsg(e, `UID${uid} 暂无${label}数据`);
@@ -203,7 +227,7 @@ export class bh3_abyss extends plugin {
     }
 
     const elfRank = ['', 'S', 'SS', 'SSS', 'SSS'];
-    const isSimpleLevel = label === '量子流行' || label === '旧深渊';
+    const isSimpleLevel = label === '量子流形' || label === '旧深渊';
     const simpleLevelMap = { 1: '禁忌', 2: '原罪', 3: '苦痛', 4: '红莲', 5: '寂灭' };
     const letterLevelMap = { S: '寂灭', A: '红莲', B: '苦痛', C: '原罪', D: '禁忌' };
     const fmtLv = lv => {
@@ -241,7 +265,7 @@ export class bh3_abyss extends plugin {
         const rankText = elfRank[elf.star] || 'S';
         return `<div class="elf-card"><div class="elf-icon">${eImg}</div><div class="collab-rank">${rankText}</div><div class="elf-name">${elf.name || ''}</div></div>`;
       })() : '';
-      return `<div class="report-card"><div class="card-header"><div class="level-badge">${fmtLv(r.level)}</div><div class="score-wrap"><div class="score">${r.score || 0}</div><div class="boss-name-right">${bossName}</div></div></div><div class="card-body"><div class="lineup-wrap"><div class="lineup">${lined}${elfHtml}</div></div><div class="boss-area"><div class="boss-icon">${bossIcon}</div><div class="right-info"><div class="ri-line">#${r.rank || 0}</div><div class="ri-line">${cupText}${cupChange}</div><div class="ri-line time">${fmtTs(r.updated_time_second || r.settled_time_second || r.settle_time_second || r.schedule_end || r.settle_time || r.end_time || r.finish_time)}</div></div></div></div></div>`;
+      return `<div class="report-card"><div class="card-header"><div class="level-badge">${fmtLv(r.level)}</div><div class="score-wrap"><div class="score">${r.score || 0}</div><div class="boss-name-right">${bossName}</div></div></div><div class="card-body"><div class="lineup-wrap"><div class="lineup">${lined}${elfHtml}</div></div><div class="boss-area"><div class="boss-icon">${bossIcon}</div><div class="right-info"><div class="ri-line">#${r.rank || 0}</div><div class="ri-line">${cupText}${cupChange}</div><div class="ri-line time">结算 ${fmtTs(getSettleTs(r))}</div></div></div></div></div>`;
     }).join('\n');
 
     const bgs = ['bg', 'bg1', 'IMG_20250717_034154'];
@@ -254,7 +278,7 @@ export class bh3_abyss extends plugin {
       level: role.level || 0,
       avatarUrl: absIcon(role.AvatarUrl || ''),
       activeDays: stats.active_day_number || 0,
-      rating: pref.comprehensive_rating || 'C',
+      rating: getMysRating(pref),
       label, bg,
       reportHtml: reportList,
       dataTime: moment().format('MM-DD HH:mm'),
@@ -281,7 +305,7 @@ export class bh3_abyss extends plugin {
       `舰长: ${data.nickname}  Lv.${data.level}`,
       ...reports.slice(0, 4).map(r => {
         const chars = (r.lineup || []).map(c => c.name || '').join('、');
-        return `[${fmtLevel(r.level)}] ${r.boss?.name || '未知'}  ${r.score || 0}分  #${r.rank || 0}\n  阵容: ${chars}\n  结算: ${fmtTs(r.updated_time_second || r.settled_time_second || r.settle_time_second || r.schedule_end)}`;
+        return `[${fmtLevel(r.level)}] ${r.boss?.name || '未知'}  ${r.score || 0}分  #${r.rank || 0}\n  阵容: ${chars}\n  结算: ${fmtTs(getSettleTs(r))}`;
       }),
       `更新时间: ${data.dataTime}`,
     ];

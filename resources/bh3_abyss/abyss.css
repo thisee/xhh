@@ -98,7 +98,7 @@ body {
   flex-shrink: 0;
 }
 .label-超弦空间 { background: linear-gradient(135deg, #667eea, #764ba2); }
-.label-量子流行 { background: linear-gradient(135deg, #06b6d4, #8b5cf6); }
+.label-量子流形 { background: linear-gradient(135deg, #06b6d4, #8b5cf6); }
 .label-旧深渊 { background: linear-gradient(135deg, #f97316, #eab308); }
 
 .report-card {
@@ -202,7 +202,7 @@ body {
 }
 
 .ri-line.time {
-  font-size: 10px;
+  font-size: 11px;
   color: #999;
 }
 

@@ -11,7 +11,7 @@ async function api(e, data = {}) {
         gs: 'e202311201442471',
         sr: 'e202304121516551',
         zzz: 'e202406242138391',
-        bh3: 'e202207181446311',
+        bh3: 'e202306201626331',
     };
     const game = data.game;
     const uid = data.uid;
@@ -207,7 +207,20 @@ async function api(e, data = {}) {
         obj
     } = api_list[data.type];
 
-    obj.headers = data.headers;
+    obj.headers = { ...(data.headers || {}) };
+
+    // 米游社游戏签到接口使用活动页专用 DS/Header；崩坏3也走 luna 新活动 act_id。
+    if (['sign_info', 'sign_home', 'sign'].includes(data.type) && game) {
+        obj.headers.DS = mhy.getDsSign();
+        obj.headers['x-rpc-client_type'] = '5';
+        obj.headers['x-rpc-app_version'] = '2.73.1';
+        obj.headers.Origin = 'https://act.mihoyo.com';
+        obj.headers.Referer = 'https://webstatic.mihoyo.com/';
+        obj.headers['User-Agent'] = 'Mozilla/5.0 (Linux; Android 12; Mi 10 Build/SKQ1.211006.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.88 Mobile Safari/537.36 miHoYoBBS/2.73.1';
+        if (game === 'gs') obj.headers['x-rpc-signgame'] = 'hk4e';
+        else if (game === 'zzz') obj.headers['x-rpc-signgame'] = 'zzz';
+        else delete obj.headers['x-rpc-signgame'];
+    }
 
     // 崩三API需要4x salt DS并包含query参数
     if (data.type && (data.type.startsWith('bh3_') || data.type === 'Character')) {
