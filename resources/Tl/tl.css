@@ -363,8 +363,22 @@ strong {
   padding-right: 150px;
 }
 
-.zi_ .game-tags .game_list {
-  display: none;
+.zi_ .game-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.zi_ .game_label {
+  padding: 2px 8px;
+  background: #4a90e2;
+  border-radius: 4px;
+  color: #fff;
+  display: inline-block;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .zi_ .game-tags-grid {
@@ -380,18 +394,37 @@ strong {
   color: #fff;
   margin: 0;
 }
+
 .zi_ .time-line {
   position: relative;
   z-index: 2;
   margin-top: 2px;
   width: 286px;
   padding-right: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.zi_ .time-line .n_time {
-  color: pink;
+
+.zi_ .time_label {
+  padding: 2px 8px;
+  background: #4a90e2;
+  border-radius: 4px;
+  color: #fff;
+  display: inline-block;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
 }
-.zi_ .time-line .n_time_ {
-  color: pink;
+
+.zi_ .time_value {
+  padding: 2px 8px;
+  background: pink;
+  border-radius: 4px;
+  color: #fff;
+  display: inline-block;
+  margin: 0;
+  font-size: 14px;
 }
 
 /* #体力 合并模板中的崩三历练值图标，与 #崩三体力 保持同款 */
