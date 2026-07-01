@@ -11,7 +11,7 @@ items:
     msg: '深渊（超弦空间/量子流形）已经开启啦，记得打，也可以发送 #崩三深渊攻略 查看作业。'
   - key: abyss_settle
     name: 深渊结算
-    cron: '0 22 * * 1,5'
+    cron: '0 22 * * 3,7'
     advance_minutes: 30
     msg: '深渊将在 {time} 结算，提前 {advance} 分钟提醒：没打完记得检查一下。'
   - key: battlefield_start
@@ -21,7 +21,7 @@ items:
     msg: '记忆战场新一期开始啦，可以发送 #崩三战场攻略 查看阵容。'
   - key: battlefield_settle
     name: 记忆战场结算
-    cron: '30 3 * * 1'
+    cron: '0 4 * * 1'
     advance_minutes: 30
     msg: '记忆战场将在 {time} 结算，提前 {advance} 分钟提醒：记得检查分数和奖励。'
   - key: godwar_start
@@ -31,6 +31,6 @@ items:
     msg: '往世乐土新一周开始啦，可以发送 #崩三乐土攻略 查看攻略。'
   - key: godwar_settle
     name: 往世乐土结算
-    cron: '30 3 * * 1'
+    cron: '0 4 * * 1'
     advance_minutes: 30
     msg: '往世乐土将在 {time} 结算，提前 {advance} 分钟提醒：记得领取本周奖励。'
