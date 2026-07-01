@@ -159,6 +159,48 @@ export const supportGuoba = () => ({
         label: '米游社',
       },
       {
+        field: 'groups',
+        label: '米游社视频播报群',
+        helpMessage: '多个群号用英文逗号/换行分隔；也可用“添加播报群”命令维护',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'forwardMsg',
+        label: '播报合并转发',
+        helpMessage: '米游社视频播报是否用合并转发发送',
+        component: 'Switch',
+      },
+      {
+        field: 'bh3',
+        label: '播报崩坏3',
+        helpMessage: '米游社视频播报是否包含崩坏3',
+        component: 'Switch',
+      },
+      {
+        field: 'by',
+        label: '播报崩坏因缘精灵',
+        helpMessage: '米游社视频播报是否包含崩坏因缘精灵',
+        component: 'Switch',
+      },
+      {
+        field: 'xbgd',
+        label: '播报星布谷地',
+        helpMessage: '米游社视频播报是否包含星布谷地',
+        component: 'Switch',
+      },
+      {
+        field: 'cover',
+        label: '播报封面原图',
+        helpMessage: '开启后米游社视频播报封面尽量使用原图下载',
+        component: 'Switch',
+      },
+      {
+        field: 'group_config',
+        label: '群播报屏蔽配置',
+        helpMessage: '每行一个群：群号=gs,sr,zzz,bh3,by,xbgd；表示该群屏蔽这些游戏播报',
+        component: 'InputTextArea',
+      },
+      {
         field: 'sm',
         label: '米游社扫码绑定',
         component: 'Switch',
@@ -403,6 +445,13 @@ export const supportGuoba = () => ({
         sbai: !!sign.sbai,
         sign_group: (sign.sign_group || []).join(','),
         bbs_sign_group: (sign.bbs_sign_group || []).join(','),
+        groups: (Array.isArray(cfg.groups) ? cfg.groups : []).join(','),
+        forwardMsg: other.forwardMsg !== false,
+        bh3: !!other.bh3,
+        by: !!other.by,
+        xbgd: !!other.xbgd,
+        cover: !!other.cover,
+        group_config: formatGroupConfig(other.group_config),
         sm: !!cfg.sm,
         sm_cd: cfg.sm_cd ?? 60,
         bilibili: !!cfg.bilibili,
@@ -458,9 +507,15 @@ export const supportGuoba = () => ({
         debug: data.debug,
         bh3_remind_enable: data.bh3_remind_enable,
         bh3_all_note_enable: data.bh3_all_note_enable,
+        forwardMsg: data.forwardMsg,
+        bh3: data.bh3,
+        by: data.by,
+        xbgd: data.xbgd,
+        cover: data.cover,
       }
       for (const [k, v] of Object.entries(boolMap)) {
-        yaml.set(_path + 'config.yaml', k, !!v)
+        const target = ['forwardMsg', 'bh3', 'by', 'xbgd', 'cover'].includes(k) ? 'other.yaml' : 'config.yaml'
+        yaml.set(_path + target, k, !!v)
       }
 
       const numMap = {
@@ -483,6 +538,11 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'sign.yaml', 'sign_group', signGroups)
       const bbsSignGroups = String(data.bbs_sign_group || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
       yaml.set(_path + 'sign.yaml', 'bbs_sign_group', bbsSignGroups)
+      const broadcastGroups = parseList(data.groups)
+        .map(v => Number(v))
+        .filter(v => Number.isSafeInteger(v) && v > 0)
+      yaml.set(_path + 'config.yaml', 'groups', broadcastGroups)
+      yaml.set(_path + 'other.yaml', 'group_config', parseGroupConfig(data.group_config))
 
       yaml.set(_path + 'bh3_remind.yaml', 'enable', !!data.bh3_remind_enable)
       yaml.set(_path + 'config.yaml', 'bh3_all_note_enable', !!data.bh3_all_note_enable)
@@ -507,3 +567,28 @@ export const supportGuoba = () => ({
     },
   },
 })
+
+function parseList(value) {
+  return String(value || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
+}
+
+function formatGroupConfig(groupConfig = {}) {
+  if (!groupConfig || typeof groupConfig !== 'object') return ''
+  return Object.entries(groupConfig)
+    .map(([group, games]) => `${group}=${Array.isArray(games) ? games.join(',') : games}`)
+    .join('\n')
+}
+
+function parseGroupConfig(value = '') {
+  const result = {}
+  for (const line of String(value || '').split(/\n+/)) {
+    const text = line.trim()
+    if (!text) continue
+    const [group, gamesText = ''] = text.split(/[=：:]/)
+    const gid = group?.trim()
+    if (!/^\d+$/.test(gid || '')) continue
+    const games = parseList(gamesText).filter(v => ['gs', 'sr', 'zzz', 'bh3', 'by', 'xbgd'].includes(v))
+    if (games.length) result[gid] = games
+  }
+  return result
+}
