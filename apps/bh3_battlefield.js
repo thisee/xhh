@@ -209,10 +209,8 @@ export class bh3_battlefield extends plugin {
       const elfHtml = elf ? (() => {
         const eIcon = absIcon(elf.avatar || '');
         const eImg = eIcon ? `<img src="${eIcon}" alt="">` : `<span>${(elf.name || '?')[0]}</span>`;
-        const isCollab = elf.is_collaborator;
-        const rankText = isCollab ? (collabRank[elf.star] || 'S') : '★'.repeat(Math.min(elf.star || 1, 4));
-        const rankClass = isCollab ? 'collab-rank' : 'elf-stars';
-        return `<div class="elf-card"><div class="elf-icon">${eImg}</div><div class="${rankClass}">${rankText}</div><div class="elf-name">${elf.name || ''}</div></div>`;
+        const rankText = collabRank[elf.star] || 'S';
+        return `<div class="elf-card"><div class="elf-icon">${eImg}</div><div class="collab-rank">${rankText}</div><div class="elf-name">${elf.name || ''}</div></div>`;
       })() : '';
 
       return `<div class="report-card"><div class="boss-section"><div class="boss-icon">${bossImg}</div><div class="boss-name">${bossName}</div></div><div class="boss-score">${bossScore}</div><div class="lineup">${lineup}${elfHtml}</div></div>`;

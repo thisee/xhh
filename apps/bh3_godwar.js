@@ -254,8 +254,7 @@ export class bh3_godwar extends plugin {
       if (r.elf && r.elf.avatar) {
         const e = r.elf;
         const eIcon = absIcon(e.avatar || '');
-        const isCollab = e.is_collaborator;
-        const rankText = isCollab ? (collabRank[e.star] || 'S') : '★'.repeat(Math.min(e.star || 1, 4));
+        const rankText = collabRank[e.star] || 'S';
         chars += `<div class="gw-char gw-elf"><div class="gw-char-icon"><img src="${eIcon}" alt=""><div class="gw-char-label">人偶</div></div><div class="gw-elf-rank">${rankText}</div></div>`;
       }
 

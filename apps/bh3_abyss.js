@@ -200,6 +200,7 @@ export class bh3_abyss extends plugin {
     const isSimpleLevel = label === '量子流行' || label === '旧深渊';
     const simpleLevelMap = { 1: '禁忌', 2: '原罪', 3: '苦痛', 4: '红莲', 5: '寂灭' };
     const fmtLv = lv => {
+      if (lv === undefined || lv === null) return '?';
       if (isSimpleLevel && simpleLevelMap[lv]) return simpleLevelMap[lv];
       return fmtLevel(lv);
     };
@@ -226,10 +227,8 @@ export class bh3_abyss extends plugin {
       const elfHtml = elf ? (() => {
         const eIcon = absIcon(elf.avatar || '');
         const eImg = eIcon ? `<img src="${eIcon}" alt="">` : `<span>${(elf.name || '?')[0]}</span>`;
-        const isCollab = elf.is_collaborator;
-        const rankText = isCollab ? (elfRank[elf.star] || 'S') : '★'.repeat(Math.min(elf.star || 1, 4));
-        const rankClass = isCollab ? 'collab-rank' : 'elf-stars';
-        return `<div class="elf-card"><div class="elf-icon">${eImg}</div><div class="${rankClass}">${rankText}</div><div class="elf-name">${elf.name || ''}</div></div>`;
+        const rankText = elfRank[elf.star] || 'S';
+        return `<div class="elf-card"><div class="elf-icon">${eImg}</div><div class="collab-rank">${rankText}</div><div class="elf-name">${elf.name || ''}</div></div>`;
       })() : '';
       return `<div class="report-card"><div class="card-header"><div class="level-badge">${fmtLv(r.level)}</div><div class="score-wrap"><div class="score">${r.score || 0}</div><div class="boss-name-right">${bossName}</div></div></div><div class="card-body"><div class="lineup-wrap"><div class="lineup">${lined}${elfHtml}</div></div><div class="boss-area"><div class="boss-icon">${bossIcon}</div><div class="right-info"><div class="ri-line">#${r.rank || 0}</div><div class="ri-line">${cupText}${cupChange}</div><div class="ri-line time">${fmtTs(r.updated_time_second)}</div></div></div></div></div>`;
     }).join('\n');
