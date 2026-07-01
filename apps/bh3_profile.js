@@ -44,7 +44,7 @@ function getMysRating(pref = {}) {
   // 米游社前端按百分制综合分展示档位；接口里的 comprehensive_rating 会出现滞后/旧档位。
   if (score > 0) {
     if (score >= 90) return 'SSS';
-    if (score >= 75) return 'SS';
+    if (score >= 70) return 'SS';
     if (score >= 60) return 'S';
     if (score >= 45) return 'A';
     if (score >= 30) return 'B';

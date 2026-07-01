@@ -19,23 +19,11 @@
           <hr />
           <div class="zi_">
             <div class="game-tags">
-              <p class="game_list">游戏列表：</p>
-              <div class="game-tags-grid">
-                {{if gs_data}}
-                <p>原神</p>
-                {{/if}} {{if sr_data}}
-                <p>崩坏星穹铁道</p>
-                {{/if}} {{if zzz_data}}
-                <p>绝区零</p>
-                {{/if}} {{if bh3_data}}
-                <p>崩坏3</p>
-                {{/if}}
-              </div>
+              <p class="game_list">游戏列表：{{if gs_data}}原神{{/if}}{{if sr_data}} 崩坏星穹铁道{{/if}}{{if zzz_data}} 绝区零{{/if}}{{if bh3_data}} 崩坏3{{/if}}</p>
             </div>
             <img class="xhh" src="{{ppath}}Tl/imgs/小花火.png" />
             <div class="time-line">
-              <p class="n_time">获取时间：</p>
-              <p class="n_time_">{{time}}</p>
+              <p class="n_time">获取时间：{{time}}</p>
             </div>
           </div>
         </div>

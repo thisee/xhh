@@ -116,8 +116,10 @@ body {
 }
 
 .zi .game_list {
-  padding-left: 3px;
+  padding: 2px 8px;
   background: rgb(94, 215, 220);
+  display: inline-block;
+  border-radius: 4px;
 }
 
 .zi .xhh {

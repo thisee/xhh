@@ -68,7 +68,7 @@ function getMysRating(pref = {}) {
   const score = Number(pref.comprehensive_score || 0);
   if (score > 0) {
     if (score >= 90) return 'SSS';
-    if (score >= 75) return 'SS';
+    if (score >= 70) return 'SS';
     if (score >= 60) return 'S';
     if (score >= 45) return 'A';
     if (score >= 30) return 'B';
