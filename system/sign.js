@@ -11,7 +11,8 @@ async function MysSign(e, games) {
     if (
         !e.user.getMysUser() &&
         !e.user.getMysUser('sr') &&
-        !e.user.getMysUser('zzz')
+        !e.user.getMysUser('zzz') &&
+        !e.user.getMysUser('bh3')
     )
         return e.reply('未绑定米游社ck,请发送[扫码绑定]', true);
     let msgs = [];
@@ -19,23 +20,25 @@ async function MysSign(e, games) {
     for (let game of games) {
         const mys = e.user.getMysUser(game);
         if (!mys) continue;
-        const ck = mys.ck;
-        const uids = mys.uids;
-        const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : '绝区零';
-        for (let i = 0; i < uids[game].length; i++) {
-            const uid = uids[game][i];
-            if (i > 0) await sleep(1000);
-            let headers = mhy.getHeaders(e, ck);
-            const Ds = mhy.getDsSign();
-            headers.DS = Ds;
-            headers.Origin = 'https://act.mihoyo.com';
-            headers.Referer = 'https://act.mihoyo.com';
-            //必加参数
-            headers['x-rpc-signgame'] =
-                game == 'zzz' ? 'zzz' : game == 'sr' ? 'hkrpg' : 'hk4e';
-            let data = {
-                game,
-                uid,
+            const ck = mys.ck;
+            const uids = mys.uids;
+            const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : game == 'zzz' ? '绝区零' : '崩坏3';
+            for (let i = 0; i < uids[game].length; i++) {
+                const uid = uids[game][i];
+                if (i > 0) await sleep(1000);
+                let headers = mhy.getHeaders(e, ck);
+                const Ds = mhy.getDsSign();
+                headers.DS = Ds;
+                headers.Origin = 'https://act.mihoyo.com';
+                headers.Referer = 'https://act.mihoyo.com';
+                //必加参数
+                if (game === 'gs') headers['x-rpc-signgame'] = 'hk4e';
+                else if (game === 'sr') headers['x-rpc-signgame'] = 'hkrpg';
+                else if (game === 'zzz') headers['x-rpc-signgame'] = 'zzz';
+                else delete headers['x-rpc-signgame'];
+                let data = {
+                    game,
+                    uid,
                 headers,
                 type: 'sign_info',
             };
@@ -163,7 +166,7 @@ async function zd_MysSign(qqs) {
         z_num = 0,
         cg_qqs = [],
         sbai_qqs = [];
-    const games = ['gs', 'sr', 'zzz'];
+    const games = ['gs', 'sr', 'zzz', 'bh3'];
     for (let qq of qqs) {
         let e = {};
         e.user_id = qq;
@@ -183,8 +186,10 @@ async function zd_MysSign(qqs) {
                 headers.Origin = 'https://act.mihoyo.com';
                 headers.Referer = 'https://act.mihoyo.com';
                 //必加参数
-                headers['x-rpc-signgame'] =
-                    game == 'zzz' ? 'zzz' : game == 'sr' ? 'hkrpg' : 'hk4e';
+                if (game === 'gs') headers['x-rpc-signgame'] = 'hk4e';
+                else if (game === 'sr') headers['x-rpc-signgame'] = 'hkrpg';
+                else if (game === 'zzz') headers['x-rpc-signgame'] = 'zzz';
+                else delete headers['x-rpc-signgame'];
                 let data = {
                     game,
                     uid,

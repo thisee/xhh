@@ -17,7 +17,7 @@ export class Sign extends plugin {
             event: 'message',
             priority: -26,
             rule: [{
-                    reg: '^#*(小花火|xhh)*(原神|星铁|绝区零)*签到$',
+                    reg: '^#*(小花火|xhh)*(原神|星铁|绝区零|崩三|崩坏3|崩坏三|BH3)*签到$',
                     fnc: 'sign',
                 },
                 {
@@ -43,6 +43,10 @@ export class Sign extends plugin {
             星铁: ['sr'],
             绝区零: ['zzz'],
             原神: ['gs'],
+            崩三: ['bh3'],
+            崩坏3: ['bh3'],
+            崩坏三: ['bh3'],
+            BH3: ['bh3'],
             '#': ['gs'],
         };
         try {
@@ -54,7 +58,7 @@ export class Sign extends plugin {
                 }
             }
 
-            await MysSign(e, ['gs', 'sr', 'zzz']);
+            await MysSign(e, ['gs', 'sr', 'zzz', 'bh3']);
         } catch (error) {
             logger.error(`签到异常: ${error.message}`);
         } finally {

@@ -11,6 +11,7 @@ async function api(e, data = {}) {
         gs: 'e202311201442471',
         sr: 'e202304121516551',
         zzz: 'e202406242138391',
+        bh3: 'e202207181446311',
     };
     const game = data.game;
     const uid = data.uid;

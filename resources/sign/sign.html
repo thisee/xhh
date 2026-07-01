@@ -21,8 +21,8 @@
         {{each msgs s}}
         <div class="_box_">
           <img
-            class="{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz'}}"
-            src="{{ppath}}sign/{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz'}}.png"
+            class="{{s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : s.game == '崩坏3' ? 'bh3' : 'zzz'}}"
+            src="{{s.game == '崩坏3' ? ppath + 'bh3_note/bh3_icon.png' : ppath + 'sign/' + (s.game == '原神' ? 'gs' : s.game == '星铁' ? 'sr' : 'zzz') + '.png'}}"
           />
           <p>{{s.game}}uid：{{s.uid}}</p>
           <p>{{s.tip}}</p>
