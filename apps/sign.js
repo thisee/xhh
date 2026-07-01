@@ -44,6 +44,11 @@ export class Sign extends plugin {
     async sign(e) {
         if (!config().sign) return false;
         if (signing) return e.reply('有签到任务进行中, 过会儿再试吧！');
+        if (e.isGroup) {
+            const signData = yaml.get('./plugins/xhh/config/sign.yaml');
+            const wl = signData.sign_group || [];
+            if (wl.length > 0 && !wl.includes(e.group_id)) return false;
+        }
         signing = true;
         const GAME_MAP = {
             星铁: ['sr'],
