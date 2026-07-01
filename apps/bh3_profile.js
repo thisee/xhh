@@ -186,7 +186,17 @@ export class bh3_profile extends plugin {
       nickname: role.nickname || '未知舰长',
       level: role.level || 0,
       avatarUrl: absIcon(role.AvatarUrl || ''),
-      rating: pref.comprehensive_rating || 'C',
+      rating: (() => {
+        const r = pref.comprehensive_rating;
+        if (r && /^[A-Z]{1,3}$/.test(r)) return r;
+        const s = pref.comprehensive_score || 0;
+        if (s >= 4000) return 'SSS';
+        if (s >= 3500) return 'SS';
+        if (s >= 3000) return 'S';
+        if (s >= 2500) return 'A';
+        if (s >= 2000) return 'B';
+        return 'C';
+      })(),
       score: pref.comprehensive_score || 0,
       statCards,
       characters,
