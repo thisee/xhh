@@ -383,7 +383,7 @@ strong {
 
 .zi_ .game-tags-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   align-items: center;
 }
@@ -402,8 +402,9 @@ strong {
   width: 286px;
   padding-right: 150px;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
 }
 
 .zi_ .time_label {
