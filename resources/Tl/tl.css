@@ -399,8 +399,6 @@ strong {
   position: relative;
   z-index: 2;
   margin-top: 2px;
-  width: 286px;
-  padding-right: 150px;
   display: flex;
   flex-direction: row;
   align-items: center;
