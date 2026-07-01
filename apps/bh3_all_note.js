@@ -203,7 +203,7 @@ export class bh3_all_note extends plugin {
       if (g.gameKey === 'zzz') lines.push(`  活跃: ${g.vitalityCurrent}/${g.vitalityMax}  周纪: ${g.weeklyCur}/${g.weeklyMax}`);
       if (g.gameKey === 'bh3') {
         lines.push(`  历练: ${g.currentTrain} / ${g.maxTrain}`);
-        if (g.ultraEndless?.is_open) lines.push(`  超弦: ${g.ultraEndless.challenge_score || '?'}分 剩余${g.ultraEndless.remain}`);
+        if (g.ultraEndless?.is_open) lines.push(`  ${g.ultraLabel}: ${g.ultraEndless.challenge_score || '?'}分 剩余${g.ultraEndless.remain}`);
         if (g.battleField?.is_open) lines.push(`  战场: ${g.battleField.cur_reward || 0}/${g.battleField.max_reward || 0} 剩余${g.battleField.remain}`);
         if (g.godWar?.is_open) lines.push(`  乐土: ${g.godWar.cur_reward || 0}/${g.godWar.max_reward || 0} 剩余${g.godWar.remain}`);
       }

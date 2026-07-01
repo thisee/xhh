@@ -150,7 +150,7 @@ export class bh3_abyss extends plugin {
   async abyss(e) {
     return this._abyss(e, [
       { type: 'bh3_new_abyss', label: '超弦空间' },
-      { type: 'bh3_old_abyss', label: '量子流形' },
+{ type: 'bh3_old_abyss', label: '量子流行' },
     ]);
   }
 
@@ -180,11 +180,11 @@ export class bh3_abyss extends plugin {
     const role = indexRes.data?.role || {};
     const level = Number(role.level || 0);
     const queryList = level > 0 && level <= 80 && apiList.some(ap => ap.type === 'bh3_old_abyss')
-      ? [{ type: 'bh3_old_abyss', label: '量子流形' }, ...apiList.filter(ap => ap.type !== 'bh3_old_abyss')]
+      ? [{ type: 'bh3_old_abyss', label: '量子流行' }, ...apiList.filter(ap => ap.type !== 'bh3_old_abyss')]
       : apiList;
 
     let abyssRes, label = queryList[0].label;
-    // Try multiple server values: bound region, inferred official/B服. 80级未突破玩家优先查量子流形。
+    // Try multiple server values: bound region, inferred official/B服. 80级未突破玩家优先查量子流行。
     const serverValues = [...new Set([region, mhy.getServer(uid, 'bh3'), 'cn_gf01', 'cn_qd01'].filter(Boolean))];
     for (const sv of serverValues) {
       for (const ap of queryList) {
@@ -227,7 +227,7 @@ export class bh3_abyss extends plugin {
     }
 
     const elfRank = ['', 'S', 'SS', 'SSS', 'SSS'];
-    const isSimpleLevel = label === '量子流形' || label === '旧深渊';
+    const isSimpleLevel = label === '量子流行' || label === '旧深渊';
     const simpleLevelMap = { 1: '禁忌', 2: '原罪', 3: '苦痛', 4: '红莲', 5: '寂灭' };
     const letterLevelMap = { S: '寂灭', A: '红莲', B: '苦痛', C: '原罪', D: '禁忌' };
     const fmtLv = lv => {

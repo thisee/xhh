@@ -176,7 +176,10 @@ export class TL extends plugin {
         }
       }
       const entry = stokenData[uid];
-      if (entry) signEntry = entry;
+      if (entry) {
+        signEntry = entry;
+        region = entry.region || region;
+      }
       if (entry?.stuid) {
         try {
           const nu = await NoteUser.create(qq);
@@ -236,13 +239,17 @@ export class TL extends plugin {
     if (indexRes?.retcode !== 0 || noteRes?.retcode !== 0) return false;
     const role = indexRes.data?.role || {};
     const note = noteRes.data || {};
+    const level = Number(role.level || 0);
     const ultra = note.ultra_endless || null;
     const greedy = note.greedy_endless || null;
-    const abyss = ultra?.is_open ? ultra : greedy?.is_open ? greedy : ultra || greedy || null;
-    const abyssName = ultra?.is_open ? '超弦空间' : greedy ? '量子流形' : ((role.level || 0) >= 81 ? '超弦空间' : '量子流形');
+    const isOldAbyss = level > 0 && level <= 80;
+    const abyss = isOldAbyss
+      ? (greedy || ultra || null)
+      : (ultra?.is_open ? ultra : greedy?.is_open ? greedy : ultra || greedy || null);
+    const abyssName = isOldAbyss ? '量子流行' : (ultra ? '超弦空间' : greedy ? '量子流行' : '超弦空间');
     return {
       uid: auth.uid,
-      level: role.level || 0,
+      level,
       name: role.nickname || '未知舰长',
       current_stamina: note.current_stamina || 0,
       max_stamina: note.max_stamina || 200,

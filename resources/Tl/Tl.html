@@ -47,7 +47,7 @@
           <img src="{{ppath}}Tl/imgs/原神.jpg" />
           <p>UID：{{gs_data.uid}}</p>
           <p>{{gs_data.level}}级</p>
-          <p>昵称：{{gs_data.name}}</p>
+          <p class="game-nick">昵称：{{gs_data.name}}</p>
 
           <div class="sign">
             <img src="{{ppath}}Tl/imgs/签到.png" />
@@ -129,7 +129,7 @@
           <img src="{{ppath}}Tl/imgs/星铁.jpg" />
           <p>UID：{{sr_data.uid}}</p>
           <p>{{sr_data.level}}级</p>
-          <p>昵称：{{sr_data.name}}</p>
+          <p class="game-nick">昵称：{{sr_data.name}}</p>
           <div class="sign">
             <img src="{{ppath}}Tl/imgs/签到.png" />
             <span class="{{sr_data.has_signed  ?  '' :  'red'}}">{{sr_data.has_signed ? '今日已签' : '尚未签到'}}</span>
@@ -208,7 +208,7 @@
           <img src="{{ppath}}Tl/imgs/绝区零.jpg" />
           <p>UID：{{zzz_data.uid}}</p>
           <p>{{zzz_data.level}}级</p>
-          <p>昵称：{{zzz_data.name}}</p>
+          <p class="game-nick">昵称：{{zzz_data.name}}</p>
           <div class="sign">
             <img src="{{ppath}}Tl/imgs/签到.png" />
             <span class="{{zzz_data.has_signed  ?  '' :  'red'}}">{{zzz_data.has_signed ? '今日已签' : '尚未签到'}}</span>
@@ -294,7 +294,7 @@
           <img src="{{ppath}}bh3_note/bh3_icon.png" />
           <p>UID：{{bh3_data.uid}}</p>
           <p>{{bh3_data.level}}级</p>
-          <p>昵称：{{bh3_data.name}}</p>
+          <p class="game-nick">昵称：{{bh3_data.name}}</p>
           <div class="sign">
             <img src="{{ppath}}Tl/imgs/签到.png" />
             <span class="{{bh3_data.is_sign ? '' : 'red'}}">{{bh3_data.is_sign ? '今日已签' : '尚未签到'}}</span>

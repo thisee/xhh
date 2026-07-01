@@ -81,25 +81,14 @@
     </div>
 
     <div class="activities">
-      {{if ultraEndless && ultraEndless.is_open}}
+      {{if abyssOpen}}
       <div class="activity">
-        <div class="note-icon activity-icon ultra-icon"><svg class="note-icon-svg"><use href="#note-icon-ultra"></use></svg></div>
+        <div class="note-icon activity-icon ultra-icon {{abyssName == '量子流形' ? 'greedy-icon' : ''}}"><svg class="note-icon-svg"><use href="#note-icon-ultra"></use></svg></div>
         <div class="act-left">
-          <div class="act-name">超弦空间</div>
-          <div class="act-remain">{{ultraEndless.challenge_score || '?'}} 分</div>
+          <div class="act-name">{{abyssName}}</div>
+          <div class="act-remain">{{abyssValue}}</div>
         </div>
-        <div class="act-right">{{ultraEndless.remain}}</div>
-      </div>
-      {{/if}}
-
-      {{if greedyEndless && greedyEndless.is_open && (!ultraEndless || !ultraEndless.is_open)}}
-      <div class="activity">
-        <div class="note-icon activity-icon ultra-icon greedy-icon"><svg class="note-icon-svg"><use href="#note-icon-ultra"></use></svg></div>
-        <div class="act-left">
-          <div class="act-name">量子流形</div>
-          <div class="act-remain">{{greedyEndless.cur_reward || 0}}/{{greedyEndless.max_reward || 0}}</div>
-        </div>
-        <div class="act-right">{{greedyEndless.remain}}</div>
+        <div class="act-right">{{abyssRemain}}</div>
       </div>
       {{/if}}
 
@@ -125,7 +114,7 @@
       </div>
       {{/if}}
 
-      {{if (!ultraEndless || !ultraEndless.is_open) && (!greedyEndless || !greedyEndless.is_open) && (!battleField || !battleField.is_open) && (!godWar || !godWar.is_open)}}
+      {{if (!abyssOpen) && (!battleField || !battleField.is_open) && (!godWar || !godWar.is_open)}}
       <div class="activity empty">暂无进行中的活动</div>
       {{/if}}
     </div>

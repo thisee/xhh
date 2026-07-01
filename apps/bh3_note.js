@@ -162,12 +162,23 @@ export class bh3_note extends plugin {
     const stats = indexRes.data?.stats || {};
     const pref = indexRes.data?.preference || {};
     const note = noteRes.data || {};
+    const level = Number(role.level || 0);
+    const isOldAbyss = level > 0 && level <= 80;
+    const ultraRaw = note.ultra_endless || null;
+    const greedyRaw = note.greedy_endless || null;
+    const displayAbyss = isOldAbyss ? (greedyRaw || ultraRaw) : (ultraRaw || greedyRaw);
+    const displayAbyssName = isOldAbyss ? '量子流行' : (ultraRaw ? '超弦空间' : greedyRaw ? '量子流行' : '深渊');
+    const displayAbyssValue = displayAbyss
+      ? (isOldAbyss
+        ? `${displayAbyss.cur_reward ?? displayAbyss.challenge_score ?? 0}/${displayAbyss.max_reward ?? '?'}`
+        : `${displayAbyss.challenge_score ?? displayAbyss.cur_reward ?? '?'} 分`)
+      : '';
 
     const data = {
       uid,
       region: serverMap[region] || region,
       nickname: role.nickname || '未知舰长',
-      level: role.level || 0,
+      level,
       avatarUrl: role.AvatarUrl || '',
       activeDays: stats.active_day_number || 0,
       rating: getMysRating(pref),
@@ -178,8 +189,12 @@ export class bh3_note extends plugin {
       currentTrain: note.current_train_score || 0,
       maxTrain: note.max_train_score || 500,
       trainPercent: Math.min((note.current_train_score || 0) / (note.max_train_score || 500) * 100, 100),
-      ultraEndless: note.ultra_endless ? { ...note.ultra_endless, remain: fmtEndTs(note.ultra_endless.schedule_end) } : null,
-      greedyEndless: note.greedy_endless ? { ...note.greedy_endless, remain: fmtEndTs(note.greedy_endless.schedule_end) } : null,
+      abyssName: displayAbyssName,
+      abyssValue: displayAbyssValue,
+      abyssOpen: !!displayAbyss?.is_open,
+      abyssRemain: displayAbyss ? fmtEndTs(displayAbyss.schedule_end) : '',
+      ultraEndless: !isOldAbyss && note.ultra_endless ? { ...note.ultra_endless, remain: fmtEndTs(note.ultra_endless.schedule_end) } : null,
+      greedyEndless: isOldAbyss && displayAbyss ? { ...displayAbyss, remain: fmtEndTs(displayAbyss.schedule_end) } : (!note.ultra_endless && note.greedy_endless ? { ...note.greedy_endless, remain: fmtEndTs(note.greedy_endless.schedule_end) } : null),
       battleField: note.battle_field ? { ...note.battle_field, remain: fmtEndTs(note.battle_field.schedule_end) } : null,
       godWar: note.god_war ? { ...note.god_war, remain: fmtEndTs(note.god_war.schedule_end) } : null,
       dataTime: moment().format('MM-DD HH:mm'),
@@ -206,10 +221,8 @@ export class bh3_note extends plugin {
       `体力: ${data.currentStamina} / ${data.maxStamina}  (${data.staminaRecover})`,
       `历练值: ${data.currentTrain} / ${data.maxTrain}`,
     ];
-    if (data.ultraEndless?.is_open) {
-      lines.push(`超弦空间: ${data.ultraEndless.challenge_score || '?'}分  剩余${fmtEndTs(data.ultraEndless.schedule_end)}`);
-    } else if (data.greedyEndless?.is_open) {
-      lines.push(`量子流形: ${data.greedyEndless.cur_reward || 0}/${data.greedyEndless.max_reward || 0}  剩余${fmtEndTs(data.greedyEndless.schedule_end)}`);
+    if (data.abyssOpen) {
+      lines.push(`${data.abyssName}: ${data.abyssValue}  剩余${data.abyssRemain}`);
     }
     if (data.battleField?.is_open) {
       lines.push(`记忆战场: ${data.battleField.cur_reward || 0}/${data.battleField.max_reward || 0}  剩余${fmtEndTs(data.battleField.schedule_end)}`);
