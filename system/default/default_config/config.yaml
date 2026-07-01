@@ -97,3 +97,18 @@ hbxx: false
 
 #http://ttocr.com/
 Verification_API_KEY: ''
+
+#插件优先级（修改后需重启）
+tl_priority: -99
+sign_priority: -26
+user_priority: -9999999999
+wiki_priority: 100
+bh3_remind_priority: -1000001
+bh3_note_priority: 100
+bh3_abyss_priority: 100
+bh3_battlefield_priority: 100
+bh3_godwar_priority: 100
+bh3_profile_priority: 100
+bh3_all_note_priority: 100
+bh3_gacha_priority: 100
+bh3_ledger_priority: 100

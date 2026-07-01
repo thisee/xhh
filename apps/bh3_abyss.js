@@ -1,4 +1,4 @@
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
@@ -59,7 +59,7 @@ export class bh3_abyss extends plugin {
       name: '[小花火]崩三深渊',
       dsc: '崩坏3深渊战报',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_abyss', 100),
       rule: [
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(深渊|战报|超弦)$', fnc: 'abyss' },
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(旧深渊|原深渊)$', fnc: 'oldAbyss' },

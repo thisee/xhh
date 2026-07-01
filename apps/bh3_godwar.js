@@ -1,4 +1,4 @@
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
@@ -70,7 +70,7 @@ export class bh3_godwar extends plugin {
       name: '[小花火]崩三往世乐土',
       dsc: '崩坏3往世乐土数据',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_godwar', 100),
       rule: [
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(乐土|往世乐土)$', fnc: 'godwar' },
       ],

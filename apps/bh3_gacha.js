@@ -1,4 +1,4 @@
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import path from 'path';
 import moment from 'moment';
@@ -41,7 +41,7 @@ export class bh3_gacha extends plugin {
       name: '[小花火]崩三抽卡记录',
       dsc: '崩坏3抽卡记录查询与刷新',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_gacha', 100),
       rule: [
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?(抽卡记录|抽卡统计)$', fnc: 'gachaSummary' },
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?(刷新|更新)抽卡记录$', fnc: 'refreshGacha' },

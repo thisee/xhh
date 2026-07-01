@@ -1,4 +1,4 @@
-import { api, mhy, yaml, config } from '#xhh';
+import { api, mhy, yaml, config, pluginPriority } from '#xhh';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
@@ -27,7 +27,7 @@ export class bh3_ledger extends plugin {
             name: '[小花火]崩三水晶',
             dsc: '崩坏3水晶统计查询',
             event: 'message',
-            priority: 100,
+            priority: pluginPriority('bh3_ledger', 100),
             rule: [
                 {
                     reg: '^#*水晶$',

@@ -249,6 +249,101 @@ export const supportGuoba = () => ({
       },
       {
         component: 'Divider',
+        label: '插件优先级（修改后需重启Bot）',
+      },
+      {
+        field: 'tl_priority',
+        label: '体力小组件(TL)',
+        helpMessage: '默认 -99',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'sign_priority',
+        label: '签到(sign)',
+        helpMessage: '默认 -26',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'user_priority',
+        label: '扫码绑定(user)',
+        helpMessage: '默认 -9999999999',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'wiki_priority',
+        label: '图鉴(wiki)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_remind_priority',
+        label: '崩三提醒(bh3_remind)',
+        helpMessage: '默认 -1000001（提醒拦截）',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_note_priority',
+        label: '崩三体力(bh3_note)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_abyss_priority',
+        label: '崩三深渊(bh3_abyss)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_battlefield_priority',
+        label: '崩三战场(bh3_battlefield)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_godwar_priority',
+        label: '崩三乐土(bh3_godwar)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_profile_priority',
+        label: '崩三主页(bh3_profile)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_all_note_priority',
+        label: '四体力聚合(bh3_all_note)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_gacha_priority',
+        label: '崩三抽卡(bh3_gacha)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'bh3_ledger_priority',
+        label: '崩三水晶(bh3_ledger)',
+        helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        component: 'Divider',
         label: '其他',
       },
       {
@@ -308,6 +403,19 @@ export const supportGuoba = () => ({
         Tl: !!cfg.Tl,
         hbxx: !!cfg.hbxx,
         debug: !!cfg.debug,
+        tl_priority: cfg.tl_priority ?? -99,
+        sign_priority: cfg.sign_priority ?? -26,
+        user_priority: cfg.user_priority ?? -9999999999,
+        wiki_priority: other.wiki ?? 100,
+        bh3_remind_priority: cfg.bh3_remind_priority ?? -1000001,
+        bh3_note_priority: cfg.bh3_note_priority ?? 100,
+        bh3_abyss_priority: cfg.bh3_abyss_priority ?? 100,
+        bh3_battlefield_priority: cfg.bh3_battlefield_priority ?? 100,
+        bh3_godwar_priority: cfg.bh3_godwar_priority ?? 100,
+        bh3_profile_priority: cfg.bh3_profile_priority ?? 100,
+        bh3_all_note_priority: cfg.bh3_all_note_priority ?? 100,
+        bh3_gacha_priority: cfg.bh3_gacha_priority ?? 100,
+        bh3_ledger_priority: cfg.bh3_ledger_priority ?? 100,
         bh3_remind_enable: !!bh3Remind.enable,
         bh3_all_note_enable: !!cfg.bh3_all_note_enable,
         bh3_all_note_groups: (cfg.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean).join(','),
@@ -364,6 +472,18 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'bh3_remind.yaml', 'groups', groups)
       const allNoteGroups = String(data.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
       yaml.set(_path + 'bh3_remind.yaml', 'all_note_groups', allNoteGroups)
+
+      const priorityFields = [
+        'tl_priority', 'sign_priority', 'user_priority', 'wiki_priority',
+        'bh3_remind_priority', 'bh3_note_priority', 'bh3_abyss_priority',
+        'bh3_battlefield_priority', 'bh3_godwar_priority', 'bh3_profile_priority',
+        'bh3_all_note_priority', 'bh3_gacha_priority', 'bh3_ledger_priority',
+      ]
+      for (const f of priorityFields) {
+        if (data[f] != null) yaml.set(_path + 'config.yaml', f, Number(data[f]))
+      }
+      // wiki优先级在other.yaml
+      if (data.wiki_priority != null) yaml.set(_path + 'other.yaml', 'wiki', Number(data.wiki_priority))
 
       return Result.ok({}, '保存成功，部分配置需重启生效')
     },

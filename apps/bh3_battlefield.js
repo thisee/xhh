@@ -1,4 +1,4 @@
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
@@ -56,7 +56,7 @@ export class bh3_battlefield extends plugin {
       name: '[小花火]崩三记忆战场',
       dsc: '崩坏3记忆战场战报',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_battlefield', 100),
       rule: [
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(战场|记忆战场|战场战报)$', fnc: 'battlefield' },
       ],

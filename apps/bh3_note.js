@@ -1,4 +1,4 @@
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
@@ -54,7 +54,7 @@ export class bh3_note extends plugin {
       name: '[小花火]崩三体力',
       dsc: '崩坏3体现实时便笺',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_note', 100),
       rule: [
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(体力|便笺|便签|实时)$', fnc: 'note' },
       ],

@@ -1,4 +1,4 @@
-import { config, yaml } from '#xhh';
+import { config, yaml, pluginPriority } from '#xhh';
 
 logger.info('[bh3_remind] 文件已加载');
 
@@ -14,11 +14,11 @@ export class bh3_remind extends plugin {
       name: '[小花火]崩三定时提醒',
       dsc: '深渊/战场/乐土 开启/结算定时提醒',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_remind', 100),
       rule: [
-        { reg: '^#.*', fnc: 'testMatch', priority: -1000001 },
-        { reg: '^#*(小花火)?(?=.*(崩三|崩坏3|崩坏三|BH3))(?=.*(提醒|定时提醒|开关提醒))(?=.*(开启|关闭|on|off)).*$', fnc: 'toggleRemind', priority: -1000001 },
-        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus', priority: -1000001 },
+        { reg: '^#.*', fnc: 'testMatch', priority: pluginPriority('bh3_remind', -1000001) },
+        { reg: '^#*(小花火)?(?=.*(崩三|崩坏3|崩坏三|BH3))(?=.*(提醒|定时提醒|开关提醒))(?=.*(开启|关闭|on|off)).*$', fnc: 'toggleRemind', priority: pluginPriority('bh3_remind', -1000001) },
+        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus', priority: pluginPriority('bh3_remind', -1000001) },
       ],
     });
   }

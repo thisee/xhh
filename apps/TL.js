@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import moment from 'moment';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
-import { mhy, render, api, config, yaml } from '#xhh';
+import { mhy, render, api, config, yaml, pluginPriority } from '#xhh';
 
 const path = process.cwd();
 
@@ -12,7 +12,7 @@ export class TL extends plugin {
       name: '[小花火]体力小组件',
       dsc: '体力',
       event: 'message',
-      priority: -99,
+      priority: pluginPriority('tl', -99),
       rule: [
         {
           reg: '^(#|\\*|%)*(原神|星铁|绝区零)*体力$',

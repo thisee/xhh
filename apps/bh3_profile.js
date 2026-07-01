@@ -1,4 +1,4 @@
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
@@ -45,7 +45,7 @@ export class bh3_profile extends plugin {
       name: '[小花火]崩三角色主页',
       dsc: '崩坏3角色主页卡片',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_profile', 100),
       rule: [
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(主页|角色主页|查询|角色查询)$', fnc: 'profile' },
       ],

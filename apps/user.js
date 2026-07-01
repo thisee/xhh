@@ -7,7 +7,8 @@ import {
     recallMsg,
     makeForwardMsg,
     api,
-    config
+    config,
+    pluginPriority
 } from '#xhh';
 import YAML from 'yaml';
 import fs from 'fs';

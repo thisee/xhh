@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, pluginPriority } from '#xhh';
 import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
@@ -70,7 +70,7 @@ export class bh3_all_note extends plugin {
       name: '[小花火]四游戏体力聚合',
       dsc: '原神/星铁/绝区零/崩三 体力一键查询',
       event: 'message',
-      priority: 100,
+      priority: pluginPriority('bh3_all_note', 100),
       rule: [
         { reg: '^#*(小花火体力|全体力|四游戏体力|米游社体力|体力总览)$', fnc: 'allNote' },
       ],

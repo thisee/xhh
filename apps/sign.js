@@ -3,7 +3,8 @@ import {
     MysSign,
     zd_MysSign,
     yaml,
-    sleep
+    sleep,
+    pluginPriority
 } from '#xhh';
 import lodash from 'lodash';
 import Runtime from '../../../lib/plugins/runtime.js';
@@ -15,7 +16,7 @@ export class Sign extends plugin {
             name: '[小花火]签到',
             dsc: '签到',
             event: 'message',
-            priority: -26,
+            priority: pluginPriority('sign', -26),
             rule: [{
                     reg: '^#*(小花火|xhh)*(原神|星铁|绝区零|崩三|崩坏3|崩坏三|BH3)*签到$',
                     fnc: 'sign',
