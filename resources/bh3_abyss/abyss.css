@@ -85,7 +85,21 @@ body {
   white-space: nowrap;
   flex-shrink: 0;
   padding-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
+.label-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.label-超弦空间 { background: linear-gradient(135deg, #667eea, #764ba2); }
+.label-量子流行 { background: linear-gradient(135deg, #06b6d4, #8b5cf6); }
+.label-旧深渊 { background: linear-gradient(135deg, #f97316, #eab308); }
 
 .report-card {
   margin-bottom: 10px;

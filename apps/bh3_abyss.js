@@ -159,13 +159,13 @@ export class bh3_abyss extends plugin {
     if (!indexRes || indexRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取玩家信息失败`);
 
     let abyssRes, label = apiList[0].label;
-    for (const ap of apiList) {
+    for (const [i, ap] of apiList.entries()) {
       try {
-        abyssRes = await api(e, { type: ap.type, uid, headers, game: 'bh3', server: region });
+        abyssRes = await api(e, { type: ap.type, uid, headers, game: 'bh3', server: region, silent: i > 0 });
         if (abyssRes?.retcode === 0) { label = ap.label; break; }
       } catch (_) {}
     }
-    if (!abyssRes || abyssRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取深渊数据失败`);
+    if (!abyssRes || abyssRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取${label}数据失败`);
 
     const role = indexRes.data?.role || {};
     const stats = indexRes.data?.stats || {};

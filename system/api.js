@@ -238,9 +238,10 @@ async function api(e, data = {}) {
     }
     const sign = data.type.includes('sign');
     const _err = sign ?
-        api_err(e, res, false, data.type) :
-        api_err(e, res, data.uid, data.type);
+        api_err(e, res, false, data.type, data.silent) :
+        api_err(e, res, data.uid, data.type, data.silent);
     if (_err) {
+        if (data.silent) return _err
         if (sign) return _err
         else if (res.retcode == 1034 || res.retcode == 10035) {
             const yz = await new user().yz(e, game, data.headers)
@@ -255,7 +256,7 @@ async function api(e, data = {}) {
     return res;
 }
 
-function api_err(e, res, uid, type) {
+function api_err(e, res, uid, type, silent) {
     if (res.retcode == 0) return false;
     let msg;
     switch (res.retcode) {
@@ -298,7 +299,7 @@ function api_err(e, res, uid, type) {
         if (res.first_bind) return '签到失败：首次请先手动签到';
         return msg;
     }
-    e.reply(msg);
+    if (!silent) e.reply(msg);
     return true;
 }
 
