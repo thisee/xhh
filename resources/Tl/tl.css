@@ -358,15 +358,10 @@ strong {
 .zi_ .game-tags {
   position: relative;
   z-index: 2;
-  width: 286px;
-  min-height: 58px;
-  padding-right: 150px;
-}
-
-.zi_ .game-tags {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
