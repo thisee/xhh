@@ -145,11 +145,17 @@ body {
 
 .__box .game {
   min-height: 30px;
-  padding: 5px 100px 2px 15px;
+  padding: 5px 15px;
   display: flex;
-  flex-wrap: wrap;
-  position: relative;
-  overflow: visible;
+  align-items: center;
+  gap: 12px;
+  background: #c6f4b2;
+  border-radius: 5px;
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
+    inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
 
 .__box .game img {
@@ -159,38 +165,22 @@ body {
 }
 
 .game p {
-  /*background: rgb(172, 222, 56);*/
-  background: #c6f4b2;
-  border-radius: 5px;
-  padding: 2px;
-  height: 20px;
-  display: inline-block;
-  box-shadow:
-    2px 2px 4px 0 rgba(51, 51, 52, 0.5),
-    inset 2px 2px 6.6px 0px rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  top: 5px;
-  margin-left: 10px;
-  position: relative;
-  flex: 0 1 auto;
+  margin: 0;
+  font-size: 14px;
+  color: #2d5a27;
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
 }
 
-.game p:nth-of-type(1) { max-width: 150px; }
-.game p:nth-of-type(2) { max-width: 54px; }
+.game p:nth-of-type(1) { max-width: none; }
+.game p:nth-of-type(2) { max-width: none; }
 .game p:nth-of-type(3) { max-width: none; }
 
 .game .game-nick {
-  flex: 0 0 calc(100% - 42px);
-  margin-left: 40px;
-  margin-top: 4px;
-  max-width: none;
+  margin: 0;
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 .game .sign {
