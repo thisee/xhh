@@ -129,14 +129,19 @@ export class bh3_abyss extends plugin {
   }
 
   async abyss(e) {
-    return this._abyss(e, 'bh3_new_abyss', '超弦空间');
+    return this._abyss(e, [
+      { type: 'bh3_new_abyss', label: '超弦空间' },
+      { type: 'bh3_old_abyss', label: '量子流行' },
+    ]);
   }
 
   async oldAbyss(e) {
-    return this._abyss(e, 'bh3_old_abyss', '旧深渊');
+    return this._abyss(e, [
+      { type: 'bh3_old_abyss', label: '旧深渊' },
+    ]);
   }
 
-  async _abyss(e, apiType, label) {
+  async _abyss(e, apiList) {
     const auth = await this.getAuth(e);
     if (!auth.uid) return sendMsg(e, '请先扫码绑定崩坏3账号');
     if (!auth.ck) return sendMsg(e, '未找到有效Cookie，请先扫码绑定');
@@ -144,19 +149,23 @@ export class bh3_abyss extends plugin {
     const { uid, region, ck } = auth;
     const headers = mhy.getHeaders(e, ck);
 
-    let indexRes, abyssRes;
+    let indexRes;
     try {
-      [indexRes, abyssRes] = await Promise.all([
-        api(e, { type: 'bh3_index', uid, headers, game: 'bh3', server: region }),
-        api(e, { type: apiType, uid, headers, game: 'bh3', server: region }),
-      ]);
+      indexRes = await api(e, { type: 'bh3_index', uid, headers, game: 'bh3', server: region });
     } catch (err) {
       logger.error('[bh3_abyss] API error:', err);
       return sendMsg(e, '查询失败，请稍后重试');
     }
-
     if (!indexRes || indexRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取玩家信息失败`);
-    if (!abyssRes || abyssRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取${label}数据失败`);
+
+    let abyssRes, label = apiList[0].label;
+    for (const ap of apiList) {
+      try {
+        abyssRes = await api(e, { type: ap.type, uid, headers, game: 'bh3', server: region });
+        if (abyssRes?.retcode === 0) { label = ap.label; break; }
+      } catch (_) {}
+    }
+    if (!abyssRes || abyssRes.retcode !== 0) return sendMsg(e, `UID${uid} 获取深渊数据失败`);
 
     const role = indexRes.data?.role || {};
     const stats = indexRes.data?.stats || {};

@@ -51,7 +51,7 @@
 
           <div class="sign">
             <img src="{{ppath}}Tl/imgs/签到.png" />
-            <span class="{{gs_data.has_signed  ?  '' :  'red'}}">{{gs_data.has_signed ? '今日已签' : '没有签到'}}</span>
+            <span class="{{gs_data.has_signed  ?  '' :  'red'}}">{{gs_data.has_signed ? '已签到' : '未签到'}}</span>
           </div>
         </div>
         <div class="_box">
@@ -132,7 +132,7 @@
           <p>昵称：{{sr_data.name}}</p>
           <div class="sign">
             <img src="{{ppath}}Tl/imgs/签到.png" />
-            <span class="{{sr_data.has_signed  ?  '' :  'red'}}">{{sr_data.has_signed ? '今日已签' : '没有签到'}}</span>
+            <span class="{{sr_data.has_signed  ?  '' :  'red'}}">{{sr_data.has_signed ? '已签到' : '未签到'}}</span>
           </div>
         </div>
         <div class="_box">
@@ -247,7 +247,7 @@
               <p>占卜/刮刮卡</p>
               <div class="right_">
                 <p class="{{zzz_data.card_sign=='CardSignDone' ? 'blue' : 'red' }}">
-                  {{zzz_data.card_sign=='CardSignDone' ? '已' : '未'}}完成
+                  {{zzz_data.card_sign=='CardSignDone' ? '已签到' : '未签到'}}
                 </p>
               </div>
             </div>
@@ -295,6 +295,10 @@
           <p>UID：{{bh3_data.uid}}</p>
           <p>{{bh3_data.level}}级</p>
           <p>昵称：{{bh3_data.name}}</p>
+          <div class="sign">
+            <img src="{{ppath}}Tl/imgs/签到.png" />
+            <span class="{{bh3_data.is_sign ? '' : 'red'}}">{{bh3_data.is_sign ? '已签到' : '未签到'}}</span>
+          </div>
         </div>
         <div class="_box">
           <div class="left_box">

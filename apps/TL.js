@@ -190,11 +190,12 @@ export class TL extends plugin {
       return '没有';
     }
     const headers = mhy.getHeaders(e, auth.ck);
-    let indexRes, noteRes;
+    let indexRes, noteRes, signRes;
     try {
-      [indexRes, noteRes] = await Promise.all([
+      [indexRes, noteRes, signRes] = await Promise.all([
         api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
         api(e, { type: 'bh3_note', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
+        api(e, { type: 'sign_info', uid: auth.uid, headers, game: 'bh3', server: auth.region }).catch(() => null),
       ]);
     } catch (err) {
       logger.error('[xhh][TL][bh3] API error:', err);
@@ -219,6 +220,7 @@ export class TL extends plugin {
       abyss: note.ultra_endless || note.greedy_endless || null,
       battle_field: note.battle_field || null,
       god_war: note.god_war || null,
+      is_sign: signRes?.data?.is_sign === true,
     };
   }
 
