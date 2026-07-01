@@ -61,7 +61,7 @@ export class Wiki extends plugin {
   async list(e, name, isSr = false, isZZZ = false, isBH3 = false) {
     if (/光锥|遗器|虚无|巡猎|物理|量子|虚数|毁灭|智识|同谐|存护|丰饶|记忆/.test(name)) isSr = true;
     if (/音擎|驱动盘|邦布|以太|强攻|击破|防护|支援|异常/.test(name)) isZZZ = true;
-    if (/圣痕|人偶|协同者|生物|机械|量子|虚数|星尘|异能|火焰|冰冻|雷电/.test(name)) isBH3 = true;
+    if (/圣痕|人偶|协同者|生物|机械|量子|虚数|星尘|星辰|异能|火焰|冰冻|雷电/.test(name)) isBH3 = true;
 
     let type, _name
     
@@ -222,7 +222,9 @@ export class Wiki extends plugin {
           _name = '机械角色';
           break;
         case '星尘':
+        case '星辰':
         case '星尘系':
+        case '星辰系':
           data = data.filter(item => item.yuanshu === '星尘');
           _name = '星尘角色';
           break;
@@ -675,20 +677,78 @@ export class Wiki extends plugin {
     const title = content.title;
     const icon = content.icon || '';
 
+    const stripHtml = (text = '') => String(text)
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s*\n\s*/g, '\n')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+    const shortText = (text = '', len = 96) => {
+      text = stripHtml(text).replace(/\n{2,}/g, '\n');
+      return text.length > len ? `${text.slice(0, len)}…` : text;
+    };
+    const uniquePush = (list, item, key = 'key') => {
+      if (!item || !item[key]) return;
+      if (!list.some(v => v[key] === item[key])) list.push(item);
+    };
+    const parseTmplParts = () => {
+      const parts = [];
+      for (const section of content.contents || []) {
+        const text = String(section.text || '');
+        const matches = text.matchAll(/data-data="([^"]+)"/g);
+        for (const match of matches) {
+          try {
+            const arr = JSON.parse(decodeURIComponent(match[1]));
+            if (Array.isArray(arr)) parts.push(...arr);
+          } catch (err) {
+            globalThis.logger?.debug?.(`[xhh] BH3 wiki模板解析失败: ${title}`);
+          }
+        }
+      }
+      return parts;
+    };
+
     let basic_info = content.basic_info || {};
     try {
       const ext = JSON.parse(content.ext || '{}');
       const filters = JSON.parse(ext.c_18?.filter?.text || '[]');
       for (const item of filters) {
         const [key, value] = item.split('/');
-        if (key && value) basic_info[key] = value;
+        if (key && value) basic_info[key] = basic_info[key] ? `${basic_info[key]}、${value}` : value;
       }
     } catch (_) {}
 
-    const element = basic_info['属性'] || '未知';
+    const parts = parseTmplParts();
+    const basicPart = parts.find(p => p?.tmplKey === 'valkyrie' && p?.partKey === 'basicIntroduction')?.data || {};
+    const equipPart = parts.find(p => p?.tmplKey === 'valkyrie' && p?.partKey === 'equipmentRecommendation')?.data || {};
+    const skillPart = parts.find(p => p?.tmplKey === 'valkyrie' && p?.partKey === 'skill')?.data || {};
+    const advanceGeneralPart = parts.find(p => p?.tmplKey === 'valkyrie' && p?.partKey === 'advanceGeneral')?.data || {};
+    const advanceDataPart = parts.find(p => p?.tmplKey === 'valkyrie' && p?.partKey === 'advanceData')?.data || {};
+
+    const introFields = [];
+    for (const item of basicPart.mainFields || []) {
+      uniquePush(introFields, { key: item.nameL, value: item.valueL });
+      uniquePush(introFields, { key: item.nameR, value: item.valueR });
+      if (item.nameL && item.valueL && !basic_info[item.nameL]) basic_info[item.nameL] = item.valueL;
+      if (item.nameR && item.valueR && !basic_info[item.nameR]) basic_info[item.nameR] = item.valueR;
+    }
+    const subFields = (basicPart.subFields || [])
+      .map(item => ({ key: item.name, value: shortText(item.value, 120) }))
+      .filter(item => item.key && item.value);
+
+    const element = basic_info['属性'] || basic_info['角色属性'] || '未知';
     const character_name = basic_info['角色'] || '';
     const rarity = basic_info['初始阶级'] || 'S';
-    const type = basic_info['装甲特性'] || '未知';
+    const type = basic_info['装甲特性'] || basic_info['角色定位'] || '未知';
 
     const element_icon_map = {
       '物理': '物理.png',
@@ -706,15 +766,80 @@ export class Wiki extends plugin {
       '虚数': '虚数.png',
       '异能': '异能.png',
       '机械': '机械.png',
-      '星尘': '星尘.png'
+      '星尘': '星尘.png',
+      '星辰': '星尘.png',
+      '星尘属性': '星尘.png',
+      '星辰属性': '星尘.png',
+      '界域共鸣': '星环特性.svg',
+      '星影偕行': '星环特性.svg',
+      '复盈相生': '星环特性.svg',
+      '星之环特性': '星环特性.svg',
+      '天衍之杯': '星环分野.svg',
+      '星之环分野': '星环分野.svg',
+      '角色定位': '定位.svg',
+      '输出': '定位.svg',
+      '辅助': '定位.svg'
     };
+
+    const img = (basicPart.avatar || icon || '').startsWith('http') ? (basicPart.avatar || icon) : `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${basicPart.avatar || icon}`;
+    const element_icon = element_icon_map[element] || (String(element).includes('星') ? '星尘.png' : '物理.png');
+    const getAttrIcon = (key = '', value = '') => {
+      const text = `${key} ${value}`;
+      for (const [k, icon] of Object.entries(element_icon_map)) {
+        if (text.includes(k)) return icon;
+      }
+      if (text.includes('星')) return '星尘.png';
+      return '';
+    };
+
+    for (const item of introFields) item.icon = getAttrIcon(item.key, item.value);
+    for (const item of subFields) item.icon = getAttrIcon(item.key, item.value);
 
     const attr = Object.entries(basic_info)
       .filter(([key, value]) => key && value)
-      .map(([key, value]) => ({ key, value }));
+      .map(([key, value]) => ({ key, value, icon: getAttrIcon(key, value) }));
 
-    const img = icon.startsWith('http') ? icon : `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${icon}`;
-    const element_icon = element_icon_map[element] || '物理.png';
+    const hexagon = (basicPart.hexagon || []).map(item => ({
+      key: item.key,
+      value: Number(item.value || 0),
+      level: item.level || ''
+    })).filter(item => item.key);
+
+    const equipment = (equipPart.equipment || []).slice(0, 3).map(group => ({
+      name: group.name_ || group.name || '推荐装备',
+      equips: (group.equips || []).slice(0, 4).map(eq => ({
+        title: eq.title || eq.name || '',
+        icon: eq.icon || ''
+      })).filter(eq => eq.title || eq.icon),
+      attackPoint: group.attackPoint,
+      functionPoint: group.functionPoint,
+      matchingDegree: group.matchingDegree,
+      reason: shortText(group.reason, 110)
+    })).filter(group => group.equips.length || group.reason);
+
+    const skills = (skillPart.items || []).slice(0, 6).map(item => {
+      const first = (item.list || []).find(v => v?.desc || v?.name) || {};
+      return {
+        name: item.name_ || item.name || first.name || '技能',
+        icon: item.img || first.icon || '',
+        desc: first.name ? `${first.name}：${shortText(first.desc, 96)}` : shortText(first.desc || item.desc, 96)
+      };
+    }).filter(item => item.name || item.desc);
+
+    const advance = (advanceGeneralPart.advanceGeneral || []).slice(0, 6).map(item => ({
+      icon: item.icon || '',
+      cost: item.cost,
+      desc: shortText(item.desc, 78)
+    })).filter(item => item.desc || item.icon);
+
+    const maxRankData = (advanceDataPart.advanceData || []).slice(-1)[0] || {};
+    const maxStats = [
+      { key: '生命', value: maxRankData.life },
+      { key: '能量', value: maxRankData.energy },
+      { key: '攻击', value: maxRankData.attack },
+      { key: '防御', value: maxRankData.defense },
+      { key: '会心', value: maxRankData.understanding }
+    ].filter(item => item.value !== undefined && item.value !== null && item.value !== '');
 
     data = {
       name: title,
@@ -722,8 +847,16 @@ export class Wiki extends plugin {
       attribute: element,
       specialty: type,
       character: character_name,
+      summary: content.summary || '',
       img,
       attr,
+      introFields,
+      subFields,
+      hexagon,
+      equipment,
+      skills,
+      advance,
+      maxStats,
       attr_icon: element_icon,
       material: []
     };

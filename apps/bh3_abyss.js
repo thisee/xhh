@@ -3,6 +3,7 @@ import fs from 'fs';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import puppeteer from '../../../lib/puppeteer/puppeteer.js';
 import moment from 'moment';
+import { getCurrentAbyssInfoByEvent, formatCurrentAbyssInfo } from '../system/bh3_abyss_boss.js';
 
 function sendMsg(e, msg) {
   if (typeof msg === 'object' && msg.constructor?.name === 'Buffer') {
@@ -80,6 +81,7 @@ export class bh3_abyss extends plugin {
       event: 'message',
       priority: pluginPriority('bh3_abyss', 100),
       rule: [
+        { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?(当前深渊|深渊[Bb]oss|深渊信息|本期深渊)$', fnc: 'abyssBoss' },
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(深渊|战报|超弦)$', fnc: 'abyss' },
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(旧深渊|原深渊)$', fnc: 'oldAbyss' },
       ],
@@ -158,6 +160,17 @@ async abyss(e) {
     return this._abyss(e, [
       { type: 'bh3_old_abyss', label: '旧深渊' },
     ]);
+  }
+
+  async abyssBoss(e) {
+    const info = await getCurrentAbyssInfoByEvent(e);
+    if (!info) {
+      return sendMsg(e, [
+        '暂时没有拿到当期深渊 Boss 信息。',
+        '可以稍后再试，或发送 #崩三深渊 查看完整战报 / #崩三深渊攻略 查看攻略图。',
+      ].join('\n'));
+    }
+    return sendMsg(e, `${formatCurrentAbyssInfo(info)}\n\n可发送 #崩三深渊攻略 查看详细作业图。`);
   }
 
   async _abyss(e, apiList) {

@@ -16,7 +16,7 @@
         <div class="eyebrow">Honkai Impact 3rd · Battlesuit Archive</div>
         <h1 class="name">{{name}}</h1>
         <p class="summary">
-          {{if character}}{{character}} · {{/if}}{{attribute}}属性 · {{specialty || '作战特性待补充'}}
+          {{summary || (character ? character + ' · ' : '') + attribute + '属性 · ' + (specialty || '作战特性待补充')}}
         </p>
         <div class="stars">
           <% for (var i = 0; i < star; i++) { %>
@@ -39,24 +39,150 @@
       <div class="section-head">
         <span class="section-kicker">PROFILE</span>
         <h2>角色信息</h2>
-        <p>按 Wiki 数据重新整理关键字段，便于截图中快速确认装甲定位与基础标签。</p>
       </div>
       <div class="attr-grid">
         {{each attr as v i}}
           <div class="attr-item">
             <span class="attr-key">{{v.key}}</span>
-            <span class="attr-value">{{v.value}}</span>
+            <span class="attr-value">
+              {{if v.icon}}<img class="attr-icon" src="{{ppath}}wiki/imgs/{{v.icon}}">{{/if}}
+              <span>{{v.value}}</span>
+            </span>
           </div>
         {{/each}}
       </div>
     </section>
+
+
+
+    {{if introFields && introFields.length}}
+    <section class="section-block intro-section">
+      <div class="section-head">
+        <span class="section-kicker">INTRODUCTION</span>
+        <h2>官方简介</h2>
+      </div>
+      <div class="intro-grid">
+        {{each introFields as v i}}
+          <div class="intro-item">
+            <span>{{v.key}}</span>
+            {{if v.icon}}<img class="intro-icon" src="{{ppath}}wiki/imgs/{{v.icon}}">{{/if}}<b>{{v.value}}</b>
+          </div>
+        {{/each}}
+      </div>
+      {{if subFields && subFields.length}}
+      <div class="sub-info-grid">
+        {{each subFields as v i}}
+          <div class="sub-info-card">
+            <div class="sub-info-title">{{if v.icon}}<img class="sub-info-icon" src="{{ppath}}wiki/imgs/{{v.icon}}">{{/if}}<span>{{v.key}}</span></div>
+            <div class="sub-info-text">{{v.value}}</div>
+          </div>
+        {{/each}}
+      </div>
+      {{/if}}
+    </section>
+    {{/if}}
+
+    {{if hexagon && hexagon.length}}
+    <section class="section-block ability-section">
+      <div class="section-head">
+        <span class="section-kicker">ABILITY</span>
+        <h2>能力评级</h2>
+      </div>
+      <div class="ability-grid">
+        {{each hexagon as h i}}
+          <div class="ability-item">
+            <div class="ability-top"><span>{{h.key}}</span><b>{{h.level}}</b></div>
+            <div class="ability-bar"><i style="width: {{h.value}}%;"></i></div>
+          </div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if maxStats && maxStats.length}}
+    <section class="section-block stats-section">
+      <div class="section-head compact-head">
+        <span class="section-kicker">MAX RANK</span>
+        <h2>满阶数据</h2>
+      </div>
+      <div class="stats-row">
+        {{each maxStats as s i}}
+          <div class="stat-pill"><span>{{s.key}}</span><b>{{s.value}}</b></div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if equipment && equipment.length}}
+    <section class="section-block equipment-section">
+      <div class="section-head">
+        <span class="section-kicker">EQUIPMENT</span>
+        <h2>装备推荐</h2>
+      </div>
+      <div class="equip-groups">
+        {{each equipment as g i}}
+          <div class="equip-group">
+            <div class="equip-title">
+              <b>{{g.name}}</b>
+              <span>攻 {{g.attackPoint || 0}} / 辅 {{g.functionPoint || 0}} / 契合 {{g.matchingDegree || 0}}</span>
+            </div>
+            <div class="equip-list">
+              {{each g.equips as eq j}}
+                <div class="equip-card">
+                  {{if eq.icon}}<img src="{{eq.icon}}">{{/if}}
+                  <span>{{eq.title}}</span>
+                </div>
+              {{/each}}
+            </div>
+            {{if g.reason}}<div class="equip-reason">{{g.reason}}</div>{{/if}}
+          </div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if skills && skills.length}}
+    <section class="section-block skill-section">
+      <div class="section-head">
+        <span class="section-kicker">SKILL</span>
+        <h2>技能摘要</h2>
+      </div>
+      <div class="skill-grid">
+        {{each skills as s i}}
+          <div class="skill-card">
+            {{if s.icon}}<img src="{{s.icon}}">{{/if}}
+            <div>
+              <h3>{{s.name}}</h3>
+              {{if s.desc}}<p>{{s.desc}}</p>{{/if}}
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if advance && advance.length}}
+    <section class="section-block advance-section">
+      <div class="section-head">
+        <span class="section-kicker">RANK UP</span>
+        <h2>晋升收益</h2>
+      </div>
+      <div class="advance-list">
+        {{each advance as a i}}
+          <div class="advance-item">
+            {{if a.icon}}<img src="{{a.icon}}">{{/if}}
+            <div><b>消耗 {{a.cost || '-'}}</b><p>{{a.desc}}</p></div>
+          </div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
 
     {{if material && material.length}}
     <section class="section-block material-section">
       <div class="section-head">
         <span class="section-kicker">MATERIAL</span>
         <h2>晋阶材料</h2>
-        <p>材料图标与数量聚合展示，保留原始数据来源名称。</p>
       </div>
       <div class="material-grid">
         {{each material as m i}}

@@ -1,4 +1,5 @@
 import { yaml, pluginPriority } from '#xhh';
+import { getAnyCurrentAbyssText } from '../system/bh3_abyss_boss.js';
 
 const _path = './plugins/xhh/config/';
 const cfgFile = _path + 'bh3_remind.yaml';
@@ -129,9 +130,15 @@ export class bh3_remind extends plugin {
       const dedupKey = `xhh:bh3_remind:sent:${item.key}:${Math.floor(due.pushTime.getTime() / 60000)}`;
       if (await redis.get(dedupKey)) continue;
 
-      const msg = String(item.msg)
+      let msg = String(item.msg)
         .replace(/\{time\}/g, `${String(due.eventTime.getHours()).padStart(2, '0')}:${String(due.eventTime.getMinutes()).padStart(2, '0')}`)
         .replace(/\{advance\}/g, String(item.advance_minutes || 0));
+      if (item.key === 'abyss_start') {
+        const abyssText = await getAnyCurrentAbyssText(true);
+        msg += abyssText
+          ? `\n\n${abyssText}\n\n发送 #崩三深渊攻略 查看详细作业图。`
+          : '\n\n发送 #崩三当前深渊 可快速查询当期 Boss，发送 #崩三深渊攻略 查看作业图。';
+      }
 
       for (const groupId of groups) {
         try {
