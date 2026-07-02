@@ -1048,25 +1048,25 @@ export class Wiki extends plugin {
     const type = basic_info['装甲特性'] || basic_info['角色定位'] || '未知';
 
     const element_icon_map = {
-      '物理': '物理.png',
-      '火': '火.png',
-      '火焰': '火.png',
-      '火伤': '火.png',
-      '冰': '冰.png',
-      '冰冻': '冰.png',
-      '冰伤': '冰.png',
-      '雷': '雷.png',
-      '雷电': '雷.png',
-      '雷伤': '雷.png',
-      '生物': '生物.png',
-      '量子': '量子.png',
-      '虚数': '虚数.png',
-      '异能': '异能.png',
-      '机械': '机械.png',
-      '星尘': '星尘.png',
-      '星辰': '星尘.png',
-      '星尘属性': '星尘.png',
-      '星辰属性': '星尘.png',
+      '物理': 'bh3_物理.svg',
+      '火': 'bh3_火.svg',
+      '火焰': 'bh3_火.svg',
+      '火伤': 'bh3_火.svg',
+      '冰': 'bh3_冰.svg',
+      '冰冻': 'bh3_冰.svg',
+      '冰伤': 'bh3_冰.svg',
+      '雷': 'bh3_雷.svg',
+      '雷电': 'bh3_雷.svg',
+      '雷伤': 'bh3_雷.svg',
+      '生物': 'bh3_生物.svg',
+      '量子': 'bh3_量子.svg',
+      '虚数': 'bh3_虚数.svg',
+      '异能': 'bh3_异能.svg',
+      '机械': 'bh3_机械.svg',
+      '星尘': 'bh3_星尘.svg',
+      '星辰': 'bh3_星尘.svg',
+      '星尘属性': 'bh3_星尘.svg',
+      '星辰属性': 'bh3_星尘.svg',
       '界域共鸣': '星环特性.svg',
       '星影偕行': '星环特性.svg',
       '复盈相生': '星环特性.svg',
@@ -1079,13 +1079,13 @@ export class Wiki extends plugin {
     };
 
     const img = (basicPart.avatar || icon || '').startsWith('http') ? (basicPart.avatar || icon) : `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${basicPart.avatar || icon}`;
-    const element_icon = element_icon_map[element] || (String(element).includes('星') ? '星尘.png' : '物理.png');
+    const element_icon = element_icon_map[element] || (String(element).includes('星') ? 'bh3_星尘.svg' : 'bh3_物理.svg');
     const getAttrIcon = (key = '', value = '') => {
       const text = `${key} ${value}`;
       for (const [k, icon] of Object.entries(element_icon_map)) {
         if (text.includes(k)) return icon;
       }
-      if (text.includes('星')) return '星尘.png';
+      if (text.includes('星')) return 'bh3_星尘.svg';
       return '';
     };
 
