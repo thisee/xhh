@@ -10,6 +10,7 @@ const ZZZ_CACHE_EXPIRE_KEY = 'xhh:zzz:pool_history:expire:v2';
 const BH3_POOL_HISTORY_PATH = './plugins/xhh/system/default/bh3_gacha_pool_history.json';
 const BH3_MARK_ICON = 'bh3_note/bh3_pool_banner.png';
 const ZZZ_MARK_ICON = 'zzz_md/imgs/ellen.png';
+const GS_MARK_ICON = 'gs_mark/paimon.png';
 const CURRENT_VERSION = { zzz: '3.0', bh3: '8.9' };
 
 export class xhh_gacha_pool extends plugin {
@@ -24,6 +25,11 @@ export class xhh_gacha_pool extends plugin {
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)(当前|本期|当期)?(卡池|补给)$', fnc: 'bh3CurrentPool' },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)v?(\\d+\\.\\d+)(上半|下半)?(卡池|补给)$', fnc: 'bh3VersionPool' },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)(卡池|补给)(统计|记录|历史|全)$', fnc: 'bh3AllPool' },
+        // 原神卡池
+        { reg: '^#*(小花火)?原神(当前|本期|当期)?卡池$', fnc: 'gsCurrentPool' },
+        { reg: '^#*(小花火)?原神v?(\\d+\\.\\d+)(上半|下半)?卡池$', fnc: 'gsVersionPool' },
+        { reg: '^#*(小花火)?原神(.+)卡池$', fnc: 'gsNameHistory' },
+        { reg: '^#*(小花火)?原神(卡池)(统计|记录|历史|全)$', fnc: 'gsAllPool' },
         // 官方/米游社卡池必须在 bh3NameHistory 之前，否则"崩三官方卡池"会被误判为角色名
         { reg: '^#*(小花火)?((原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3))?(米游社|官方)?(更新|刷新)卡池(数据)?$', fnc: 'refreshOfficialPools' },
         { reg: '^#*(小花火)?(原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3)?(米游社|官方)(当前|本期|当期)?卡池$', fnc: 'officialCurrentPool' },
@@ -256,12 +262,13 @@ export class xhh_gacha_pool extends plugin {
     const iconMap = {
       '崩坏3': BH3_MARK_ICON,
       '绝区零': ZZZ_MARK_ICON,
+      '原神': GS_MARK_ICON,
     };
     return iconMap[game] || '';
   }
 
   getMarkWide(game) {
-    return game === '崩坏3';
+    return game === '崩坏3' || game === '原神';
   }
 
   async officialCurrentPool(e) {
@@ -350,12 +357,14 @@ export class xhh_gacha_pool extends plugin {
         img: r.cover || r.images?.[0] || '',
         weapon: false
       }));
+      const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '绝区零当前卡池',
         subtitle: `数据来源：米游社公告 · v${CURRENT_VERSION.zzz}`,
         mode: 'zzz',
-        markIcon: ZZZ_MARK_ICON,
+        markIcon: firstCover || ZZZ_MARK_ICON,
+        markWide: false,
         cards
       });
     }
@@ -432,6 +441,9 @@ export class xhh_gacha_pool extends plugin {
     // 再查崩三
     const bh3Result = await this.replyBh3NameHistory(e, name, true);
     if (bh3Result !== false) return bh3Result;
+    // 再查原神
+    const gsResult = await this.replyGsNameHistory(e, name, true);
+    if (gsResult !== false) return gsResult;
     return false;
   }
 
@@ -477,6 +489,129 @@ export class xhh_gacha_pool extends plugin {
     const title = '绝区零全版本卡池记录';
     const msg = chunks.length > 8 ? await makeForwardMsg(e, [title, ...chunks], title) : [title, ...chunks];
     return e.reply(msg);
+  }
+
+  async gsCurrentPool(e) {
+    logger.mark('[xhh][gacha_pool] 命中原神当前卡池:', e.msg);
+    const { records, error, cache } = await officialPool.fetch('gs');
+    if (!records.length) return e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
+    const cards = records.slice(0, 4).map((r, i) => ({
+      version: r.version || '-',
+      title: r.title,
+      type: '',
+      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
+      s: r.title,
+      a: '',
+      img: r.cover || r.images?.[0] || '',
+      weapon: false,
+      index: i + 1
+    }));
+    const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+    return this.renderPoolImage(e, {
+      game: '原神',
+      title: '原神当前卡池',
+      subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
+      mode: 'gs',
+      markIcon: firstCover || GS_MARK_ICON,
+      markWide: !!firstCover,
+      cards
+    });
+  }
+
+  async gsVersionPool(e) {
+    logger.mark('[xhh][gacha_pool] 命中原神版本卡池:', e.msg);
+    const m = e.msg.match(/原神v?(\d+\.\d+)(上半|下半)?卡池/);
+    if (!m) return false;
+    const [, version, phase] = m;
+    const { records, error, cache } = await officialPool.fetch('gs', { version });
+    if (!records.length) return e.reply(`原神 v${version} 未找到米游社官方卡池公告${error ? '：' + error : ''}`);
+    const cards = records.map((r, i) => ({
+      version: r.version || '-',
+      title: r.title,
+      type: '',
+      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
+      s: r.title,
+      a: '',
+      img: r.cover || r.images?.[0] || '',
+      weapon: false,
+      index: i + 1
+    }));
+    const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+    return this.renderPoolImage(e, {
+      game: '原神',
+      title: `原神 v${version}${phase || ''} 官方卡池`,
+      subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
+      mode: 'gs',
+      markIcon: firstCover || GS_MARK_ICON,
+      markWide: !!firstCover,
+      cards
+    });
+  }
+
+  async gsNameHistory(e) {
+    logger.mark('[xhh][gacha_pool] 命中原神名称卡池:', e.msg);
+    const name = e.msg.replace(/^#*(小花火)?原神/, '').replace(/卡池$/, '').trim();
+    if (!name) return false;
+    return this.replyGsNameHistory(e, name, false);
+  }
+
+  async replyGsNameHistory(e, name, silent = false) {
+    if (!name) return false;
+    const { records, error, cache } = await officialPool.fetch('gs');
+    if (!records.length) return silent ? false : e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
+    const hit = records.filter(r => {
+      const t = r.title || '';
+      return t.includes(name);
+    });
+    if (!hit.length) return silent ? false : e.reply(`未找到【${name}】的原神卡池记录。`);
+    const cards = hit.map((r, i) => ({
+      version: r.version || '-',
+      title: r.title,
+      type: '',
+      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
+      s: r.title,
+      a: '',
+      img: r.cover || r.images?.[0] || '',
+      weapon: false,
+      index: i + 1
+    }));
+    const firstCover = hit[0]?.cover || hit[0]?.images?.[0] || '';
+    return this.renderPoolImage(e, {
+      game: '原神',
+      title: `${name} 卡池记录`,
+      subtitle: `共 ${hit.length} 条记录 · 数据来源：米游社公告${cache ? '（缓存）' : ''}`,
+      mode: 'gs',
+      markIcon: firstCover || GS_MARK_ICON,
+      markWide: !!firstCover,
+      cards
+    });
+  }
+
+  async gsAllPool(e) {
+    logger.mark('[xhh][gacha_pool] 命中原神全卡池:', e.msg);
+    const { records, error, cache } = await officialPool.fetch('gs');
+    if (!records.length) return e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
+    const cards = records.map((r, i) => ({
+      version: r.version || '-',
+      title: r.title,
+      type: '',
+      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
+      s: r.title,
+      a: '',
+      img: r.cover || r.images?.[0] || '',
+      weapon: false,
+      index: i + 1
+    }));
+    const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+    return this.renderPoolImage(e, {
+      game: '原神',
+      title: '原神全版本卡池记录',
+      subtitle: `共 ${records.length} 条记录 · 数据来源：米游社公告${cache ? '（缓存）' : ''}`,
+      mode: 'gs',
+      markIcon: firstCover || GS_MARK_ICON,
+      markWide: !!firstCover,
+      cards
+    });
   }
 
   async bh3CurrentPool(e) {
