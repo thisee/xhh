@@ -59,6 +59,9 @@ export class Wiki extends plugin {
     if (isBH3 && /(专武|专属武器|专属圣痕|专属套|毕业圣痕|圣痕套)/.test(name)) {
       if (await this.bh3ExclusiveEquip(e, name)) return true;
     }
+    if (isZZZ && /(专武|专属武器|专属音擎|签名音擎|专属驱动盘|推荐驱动盘|驱动盘套|驱动套)/.test(name)) {
+      if (await this.zzzExclusiveEquip(e, name)) return true;
+    }
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
       { method: 'role', args: [e, name] },
@@ -362,6 +365,108 @@ export class Wiki extends plugin {
 
   zzzFirstValue(obj = {}) {
     return Object.values(obj || {})[0] || '';
+  }
+
+  // 绝区零代理人专属音擎/推荐驱动盘快捷查询
+  async zzzExclusiveEquip(e, rawName = '') {
+    const wantDrive = /(专属驱动盘|推荐驱动盘|驱动盘套|驱动套)/.test(rawName);
+    const wantWeapon = /(专武|专属武器|专属音擎|签名音擎)/.test(rawName);
+    let roleQuery = String(rawName || '')
+      .replace(/专属武器|专属音擎|签名音擎|专武|专属驱动盘|推荐驱动盘|驱动盘套|驱动套/g, '')
+      .replace(/图鉴/g, '')
+      .trim();
+    if (!roleQuery || (!wantWeapon && !wantDrive)) return false;
+
+    const roleName = await this.resolveZzzWikiName(roleQuery, 43);
+    const detail = await this.getZzzRoleDetail(roleName);
+    if (!detail) return false;
+
+    if (wantDrive) {
+      const drives = await this.findZzzRecommendDrives(detail);
+      if (!drives.length) {
+        await e.reply(`未找到「${roleName}」的推荐驱动盘信息，建议直接发送具体驱动盘名图鉴。`);
+        return true;
+      }
+      for (const name of drives) {
+        if (await this.syw_yiqi(e, name, false, true, false)) return true;
+      }
+      await e.reply(`已识别「${roleName}」推荐驱动盘：${drives.join(' / ')}，但图鉴别名暂未命中。可以直接用完整驱动盘名查询。`);
+      return true;
+    }
+
+    const weapon = await this.findZzzSignatureWeapon(roleName, detail);
+    if (!weapon) {
+      await e.reply(`未找到「${roleName}」的专属音擎信息，建议直接发送具体音擎名图鉴。`);
+      return true;
+    }
+    if (await this.weapon(e, weapon, false, true, false)) return true;
+    await e.reply(`已识别「${roleName}」专属音擎：${weapon}，但图鉴别名暂未命中。可以直接用完整音擎名查询。`);
+    return true;
+  }
+
+  async getZzzRoleDetail(roleName = '') {
+    try {
+      const name = await this.resolveZzzWikiName(roleName, 43);
+      const ret = await mys.data(name, 'js', false, true);
+      const id = Array.isArray(ret) ? ret.find(v => v?.title === name)?.id || ret[0]?.id : ret?.id;
+      if (!id) return null;
+      return await mys.detail(id, false, true);
+    } catch (err) {
+      globalThis.logger?.debug?.(`[xhh] ZZZ专属装备获取代理人详情失败: ${roleName} ${err?.message || err}`);
+      return null;
+    }
+  }
+
+  async findZzzRecommendDrives(detail = {}) {
+    const list = await this.getZzzWikiEntries(46);
+    const text = JSON.stringify(detail.content || {});
+    const hits = [];
+    for (const item of list) {
+      if (item.title && text.includes(item.title)) hits.push(item.title);
+    }
+    return [...new Set(hits)].slice(0, 2);
+  }
+
+  async findZzzSignatureWeapon(roleName = '', detail = {}) {
+    const direct = await this.findZzzWeaponInRoleDetail(detail);
+    if (direct) return direct;
+    const c = detail.content || {};
+    const aliases = [roleName, c.name, c.code_name, c.partner_info?.full_name]
+      .flatMap(v => String(v || '').split(/[、,，/|；;\s]+/))
+      .map(v => v.trim())
+      .filter(v => v && v.length >= 2);
+    const full = String(c.partner_info?.full_name || '');
+    if (full.includes('·')) aliases.push(full.split('·')[0], full.split('·').slice(-1)[0]);
+
+    const mapPath = './plugins/ZZZ-Plugin/resources/map/WeaponId2Data.json';
+    if (!fs.existsSync(mapPath)) return '';
+    let weaponMap = {};
+    try { weaponMap = JSON.parse(fs.readFileSync(mapPath, 'utf-8')); } catch (_) { return ''; }
+
+    let best = { name: '', score: 0 };
+    for (const item of Object.values(weaponMap)) {
+      const name = item?.Name || item?.name || '';
+      const desc = `${item?.Desc || ''}\n${item?.Desc2 || ''}\n${item?.Desc3 || ''}`;
+      if (!name || !desc) continue;
+      let score = 0;
+      for (const alias of [...new Set(aliases)]) {
+        if (!alias) continue;
+        if (desc.includes(`是${alias}惯用`)) score += 120;
+        if (desc.includes(`${alias}惯用`)) score += 100;
+        if (desc.includes(`对于${alias}来说`)) score += 80;
+        if (desc.includes(`——${alias}`) || desc.includes(`—${alias}`)) score += 35;
+        if (desc.includes(alias)) score += 15;
+      }
+      if (score > best.score) best = { name, score };
+    }
+    return best.score >= 15 ? best.name : '';
+  }
+
+  async findZzzWeaponInRoleDetail(detail = {}) {
+    const list = await this.getZzzWikiEntries(45);
+    const text = JSON.stringify(detail.content || {});
+    const hit = list.find(item => item.title && text.includes(item.title));
+    return hit?.title || '';
   }
 
   async zzz_role_pictures(e, data) {
