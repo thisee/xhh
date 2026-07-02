@@ -14,11 +14,34 @@ export class Wiki extends plugin {
       priority: pr || -99,
       rule: [
         {
-          reg: '^#*(星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3)*(.*)图鉴$',
+          reg: '^#*(星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3)?\\s*(.+)图鉴$',
+          fnc: 'illustrated_book',
+        },
+        {
+          reg: '^#*(星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3)?\\s*图鉴\\s*(.+)$',
           fnc: 'illustrated_book',
         },
       ],
     });
+  }
+
+  getWikiIcon(text = '') {
+    text = String(text || '');
+    const iconMap = {
+      '星尘': 'bh3_星尘.svg', '星辰': 'bh3_星尘.svg',
+      '生物': 'bh3_生物.svg', '异能': 'bh3_异能.svg', '机械': 'bh3_机械.svg', '量子': 'bh3_量子.svg', '虚数': 'bh3_虚数.svg',
+      '物理': 'bh3_物理.svg', '火伤': 'bh3_火.svg', '火焰': 'bh3_火.svg', '火': 'bh3_火.svg',
+      '冰伤': 'bh3_冰.svg', '冰冻': 'bh3_冰.svg', '冰': 'bh3_冰.svg',
+      '雷伤': 'bh3_雷.svg', '雷电': 'bh3_雷.svg', '雷': 'bh3_雷.svg',
+      '界域共鸣': '星环特性.svg', '星影偕行': '星环特性.svg', '复盈相生': '星环特性.svg', '星之环特性': '星环特性.svg',
+      '天衍之杯': '星环分野.svg', '星之环分野': '星环分野.svg',
+      '输出': '定位.svg', '辅助': '定位.svg', '定位': '定位.svg'
+    };
+    for (const [key, icon] of Object.entries(iconMap)) {
+      if (text.includes(key)) return icon;
+    }
+    if (text.includes('星')) return 'bh3_星尘.svg';
+    return '';
   }
 
   async illustrated_book(e) {
@@ -26,7 +49,13 @@ export class Wiki extends plugin {
     const isSr = e.msg.includes('星铁');
     const isZZZ = e.msg.includes('绝区零') || e.msg.includes('ZZZ');
     const isBH3 = e.msg.includes('崩坏3') || e.msg.includes('崩坏三') || e.msg.includes('崩三') || e.msg.includes('BH3');
-    const name = e.msg.replace(/#|星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3|图鉴/g, '').trim();
+    let name = e.msg
+      .replace(/^#*/, '')
+      .replace(/星铁|绝区零|ZZZ|崩坏3|崩坏三|崩三|BH3/gi, '')
+      .trim();
+    name = name.startsWith('图鉴') ? name.replace(/^图鉴/, '') : name.replace(/图鉴$/, '');
+    name = name.replace(/^[:：\s]+|[:：\s]+$/g, '').trim();
+    if (!name) return false;
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
       { method: 'role', args: [e, name] },
@@ -52,6 +81,11 @@ export class Wiki extends plugin {
         if (await this[method](...args)) return true;
         if (await this[method](...args, true)) return true;
       }
+      // 未写游戏前缀时，也兜底尝试绝区零，支持“安比图鉴 / 图鉴安比”这类写法。
+      for (const { method, args } of checkTypes) {
+        if (await this[method](...args, false, true)) return true;
+      }
+      if (await this.bangboo(e, name)) return true;
     }
     //最后查总列表
     if (/角色|武器|大剑|双手剑|单手剑|法器|长枪|弓箭|弓|光锥|圣遗物|遗器|音擎|驱动盘|邦布|圣痕|人偶|协同者/.test(name)) return this.list(e, name, isSr, isZZZ, isBH3);
@@ -242,12 +276,248 @@ export class Wiki extends plugin {
 
     if (data.length > 50)
       reply_recallMsg(e, `正在获取${_name}列表中,请等待...`, 30);
+    data = data.map(item => ({
+      ...item,
+      badges: [item.ji, item.yuanshu, item.wuqi]
+        .filter(v => v && v !== '未知' && v !== 'false')
+        .map(v => ({ text: v, icon: this.getWikiIcon(v) }))
+    }));
     data = {
       name: _name,
       data: data,
     };
     return render('wiki/list', data, { e, ret: true });
   }
+
+
+
+  normalizeZzzKey(text = '') {
+    return String(text || '').replace(/[\s·・\-—_「」『』《》【】\[\]（）()]/g, '').toLowerCase();
+  }
+
+  async getZzzWikiEntries(channelId = 43) {
+    if (!this._zzzObcIconCache) this._zzzObcIconCache = {};
+    if (!this._zzzObcIconCache[channelId]) {
+      try {
+        const url = `https://api-takumi-static.mihoyo.com/common/blackboard/zzz_wiki/v1/home/content/list?app_sn=zzz_wiki&channel_id=${channelId}`;
+        const res = await fetch(url).then(r => r.json());
+        const root = res?.data?.list?.[0];
+        let list = Array.isArray(root?.list) ? root.list : [];
+        if (!list.length && Array.isArray(root?.children)) {
+          const child = root.children.find(v => Number(v.id) === Number(channelId)) || root.children[0];
+          list = Array.isArray(child?.list) ? child.list : [];
+        }
+        this._zzzObcIconCache[channelId] = list.map(item => ({
+          title: String(item.title || '').replace(/\s/g, ''),
+          alias: String(item.alias_name || '').replace(/\s/g, ''),
+          aliases: String(item.alias_name || '')
+            .split(/[、,，/|；;\s]+/)
+            .map(v => v.trim())
+            .filter(Boolean),
+          icon: item.icon || ''
+        }));
+      } catch (err) {
+        globalThis.logger?.warn?.('[xhh][wiki] 获取绝区零官方图标失败:', err);
+        this._zzzObcIconCache[channelId] = [];
+      }
+    }
+    return this._zzzObcIconCache[channelId];
+  }
+
+  async resolveZzzWikiName(name = '', channelId = 43) {
+    const key = this.normalizeZzzKey(name);
+    if (!key) return name;
+    const list = await this.getZzzWikiEntries(channelId);
+    const keysOf = item => [item.title, item.alias, ...(item.aliases || [])].map(v => this.normalizeZzzKey(v)).filter(Boolean);
+    let hit = list.find(item => keysOf(item).some(v => v === key));
+    if (!hit) hit = list.find(item => keysOf(item).some(v => v.includes(key) || key.includes(v)));
+    return hit?.title || name;
+  }
+
+  async getZzzObcIcon(name = '', channelId = 43) {
+    if (!name) return '';
+    const list = await this.getZzzWikiEntries(channelId);
+    const key = this.normalizeZzzKey(name);
+    const hit = list.find(item => {
+      const keys = [item.title, item.alias, ...(item.aliases || [])].map(v => this.normalizeZzzKey(v)).filter(Boolean);
+      return keys.some(v => v === key || v.includes(key) || key.includes(v));
+    });
+    return hit?.icon || '';
+  }
+
+  zzzCleanText(text = '', len = 120) {
+    text = String(text || '')
+      .replace(/<color=[^>]+>/g, '')
+      .replace(/<\/color>/g, '')
+      .replace(/<IconMap:[^>]+>/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s*\n\s*/g, '\n')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+    return text.length > len ? `${text.slice(0, len)}…` : text;
+  }
+
+  zzzFirstValue(obj = {}) {
+    return Object.values(obj || {})[0] || '';
+  }
+
+  async zzz_role_pictures(e, data) {
+    const c = data.content || {};
+    const partner = c.partner_info || {};
+    const rarity = c.rarity === 4 ? 'S' : c.rarity === 3 ? 'A' : `${c.rarity || '?'}星`;
+    const element = this.zzzFirstValue(c.element_type) || this.zzzFirstValue(c.special_element_type) || '未知属性';
+    const type = this.zzzFirstValue(c.weapon_type) || '未知特性';
+    const camp = this.zzzFirstValue(c.camp) || '未知阵营';
+    const hit = this.zzzFirstValue(c.hit_type) || '未知攻击类型';
+    const maxLv = c.level?.['6'] || {};
+    const base = c.stats || {};
+    const passiveMax = Object.values(c.passive?.level || {}).slice(-1)[0] || {};
+    const skills = Object.entries(c.skill || {}).slice(0, 5).map(([key, val]) => {
+      const first = (val.description || []).find(v => v?.desc) || {};
+      return {
+        name: first.name || ({ basic: '普通攻击', dodge: '闪避', special: '特殊技', chain: '连携技', assist: '支援技' }[key] || key),
+        desc: this.zzzCleanText(first.desc, 110)
+      };
+    }).filter(v => v.name || v.desc);
+    if (passiveMax.name?.length) {
+      skills.unshift({ name: passiveMax.name[0], desc: this.zzzCleanText(passiveMax.desc?.[0], 110) });
+      if (passiveMax.name[1]) skills.unshift({ name: passiveMax.name[1], desc: this.zzzCleanText(passiveMax.desc?.[1], 110) });
+    }
+    const talents = Object.values(c.talent || {}).slice(0, 6).map(v => ({
+      level: v.level,
+      name: v.name,
+      desc: this.zzzCleanText(v.desc, 88)
+    }));
+    const fr = c.fairy_recommend || {};
+    const recommend = [
+      { key: '4号位', value: fr.part4?.name },
+      { key: '5号位', value: fr.part5?.name },
+      { key: '6号位', value: fr.part6?.name },
+      { key: '副词条', value: fr.part_sub?.name }
+    ].filter(v => v.value);
+    // 档案简介是图鉴核心内容，不做字数截断；之前 260 字会在部分角色末尾显示“…”。
+    const profile = this.zzzCleanText(partner.profile_desc || c.desc || '', 9999);
+    const obcIcon = await this.getZzzObcIcon(c.name, 43);
+    const view = {
+      name: c.name || '未知代理人',
+      avatar_img: obcIcon,
+      code_name: c.code_name || '',
+      full_name: partner.full_name || '',
+      avatar_text: (c.name || '?').slice(0, 1),
+      tags: [
+        { text: rarity, primary: true },
+        { text: element, primary: true },
+        { text: type },
+        { text: camp },
+        { text: hit }
+      ].filter(v => v.text),
+      profile,
+      info: [
+        { key: '全名', value: partner.full_name || c.name },
+        { key: '生日', value: partner.birthday || '-' },
+        { key: '性别', value: partner.gender || '-' },
+        { key: '阵营', value: camp },
+        { key: '属性', value: element },
+        { key: '特性', value: type }
+      ],
+      stats: [
+        { key: '生命', value: (base.hp_max || 0) + (maxLv.hp_max || 0) },
+        { key: '攻击', value: (base.attack || 0) + (maxLv.attack || 0) },
+        { key: '防御', value: (base.defence || 0) + (maxLv.defence || 0) },
+        { key: '冲击力', value: base.break_stun || '-' },
+        { key: '异常掌控', value: base.element_abnormal_power || '-' },
+        { key: '异常精通', value: base.element_mystery || '-' },
+        { key: '暴击率', value: base.crit ? `${base.crit / 100}%` : '-' },
+        { key: '暴击伤害', value: base.crit_damage ? `${base.crit_damage / 100}%` : '-' }
+      ],
+      strategy: (c.strategy || []).map(v => this.zzzCleanText(v, 90)).filter(Boolean),
+      skills: skills.slice(0, 6),
+      talents,
+      recommend
+    };
+    return render('wiki/zzz_role', view, { e, ret: true });
+  }
+
+  async zzz_wq_pictures(e, data) {
+    const c = data.content || {};
+    const obcIcon = await this.getZzzObcIcon(c.name, 45);
+    const view = {
+      name: c.name || '未知音擎',
+      avatar_img: obcIcon,
+      code_name: c.code_name || '',
+      avatar_text: '音',
+      tags: [
+        { text: c.rarity === 4 ? 'S' : c.rarity === 3 ? 'A' : `${c.rarity || '?'}星`, primary: true },
+        { text: this.zzzFirstValue(c.weapon_type) || '音擎', primary: true },
+        { text: c.base_property?.name },
+        { text: c.rand_property?.name }
+      ].filter(v => v.text),
+      profile: this.zzzCleanText(c.desc || c.desc3 || '', 260),
+      info: [
+        { key: '类型', value: this.zzzFirstValue(c.weapon_type) || '-' },
+        { key: '基础属性', value: `${c.base_property?.name || '-'} ${c.base_property?.value || ''}` },
+        { key: '副属性', value: `${c.rand_property?.name || '-'} ${c.rand_property?.value || ''}` },
+        { key: '适用说明', value: c.desc2 || '-' }
+      ],
+      stats: [], strategy: [], skills: [], talents: [], recommend: []
+    };
+    return render('wiki/zzz_role', view, { e, ret: true });
+  }
+
+  async zzz_syw_pictures(e, data) {
+    const c = data.content || {};
+    const obcIcon = await this.getZzzObcIcon(c.name, 46);
+    const view = {
+      name: c.name || '未知驱动盘',
+      avatar_img: obcIcon,
+      code_name: 'Drive Disc',
+      avatar_text: '盘',
+      tags: [{ text: '驱动盘', primary: true }, { text: '2件套' }, { text: '4件套' }],
+      profile: this.zzzCleanText(c.story || '', 220),
+      info: [
+        { key: '2件套', value: this.zzzCleanText(c.desc2, 120) },
+        { key: '4件套', value: this.zzzCleanText(c.desc4, 160) }
+      ],
+      stats: [], strategy: [], skills: [], talents: [], recommend: []
+    };
+    return render('wiki/zzz_role', view, { e, ret: true });
+  }
+
+  async zzz_yq_pictures(e, data) {
+    const c = data.content || {};
+    const base = c.stats || {};
+    const obcIcon = await this.getZzzObcIcon(c.name, 44);
+    const view = {
+      name: c.name || '未知邦布',
+      avatar_img: obcIcon,
+      code_name: c.code_name || '',
+      avatar_text: '布',
+      tags: [{ text: c.rarity === 4 ? 'S' : c.rarity === 3 ? 'A' : `${c.rarity || '?'}星`, primary: true }, { text: '邦布', primary: true }],
+      profile: this.zzzCleanText(c.desc || '', 220),
+      info: [{ key: '代号', value: c.code_name || '-' }, { key: '稀有度', value: c.rarity || '-' }],
+      stats: [
+        { key: '生命', value: base.hp_max || '-' },
+        { key: '攻击', value: base.attack || '-' },
+        { key: '防御', value: base.defence || '-' },
+        { key: '冲击力', value: base.break_stun || '-' },
+        { key: '异常掌控', value: base.element_abnormal_power || '-' }
+      ],
+      strategy: [],
+      skills: Object.values(c.skill || {}).slice(0, 5).map(v => ({ name: v.name, desc: this.zzzCleanText(v.desc, 100) })).filter(v => v.name || v.desc),
+      talents: [], recommend: []
+    };
+    return render('wiki/zzz_role', view, { e, ret: true });
+  }
+
+  async bangboo(e, name) {
+    name = await this.resolveZzzWikiName(name, 44);
+    const ret = await mys.data(name, 'yq', false, true);
+    if (!ret?.id) return false;
+    const data = await mys.detail(ret.id, false, true);
+    if (!data) return false;
+    return this.zzz_yq_pictures(e, data);
+  }
+
 
   //遗器图
   async yiqi_pictures(e, data) {
@@ -273,6 +543,15 @@ export class Wiki extends plugin {
 
   //圣遗物和遗器
   async syw_yiqi(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+    if (isZZZ) {
+      name = await this.resolveZzzWikiName(name, 46);
+      const ret = await mys.data(name, 'syw', false, true);
+      if (!ret?.id) return false;
+      const data = await mys.detail(ret.id, false, true);
+      if (!data) return false;
+      this.zzz_syw_pictures(e, data);
+      return true;
+    }
     const path = isZZZ
       ? './plugins/xhh/system/default/zzz_syw_names.yaml'
       : isBH3
@@ -309,6 +588,15 @@ export class Wiki extends plugin {
 
   //武器
   async weapon(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+    if (isZZZ) {
+      name = await this.resolveZzzWikiName(name, 45);
+      const ret = await mys.data(name, 'wq', false, true);
+      if (!ret?.id) return false;
+      const data = await mys.detail(ret.id, false, true);
+      if (!data) return false;
+      this.zzz_wq_pictures(e, data);
+      return true;
+    }
     const path = isZZZ
       ? './plugins/xhh/system/default/zzz_wq_names.yaml'
       : isBH3
@@ -338,6 +626,15 @@ export class Wiki extends plugin {
 
   //角色
   async role(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+    if (isZZZ) {
+      name = await this.resolveZzzWikiName(name, 43);
+      const ret = await mys.data(name, 'js', false, true);
+      if (!ret?.id) return false;
+      const data = await mys.detail(ret.id, false, true);
+      if (!data) return false;
+      this.zzz_role_pictures(e, data);
+      return true;
+    }
     const path = isZZZ
       ? './plugins/xhh/system/default/zzz_js_names.yaml'
       : isBH3
@@ -846,6 +1143,7 @@ export class Wiki extends plugin {
       star: rarity === 'S' ? 5 : 4,
       attribute: element,
       specialty: type,
+      specialty_icon: getAttrIcon('装甲特性', type),
       character: character_name,
       summary: content.summary || '',
       img,

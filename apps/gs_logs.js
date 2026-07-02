@@ -2,6 +2,7 @@ import { yaml, makeForwardMsg, config } from '#xhh';
 
 const path = './plugins/xhh/system/default/gslogs.yaml';
 import common from '../../../lib/common/common.js';
+const GS_CURRENT_VERSION = '6.7';
 
 export class gs_logs extends plugin {
   constructor() {
@@ -24,7 +25,9 @@ export class gs_logs extends plugin {
   }
   async gslogs(e) {
     if (!config().gs_logs) return false;
-    let type = e.msg.replace(/#|卡池/g, '').trim();
+    let type = e.msg.replace(/#|卡池|原神/g, '').trim();
+    // 崩三/绝区零卡池由 apps/gacha_pool.js 单独处理，避免被原神卡池的宽泛正则抢走。
+    if (/^(崩三|崩坏3|崩坏三|BH3|绝区零|ZZZ)/i.test(type)) return false;
     if (!type.includes('.')) {
       let m = 0;
       let gsnames = yaml.get(
@@ -61,6 +64,9 @@ export class gs_logs extends plugin {
     } else {
       msg = await this.getmsg(type);
     }
+    if (!msg.length && type.replace(/上半|下半/g, '') === GS_CURRENT_VERSION) {
+      return e.reply(`原神当前版本已标记为 ${GS_CURRENT_VERSION}，但 xhh 的原神历史卡池库还没有录入 ${type} 的具体UP信息。`);
+    }
     if (!msg.length) return false;
     if (msg.length > 10) msg = await makeForwardMsg(e, msg, type + '卡池');
     return e.reply(msg);
@@ -70,6 +76,9 @@ export class gs_logs extends plugin {
     if (!config().sr_strategy) return false;
     let data = await yaml.get(path);
     let date_list = Object.keys(data.date);
+    if (!date_list.some(v => v.includes(`【${GS_CURRENT_VERSION}`))) {
+      return e.reply(`原神当前版本已标记为 ${GS_CURRENT_VERSION}，但当前卡池详情还没有录入。`);
+    }
     let _date = date_list[0];
     let type = _date.match('【(.*)】')[1];
     let msg;

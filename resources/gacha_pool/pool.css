@@ -1,0 +1,293 @@
+@font-face { font-family: '主'; src: url('../font/主.ttf'); }
+@font-face { font-family: '宋'; src: url('../font/宋.ttf'); }
+@font-face { font-family: 'RareCJK'; src: url('../font/unifont.otf'); }
+@font-face { font-family: 'NotoSansCJKsc-Regular'; src: url('../font/NotoSansCJKsc-Regular.ttf'); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  width: 500px;
+  font-size: 16px;
+  color: #5f7890;
+  font-family: '宋','NotoSansCJKsc-Regular','RareCJK','Microsoft YaHei',sans-serif;
+  transform-origin: 0 0;
+}
+.page {
+  position: relative;
+  min-height: 720px;
+  padding: 20px 10px 0;
+  background-image: url('../srlogs/imgs/bg.jpg');
+  background-size: 500px auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  opacity: .18;
+  background: radial-gradient(circle at 88% 5%, rgba(255,154,197,.55), transparent 25%),
+              radial-gradient(circle at 7% 22%, rgba(129,210,255,.5), transparent 24%);
+}
+.header {
+  position: relative;
+  z-index: 1;
+  width: 460px;
+  margin: 0 auto 14px;
+  padding: 18px 18px 16px;
+  min-height: 118px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #73bdeb;
+  background: rgba(250, 255, 255, .72);
+  box-shadow:
+    2px 2px 4px 0 rgba(51, 51, 52, .32),
+    inset 3px 3px 10px 0 rgba(255,255,255,.86);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.eyebrow {
+  color: #ea7aab;
+  font-family: 'NotoSansCJKsc-Regular','主','宋';
+  font-size: 13px;
+  letter-spacing: 1px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+h1 {
+  color: #609ed3;
+  font-size: 27px;
+  line-height: 1.15;
+  font-family: '主','宋';
+  text-shadow: .5px .5px 1px #fff;
+}
+.header p {
+  margin-top: 8px;
+  color: #8aa0ad;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: bold;
+}
+.mark {
+  width: 70px;
+  height: 70px;
+  flex: 0 0 auto;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: '主','宋';
+  font-size: 24px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff9dc6, #8fd4ff);
+  box-shadow: 0 8px 18px rgba(115, 189, 235, .35);
+  transform: rotate(5deg);
+}
+.mark-img {
+  object-fit: cover;
+  background: none;
+}
+.mark-wide {
+  width: 120px;
+  border-radius: 12px;
+}
+.cards {
+  position: relative;
+  z-index: 1;
+  width: 460px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+/* 卡池卡片 - 图片背景 + 文字叠加 */
+.pool-card {
+  position: relative;
+  width: 460px;
+  min-height: 180px;
+  border-radius: 20px;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(60,120,180,.9), rgba(30,60,100,.95));
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+}
+.pool-card.weapon {
+  background: linear-gradient(135deg, rgba(120,60,180,.9), rgba(60,30,100,.95));
+}
+
+/* 角色立绘 - 从右侧溢出卡片 */
+.pool-char {
+  position: absolute;
+  right: -10px;
+  bottom: 0;
+  height: 120%;
+  max-height: 320px;
+  object-fit: contain;
+  object-position: bottom right;
+  z-index: 3;
+  filter: drop-shadow(-4px 0 12px rgba(0,0,0,.4));
+  pointer-events: none;
+}
+
+/* 背景图片 */
+.pool-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* 渐变遮罩 - 让文字更清晰 */
+.pool-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,.72) 0%,
+    rgba(0,0,0,.45) 50%,
+    rgba(0,0,0,.15) 100%
+  );
+}
+
+/* 文字内容区 */
+.pool-content {
+  position: relative;
+  z-index: 2;
+  padding: 18px 20px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 顶部标签行 */
+.pool-top {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pool-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+  font-family: 'NotoSansCJKsc-Regular','宋','RareCJK',sans-serif;
+}
+.pool-tag.version {
+  background: rgba(255,154,197,.85);
+  color: #fff;
+}
+.pool-tag.type {
+  background: rgba(129,210,255,.85);
+  color: #fff;
+}
+
+/* 卡池标题 */
+.pool-title {
+  font-size: 22px;
+  font-weight: 900;
+  font-family: '主','宋';
+  line-height: 1.3;
+  text-shadow: 0 2px 8px rgba(0,0,0,.5);
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+/* 时间 */
+.pool-time {
+  font-size: 13px;
+  color: rgba(255,255,255,.85);
+  font-weight: bold;
+  margin-bottom: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 底部UP信息 */
+.pool-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.up-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rank-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'NotoSansCJKsc-Regular','主','宋';
+  font-size: 15px;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,.25);
+}
+.rank-badge.s { background: linear-gradient(135deg, #ffd36d, #ff9f7e); }
+.rank-badge.a { background: linear-gradient(135deg, #d699ff, #79cfff); }
+.up-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.up-name.sub {
+  font-size: 13px;
+  color: rgba(255,255,255,.8);
+}
+
+/* 无图片时的占位 */
+.pool-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  font-weight: 900;
+  font-family: '主','宋';
+  color: rgba(255,255,255,.15);
+}
+
+/* 提示区 */
+.note {
+  position: relative;
+  z-index: 1;
+  width: 460px;
+  margin: 14px auto 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  color: #879aa8;
+  font-size: 13px;
+  line-height: 1.55;
+  background: rgba(255,255,255,.62);
+  box-shadow: inset 2px 2px 8px rgba(255,255,255,.85);
+}
+.footer {
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+  padding: 12px 0 8px;
+  text-align: center;
+  color: #e6796d;
+  font-size: 12px;
+  text-shadow: .5px .5px 1px #fff;
+}

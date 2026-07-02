@@ -12,6 +12,13 @@
         <div class="box_">
           <img src="{{s.icon}}" />
           <p>{{s.name}}</p>
+          {{if s.badges && s.badges.length}}
+          <div class="badge-row">
+            {{each s.badges b}}
+              <span class="mini-badge">{{if b.icon}}<img src="{{ppath}}wiki/imgs/{{b.icon}}">{{/if}}{{b.text}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
         </div>
         {{/each}}
         <span class="tab">{{name}}图鉴</span>

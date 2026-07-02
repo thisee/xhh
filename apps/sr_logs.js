@@ -1,6 +1,7 @@
 import { yaml, render, config } from '#xhh';
 
 const path = '../../../../..';
+const SR_CURRENT_VERSION = '4.3';
 
 export class sr_logs extends plugin {
   constructor(e) {
@@ -94,6 +95,9 @@ export class sr_logs extends plugin {
       }
     }
 
+    if (!data.length && name.replace(/上半|下半/g, '') === SR_CURRENT_VERSION) {
+      return e.reply(`星穹铁道当前版本已标记为 ${SR_CURRENT_VERSION}，但 xhh 的星铁历史卡池库还没有录入 ${name} 的具体UP信息。`);
+    }
     if (!data.length) return false;
 
     let _data_ = {

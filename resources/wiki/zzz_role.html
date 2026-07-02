@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="{{ppath}}wiki/zzz_role.css" />
+</head>
+<body {{sys.scale}}>
+<div class="zzz-page">
+  <div class="grid-bg"></div>
+  <main class="zzz-card">
+    <section class="hero">
+      <div class="hero-left">
+        <div class="eyebrow">Zenless Zone Zero · Archive</div>
+        <h1>{{name}}</h1>
+        <div class="sub-name">{{code_name || full_name || 'Agent Profile'}}</div>
+        <div class="tags">
+          {{each tags t}}
+            <span class="tag {{t.primary ? 'primary' : ''}}">{{t.text}}</span>
+          {{/each}}
+        </div>
+      </div>
+      <div class="avatar-seal">{{if avatar_img}}<img class="avatar-img" src="{{avatar_img}}">{{else}}<span>{{avatar_text}}</span>{{/if}}</div>
+    </section>
+
+    {{if profile}}
+    <section class="block profile-block">
+      <div class="block-title"><span>PROFILE</span><h2>档案简介</h2></div>
+      <p class="profile-text">{{profile}}</p>
+    </section>
+    {{/if}}
+
+    <section class="block">
+      <div class="block-title"><span>INFO</span><h2>基础信息</h2></div>
+      <div class="info-grid">
+        {{each info as v}}
+          <div class="info-item"><span>{{v.key}}</span><b>{{v.value}}</b></div>
+        {{/each}}
+      </div>
+    </section>
+
+    {{if stats && stats.length}}
+    <section class="block">
+      <div class="block-title"><span>STATS</span><h2>基础属性</h2></div>
+      <div class="stats-grid">
+        {{each stats s}}
+          <div class="stat"><span>{{s.key}}</span><b>{{s.value}}</b></div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if strategy && strategy.length}}
+    <section class="block">
+      <div class="block-title"><span>STRATEGY</span><h2>定位速览</h2></div>
+      <div class="strategy-list">
+        {{each strategy s}}
+          <div class="strategy-item">{{s}}</div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if skills && skills.length}}
+    <section class="block">
+      <div class="block-title"><span>SKILL</span><h2>技能摘要</h2></div>
+      <div class="skill-grid">
+        {{each skills s}}
+          <div class="skill-card"><h3>{{s.name}}</h3><p>{{s.desc}}</p></div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if talents && talents.length}}
+    <section class="block">
+      <div class="block-title"><span>MIND SCAPE</span><h2>影画摘要</h2></div>
+      <div class="talent-grid">
+        {{each talents t}}
+          <div class="talent-card"><b>{{t.level}} · {{t.name}}</b><p>{{t.desc}}</p></div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{if recommend && recommend.length}}
+    <section class="block">
+      <div class="block-title"><span>DRIVE DISC</span><h2>驱动盘词条</h2></div>
+      <div class="recommend-row">
+        {{each recommend r}}
+          <div class="recommend-pill"><span>{{r.key}}</span><b>{{r.value}}</b></div>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+  </main>
+  <div class="footer">from 小花火</div>
+</div>
+</body>
+</html>
