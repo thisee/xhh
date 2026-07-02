@@ -56,6 +56,9 @@ export class Wiki extends plugin {
     name = name.startsWith('图鉴') ? name.replace(/^图鉴/, '') : name.replace(/图鉴$/, '');
     name = name.replace(/^[:：\s]+|[:：\s]+$/g, '').trim();
     if (!name) return false;
+    if (isBH3 && /(专武|专属武器|专属圣痕|专属套|毕业圣痕|圣痕套)/.test(name)) {
+      if (await this.bh3ExclusiveEquip(e, name)) return true;
+    }
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
       { method: 'role', args: [e, name] },
@@ -968,6 +971,105 @@ export class Wiki extends plugin {
         return _path
     }
 */
+// 崩坏3角色专武/专属圣痕快捷查询
+  async bh3ExclusiveEquip(e, rawName = '') {
+    const wantStigma = /(专属圣痕|专属套|毕业圣痕|圣痕套)/.test(rawName);
+    const wantWeapon = /(专武|专属武器)/.test(rawName);
+    let roleQuery = String(rawName || '')
+      .replace(/专属武器|专武|专属圣痕|专属套|毕业圣痕|圣痕套/g, '')
+      .replace(/图鉴/g, '')
+      .trim();
+    if (!roleQuery || (!wantWeapon && !wantStigma)) return false;
+
+    const roleName = this.resolveBh3RoleAlias(roleQuery);
+    if (!roleName) return false;
+    const detail = await this.getBh3RoleDetail(roleName);
+    if (!detail) return false;
+    const equips = this.extractBh3ExclusiveEquips(detail);
+    const target = wantStigma ? equips.stigma : equips.weapon;
+    if (!target) {
+      await e.reply(`未找到「${roleName}」的${wantStigma ? '专属圣痕' : '专武'}信息，建议直接发送具体装备名图鉴。`);
+      return true;
+    }
+
+    const names = Array.isArray(target) ? target : [target];
+    for (const name of names) {
+      if (!name) continue;
+      const ok = wantStigma
+        ? await this.syw_yiqi(e, name, false, false, true)
+        : await this.weapon(e, name, false, false, true);
+      if (ok) return true;
+    }
+    await e.reply(`已识别「${roleName}」${wantStigma ? '专属圣痕' : '专武'}：${names.filter(Boolean).join(' / ')}，但图鉴别名暂未命中。可以直接用完整装备名查询。`);
+    return true;
+  }
+
+  resolveBh3RoleAlias(name = '') {
+    const roleNames = yaml.get('./plugins/xhh/system/default/bh3_js_names.yaml') || {};
+    if (roleNames[name]) return name;
+    const clean = String(name || '').replace(/[\s·・!！♪♥☆★「」『』:：-]/g, '').toLowerCase();
+    let first = '';
+    for (const [role, aliases] of Object.entries(roleNames)) {
+      const list = [role, ...(Array.isArray(aliases) ? aliases : [])];
+      for (const alias of list) {
+        const a = String(alias || '').replace(/[\s·・!！♪♥☆★「」『』:：-]/g, '').toLowerCase();
+        if (!a) continue;
+        if (a === clean) return role;
+        if (!first && (a.includes(clean) || clean.includes(a))) first = role;
+      }
+    }
+    return first;
+  }
+
+  async getBh3RoleDetail(roleName = '') {
+    try {
+      const ret = await mys.data(roleName, 'js', false, false, true);
+      const id = Array.isArray(ret) ? ret.find(v => v?.title === roleName)?.id || ret[0]?.id : ret?.id;
+      if (!id) return null;
+      return await mys.detail(id, false, false, true);
+    } catch (err) {
+      globalThis.logger?.debug?.(`[xhh] BH3专属装备获取角色详情失败: ${roleName} ${err?.message || err}`);
+      return null;
+    }
+  }
+
+  extractBh3ExclusiveEquips(data = {}) {
+    const content = data.content || {};
+    const parts = [];
+    for (const section of content.contents || []) {
+      const text = String(section.text || '');
+      const matches = text.matchAll(/data-data="([^"]+)"/g);
+      for (const match of matches) {
+        try {
+          const arr = JSON.parse(decodeURIComponent(match[1]));
+          if (Array.isArray(arr)) parts.push(...arr);
+        } catch (_) {}
+      }
+    }
+    const equipPart = parts.find(p => p?.tmplKey === 'valkyrie' && p?.partKey === 'equipmentRecommendation')?.data || {};
+    const groups = equipPart.equipment || [];
+    const all = [];
+    for (const group of groups) {
+      for (const eq of group.equips || []) {
+        const title = String(eq.title || eq.name || '').trim();
+        if (title) all.push(title);
+      }
+    }
+    const cleanName = (name = '') => String(name)
+      .replace(/\((上|中|下)\)|（(上|中|下)）|·(上|中|下)$|-(上|中|下)$/g, '')
+      .trim();
+    const isStigma = name => /(圣痕|上\)|中\)|下\)|（上）|（中）|（下）|·上|·中|·下|-上|-中|-下)/.test(name) || this.hasBh3StigmaName(cleanName(name));
+    const weapon = all.find(name => !isStigma(name));
+    const stigmaNames = [...new Set(all.filter(isStigma).map(cleanName).filter(Boolean))];
+    return { weapon, stigma: stigmaNames[0] || '' };
+  }
+
+  hasBh3StigmaName(name = '') {
+    const names = yaml.get('./plugins/xhh/system/default/bh3_syw_names.yaml') || {};
+    if (names[name]) return true;
+    return Object.values(names).some(list => Array.isArray(list) && list.includes(name));
+  }
+
 // 崩坏3角色
   async bh3_role_pictures(e, data) {
     const content = data.content || {};
