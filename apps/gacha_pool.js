@@ -1,4 +1,4 @@
-import { makeForwardMsg, render, config, yaml } from '#xhh';
+import { makeForwardMsg, render, yaml } from '#xhh';
 import { bh3_gacha } from './bh3_gacha.js';
 import officialPool from '../system/gacha_pool_official.js';
 
@@ -11,7 +11,7 @@ const BH3_POOL_HISTORY_PATH = './plugins/xhh/system/default/bh3_gacha_pool_histo
 const BH3_MARK_ICON = 'bh3_note/bh3_pool_banner.png';
 const ZZZ_MARK_ICON = 'zzz_md/imgs/ellen.png';
 const GS_MARK_ICON = 'gs_mark/paimon.png';
-const CURRENT_VERSION = { zzz: '3.0', bh3: '8.9' };
+const CURRENT_VERSION = { zzz: '3.1', bh3: '8.9' };
 
 export class xhh_gacha_pool extends plugin {
   constructor(e) {
@@ -271,24 +271,41 @@ export class xhh_gacha_pool extends plugin {
     return game === '崩坏3' || game === '原神';
   }
 
+  officialCard(r, gameName = '') {
+    return {
+      version: r.version || '-',
+      title: r.title,
+      type: gameName || r.gameName || '米游社公告',
+      time: r.createdAt ? `发布：${new Date(r.createdAt).toLocaleDateString('zh-CN')}` : '',
+      s: '',
+      a: r.url ? '点击公告原文查看完整UP详情' : '',
+      img: r.cover || r.images?.[0] || '',
+      weapon: false
+    };
+  }
+
   async officialCurrentPool(e) {
     const game = officialPool.resolveGame(e.msg);
-    if (!game) return e.reply('请指定游戏，如 #原神官方卡池');
+    if (!game) {
+      const results = await officialPool.fetchAll();
+      const cards = results.flatMap(r => {
+        const meta = officialPool.games[r.game];
+        return (r.records || []).slice(0, 2).map(v => this.officialCard(v, meta?.name));
+      });
+      if (!cards.length) return e.reply('暂未从米游社官方公告匹配到卡池/补给信息。');
+      return this.renderPoolImage(e, {
+        game: '米游社',
+        title: '官方当前卡池',
+        subtitle: '原神 / 星铁 / 绝区零 / 崩坏3 · 数据来源：米游社官方公告',
+        mode: 'official',
+        cards
+      });
+    }
     const meta = officialPool.games[game];
     logger.mark(`[xhh][gacha_pool] 命中${meta.name}官方卡池:`, e.msg);
     const { records, error, cache } = await officialPool.fetch(game);
     if (!records.length) return e.reply(`${meta.name}米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
-    const cards = records.map((r, i) => ({
-      version: r.version || '-',
-      title: r.title,
-      type: '',
-      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-      s: r.title,
-      a: '',
-      img: r.cover || r.images?.[0] || '',
-      weapon: false,
-      index: i + 1
-    }));
+    const cards = records.map(r => this.officialCard(r, meta.name));
     return this.renderPoolImage(e, {
       game: meta.name,
       title: `${meta.name}米游社官方卡池`,
@@ -310,17 +327,7 @@ export class xhh_gacha_pool extends plugin {
     logger.mark(`[xhh][gacha_pool] 命中${meta.name}v${version}官方卡池:`, e.msg);
     const { records, error, cache } = await officialPool.fetch(game, { version });
     if (!records.length) return e.reply(`${meta.name} v${version} 未找到米游社官方卡池公告${error ? '：' + error : ''}`);
-    const cards = records.map((r, i) => ({
-      version: r.version || '-',
-      title: r.title,
-      type: '',
-      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-      s: r.title,
-      a: '',
-      img: r.cover || r.images?.[0] || '',
-      weapon: false,
-      index: i + 1
-    }));
+    const cards = records.map(r => this.officialCard(r, meta.name));
     return this.renderPoolImage(e, {
       game: meta.name,
       title: `${meta.name} v${version} 官方卡池`,
@@ -347,16 +354,7 @@ export class xhh_gacha_pool extends plugin {
     // 先尝试从米游社公告获取当前UP信息（含封面图）
     const { records } = await officialPool.fetch('zzz');
     if (records.length) {
-      const cards = records.slice(0, 4).map((r, i) => ({
-        version: r.version || '-',
-        title: r.title,
-        type: '',
-        time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-        s: r.title,
-        a: '',
-        img: r.cover || r.images?.[0] || '',
-        weapon: false
-      }));
+      const cards = records.slice(0, 4).map(r => this.officialCard(r, '绝区零'));
       const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
       return this.renderPoolImage(e, {
         game: '绝区零',
@@ -494,18 +492,22 @@ export class xhh_gacha_pool extends plugin {
   async gsCurrentPool(e) {
     logger.mark('[xhh][gacha_pool] 命中原神当前卡池:', e.msg);
     const { records, error, cache } = await officialPool.fetch('gs');
-    if (!records.length) return e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
-    const cards = records.slice(0, 4).map((r, i) => ({
-      version: r.version || '-',
-      title: r.title,
-      type: '',
-      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-      s: r.title,
-      a: '',
-      img: r.cover || r.images?.[0] || '',
-      weapon: false,
-      index: i + 1
-    }));
+    if (!records.length) {
+      const localCards = await this.loadGsLocalCards('current');
+      if (localCards.length) {
+        return this.renderPoolImage(e, {
+          game: '原神',
+          title: '原神当前卡池',
+          subtitle: '本地卡池库兜底',
+          mode: 'gs',
+          markIcon: GS_MARK_ICON,
+          markWide: true,
+          cards: localCards
+        });
+      }
+      return e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
+    }
+    const cards = records.slice(0, 4).map(r => this.officialCard(r, '原神'));
     const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
     return this.renderPoolImage(e, {
       game: '原神',
@@ -524,18 +526,22 @@ export class xhh_gacha_pool extends plugin {
     if (!m) return false;
     const [, version, phase] = m;
     const { records, error, cache } = await officialPool.fetch('gs', { version });
-    if (!records.length) return e.reply(`原神 v${version} 未找到米游社官方卡池公告${error ? '：' + error : ''}`);
-    const cards = records.map((r, i) => ({
-      version: r.version || '-',
-      title: r.title,
-      type: '',
-      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-      s: r.title,
-      a: '',
-      img: r.cover || r.images?.[0] || '',
-      weapon: false,
-      index: i + 1
-    }));
+    if (!records.length) {
+      const localCards = await this.loadGsLocalCards(`${version}${phase || ''}`);
+      if (localCards.length) {
+        return this.renderPoolImage(e, {
+          game: '原神',
+          title: `原神 v${version}${phase || ''} 卡池`,
+          subtitle: '本地历史卡池库',
+          mode: 'gs',
+          markIcon: GS_MARK_ICON,
+          markWide: true,
+          cards: localCards
+        });
+      }
+      return e.reply(`原神 v${version} 未找到米游社官方卡池公告${error ? '：' + error : ''}`);
+    }
+    const cards = records.map(r => this.officialCard(r, '原神'));
     const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
     return this.renderPoolImage(e, {
       game: '原神',
@@ -563,18 +569,22 @@ export class xhh_gacha_pool extends plugin {
       const t = r.title || '';
       return t.includes(name);
     });
-    if (!hit.length) return silent ? false : e.reply(`未找到【${name}】的原神卡池记录。`);
-    const cards = hit.map((r, i) => ({
-      version: r.version || '-',
-      title: r.title,
-      type: '',
-      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-      s: r.title,
-      a: '',
-      img: r.cover || r.images?.[0] || '',
-      weapon: false,
-      index: i + 1
-    }));
+    if (!hit.length) {
+      const localCards = await this.loadGsLocalCards(name);
+      if (localCards.length) {
+        return this.renderPoolImage(e, {
+          game: '原神',
+          title: `${name} 卡池记录`,
+          subtitle: `共 ${localCards.length} 条记录 · 本地历史卡池库`,
+          mode: 'gs',
+          markIcon: GS_MARK_ICON,
+          markWide: true,
+          cards: localCards
+        });
+      }
+      return silent ? false : e.reply(`未找到【${name}】的原神卡池记录。`);
+    }
+    const cards = hit.map(r => this.officialCard(r, '原神'));
     const firstCover = hit[0]?.cover || hit[0]?.images?.[0] || '';
     return this.renderPoolImage(e, {
       game: '原神',
@@ -587,21 +597,74 @@ export class xhh_gacha_pool extends plugin {
     });
   }
 
+  normalizeGsName(name = '') {
+    let query = String(name || '').trim();
+    try {
+      const gsnames = yaml.get('./plugins/xhh/system/default/gs_js_names.yaml') || {};
+      for (const [key, aliases] of Object.entries(gsnames)) {
+        if (Array.isArray(aliases) && aliases.includes(query)) return key;
+      }
+      const wqnames = yaml.get('./plugins/xhh/system/default/wqname.yaml') || {};
+      for (const [key, aliases] of Object.entries(wqnames)) {
+        if (Array.isArray(aliases) && aliases.includes(query)) return key;
+      }
+    } catch (_) {}
+    return query;
+  }
+
+  async loadGsLocalCards(type = '') {
+    const data = yaml.get('./plugins/xhh/system/default/gslogs.yaml');
+    if (!data?.date || !data?.imgs) return [];
+    const query = this.normalizeGsName(type);
+    const cards = [];
+    const entries = Object.entries(data.date);
+    const isCurrent = query === 'current';
+    for (const [dateKey, names] of entries) {
+      const ver = dateKey.match('【(.*)】')?.[1] || '';
+      if (!ver) continue;
+      const imgs = data.imgs[`【${ver}】`] || [];
+      const time = dateKey.replace(`【${ver}】`, '').replace('~', ' ~ ');
+      const versionHit = !isCurrent && (ver === query || ver.startsWith(query) || ver.replace(/上半|下半/g, '') === query);
+      if (isCurrent || versionHit) {
+        names.forEach((line, i) => {
+          cards.push({
+            version: ver,
+            title: i === 2 ? '武器活动祈愿' : (i === 3 ? '集录祈愿' : '角色活动祈愿'),
+            type: '原神',
+            time,
+            s: String(line).split(',').slice(0, 2).join(' / '),
+            a: String(line).split(',').slice(2).join(' / '),
+            img: imgs[i] || '',
+            weapon: i === 2
+          });
+        });
+        if (isCurrent) break;
+        continue;
+      }
+      names.forEach((line, i) => {
+        const arr = String(line).split(',');
+        if (arr.includes(query)) {
+          cards.push({
+            version: ver,
+            title: `${query} 卡池`,
+            type: i === 2 ? '武器祈愿' : '角色祈愿',
+            time,
+            s: arr.slice(0, 2).join(' / '),
+            a: arr.slice(2).join(' / '),
+            img: imgs[i] || '',
+            weapon: i === 2
+          });
+        }
+      });
+    }
+    return cards;
+  }
+
   async gsAllPool(e) {
     logger.mark('[xhh][gacha_pool] 命中原神全卡池:', e.msg);
     const { records, error, cache } = await officialPool.fetch('gs');
     if (!records.length) return e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
-    const cards = records.map((r, i) => ({
-      version: r.version || '-',
-      title: r.title,
-      type: '',
-      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-      s: r.title,
-      a: '',
-      img: r.cover || r.images?.[0] || '',
-      weapon: false,
-      index: i + 1
-    }));
+    const cards = records.map(r => this.officialCard(r, '原神'));
     const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
     return this.renderPoolImage(e, {
       game: '原神',
@@ -619,16 +682,7 @@ export class xhh_gacha_pool extends plugin {
     // 先尝试从米游社公告获取当前UP信息
     const { records } = await officialPool.fetch('bh3');
     if (records.length) {
-      const cards = records.slice(0, 4).map((r, i) => ({
-        version: r.version || '-',
-        title: r.title,
-        type: '',
-        time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('zh-CN') : '',
-        s: r.title,
-        a: '',
-        img: r.cover || r.images?.[0] || '',
-        weapon: false
-      }));
+      const cards = records.slice(0, 4).map(r => this.officialCard(r, '崩坏3'));
       const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
       return this.renderPoolImage(e, {
         game: '崩坏3',

@@ -168,6 +168,14 @@ class OfficialGachaPool {
     }
     return ret;
   }
+
+  async fetchAll() {
+    const ret = [];
+    for (const game of Object.keys(GAME_META)) {
+      ret.push(await this.fetch(game));
+    }
+    return ret;
+  }
 }
 
 export default new OfficialGachaPool();
