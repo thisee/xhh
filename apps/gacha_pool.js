@@ -20,7 +20,8 @@ export class xhh_gacha_pool extends plugin {
       dsc: '原神/星铁/绝区零/崩三卡池查询',
       event: 'message',
       // ZZZ-Plugin 也有“绝区零卡池”宽泛规则，这里提前到更高优先级，先让 xhh 接管。
-      priority: -9999,
+      // 原神/星铁的卡池命令很容易被其它插件的宽泛“xx卡池”抢走，这里进一步提前。
+      priority: -100000000,
       rule: [
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)(当前|本期|当期)?(卡池|补给)$', fnc: 'bh3CurrentPool' },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)v?(\\d+\\.\\d+)(上半|下半)?(卡池|补给)$', fnc: 'bh3VersionPool' },
@@ -30,6 +31,10 @@ export class xhh_gacha_pool extends plugin {
         { reg: '^#*(小花火)?原神v?(\\d+\\.\\d+)(上半|下半)?卡池$', fnc: 'gsVersionPool' },
         { reg: '^#*(小花火)?原神(.+)卡池$', fnc: 'gsNameHistory' },
         { reg: '^#*(小花火)?原神(卡池)(统计|记录|历史|全)$', fnc: 'gsAllPool' },
+        // 星铁卡池
+        { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)(当前|本期|当期)?(卡池|跃迁)$', fnc: 'srCurrentPool' },
+        { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)v?(\\d+\\.\\d+)(上半|下半)?(卡池|跃迁)$', fnc: 'srVersionPool' },
+        { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)(?!v?\\d+\\.\\d+)(.+)(卡池|跃迁)$', fnc: 'srNameHistory' },
         // 官方/米游社卡池必须在 bh3NameHistory 之前，否则"崩三官方卡池"会被误判为角色名
         { reg: '^#*(小花火)?((原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3))?(米游社|官方)?(更新|刷新)卡池(数据)?$', fnc: 'refreshOfficialPools' },
         { reg: '^#*(小花火)?(原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3)?(米游社|官方)(当前|本期|当期)?卡池$', fnc: 'officialCurrentPool' },
@@ -40,7 +45,7 @@ export class xhh_gacha_pool extends plugin {
         { reg: '^#*(小花火)?(绝区零|ZZZ)(?!v?\\d+\\.\\d+)(.+)卡池$', fnc: 'zzzNameHistory' },
         { reg: '^#*(小花火)?(绝区零|ZZZ)(.+)(卡池|复刻)(统计|记录|历史)$', fnc: 'zzzNameHistory' },
         { reg: '^#*(小花火)?(绝区零|ZZZ)(卡池|复刻)(统计|记录|历史)$', fnc: 'zzzAllPool' },
-        // 类似"雷神卡池/德莉莎卡池"的用法：先查绝区零，查不到再查崩三
+        // 类似"雷神卡池/德莉莎卡池/白厄卡池"的用法：依次查绝区零、崩三、星铁、原神
         { reg: '^#*(小花火)?(?!原神|星铁|崩铁|崩三|崩坏3|崩坏三|BH3|绝区零|ZZZ)(.+)(卡池|复刻)(统计|记录|历史)?$', fnc: 'genericNameHistory' }
       ]
     });
@@ -439,6 +444,9 @@ export class xhh_gacha_pool extends plugin {
     // 再查崩三
     const bh3Result = await this.replyBh3NameHistory(e, name, true);
     if (bh3Result !== false) return bh3Result;
+    // 再查星铁
+    const srResult = await this.replySrNameHistory(e, name, true);
+    if (srResult !== false) return srResult;
     // 再查原神
     const gsResult = await this.replyGsNameHistory(e, name, true);
     if (gsResult !== false) return gsResult;
@@ -487,6 +495,153 @@ export class xhh_gacha_pool extends plugin {
     const title = '绝区零全版本卡池记录';
     const msg = chunks.length > 8 ? await makeForwardMsg(e, [title, ...chunks], title) : [title, ...chunks];
     return e.reply(msg);
+  }
+
+  async srCurrentPool(e) {
+    logger.mark('[xhh][gacha_pool] 命中星铁当前卡池:', e.msg);
+    const { records, error, cache } = await officialPool.fetch('sr');
+    if (records.length) {
+      return this.renderPoolImage(e, {
+        game: '星穹铁道',
+        title: '星铁当前卡池',
+        subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
+        mode: 'sr',
+        cards: records.slice(0, 6).map(r => this.officialCard(r, '星穹铁道'))
+      });
+    }
+    const localCards = await this.loadSrLocalCards('current');
+    if (localCards.length) {
+      return this.renderPoolImage(e, {
+        game: '星穹铁道',
+        title: '星铁当前卡池',
+        subtitle: '本地历史卡池库兜底',
+        mode: 'sr',
+        cards: localCards
+      });
+    }
+    return e.reply(`星铁米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
+  }
+
+  async srVersionPool(e) {
+    logger.mark('[xhh][gacha_pool] 命中星铁版本卡池:', e.msg);
+    const m = e.msg.match(/(?:星铁|崩铁|星穹铁道)v?(\d+\.\d+)(上半|下半)?(?:卡池|跃迁)/);
+    if (!m) return false;
+    const [, version, phase] = m;
+    const { records, error, cache } = await officialPool.fetch('sr', { version });
+    if (records.length) {
+      const filtered = phase ? records.filter(r => (r.title || '').includes(phase) || (r.version || '').includes(phase)) : records;
+      return this.renderPoolImage(e, {
+        game: '星穹铁道',
+        title: `星铁 v${version}${phase || ''} 卡池`,
+        subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
+        mode: 'sr',
+        cards: (filtered.length ? filtered : records).map(r => this.officialCard(r, '星穹铁道'))
+      });
+    }
+    const localCards = await this.loadSrLocalCards(`${version}${phase || ''}`);
+    if (localCards.length) {
+      return this.renderPoolImage(e, {
+        game: '星穹铁道',
+        title: `星铁 v${version}${phase || ''} 卡池`,
+        subtitle: '本地历史卡池库',
+        mode: 'sr',
+        cards: localCards
+      });
+    }
+    return e.reply(`星铁 v${version}${phase || ''} 未找到卡池数据${error ? '：' + error : ''}`);
+  }
+
+  async srNameHistory(e) {
+    logger.mark('[xhh][gacha_pool] 命中星铁名称卡池:', e.msg);
+    const name = e.msg.replace(/^#*(小花火)?(星铁|崩铁|星穹铁道)/, '').replace(/(卡池|跃迁)$/, '').trim();
+    if (!name) return false;
+    return this.replySrNameHistory(e, name, false);
+  }
+
+  async replySrNameHistory(e, name, silent = false) {
+    if (!name) return false;
+    const localCards = await this.loadSrLocalCards(name);
+    if (localCards.length) {
+      return this.renderPoolImage(e, {
+        game: '星穹铁道',
+        title: `${name} 卡池记录`,
+        subtitle: `共 ${localCards.length} 条记录 · 本地历史卡池库`,
+        mode: 'sr',
+        cards: localCards
+      });
+    }
+    const { records } = await officialPool.fetch('sr');
+    const hit = records.filter(r => (r.title || '').includes(name));
+    if (!hit.length) return silent ? false : e.reply(`未找到【${name}】的星铁卡池记录。`);
+    return this.renderPoolImage(e, {
+      game: '星穹铁道',
+      title: `${name} 卡池记录`,
+      subtitle: `共 ${hit.length} 条记录 · 数据来源：米游社公告`,
+      mode: 'sr',
+      cards: hit.map(r => this.officialCard(r, '星穹铁道'))
+    });
+  }
+
+  normalizeSrName(name = '') {
+    let query = String(name || '').trim();
+    try {
+      const jsNames = yaml.get('./plugins/xhh/system/default/sr_js_names.yaml') || {};
+      for (const [key, aliases] of Object.entries(jsNames)) {
+        if (key === query || (Array.isArray(aliases) && aliases.includes(query))) return key;
+      }
+      const gzNames = yaml.get('./plugins/xhh/system/default/gz_names.yaml') || {};
+      for (const [key, aliases] of Object.entries(gzNames)) {
+        if (key === query || (Array.isArray(aliases) && aliases.includes(query))) return key;
+      }
+    } catch (_) {}
+    return query;
+  }
+
+  async loadSrLocalCards(type = '') {
+    const data = yaml.get('./plugins/xhh/system/default/sr_logs.yaml');
+    if (!Array.isArray(data)) return [];
+    const query = this.normalizeSrName(type);
+    const isCurrent = query === 'current';
+    const cards = [];
+    const currentVersion = '4.3';
+    for (const item of data) {
+      const ver = item.ver || '';
+      const versionHit = !isCurrent && (ver === query || ver.startsWith(query) || ver.replace(/上半|下半/g, '') === query);
+      const nameHit = !isCurrent && (
+        (item.js_five || []).includes(query) ||
+        (item.js_four || []).includes(query) ||
+        this.clSrNames(item.gz_five || []).includes(query) ||
+        this.clSrNames(item.gz_four || []).includes(query)
+      );
+      if (isCurrent && !ver.startsWith(currentVersion)) continue;
+      if (!isCurrent && !versionHit && !nameHit) continue;
+      cards.push({
+        version: ver,
+        title: `${ver} 角色活动跃迁`,
+        type: '星穹铁道',
+        time: item.time || '',
+        s: (item.js_five || []).join(' / '),
+        a: (item.js_four || []).join(' / '),
+        img: '',
+        weapon: false
+      });
+      cards.push({
+        version: ver,
+        title: `${ver} 光锥活动跃迁`,
+        type: '星穹铁道',
+        time: item.time || '',
+        s: this.clSrNames(item.gz_five || []).join(' / '),
+        a: this.clSrNames(item.gz_four || []).join(' / '),
+        img: '',
+        weapon: true
+      });
+      if (isCurrent || versionHit) continue;
+    }
+    return cards;
+  }
+
+  clSrNames(arr = []) {
+    return arr.map(v => String(v).replace(/\/|智识|记忆|虚无|同谐|丰饶|毁灭|巡猎|存护|，|,|!|！|」|「/g, ''));
   }
 
   async gsCurrentPool(e) {
@@ -679,19 +834,17 @@ export class xhh_gacha_pool extends plugin {
 
   async bh3CurrentPool(e) {
     logger.mark('[xhh][gacha_pool] 命中崩三补给菜单:', e.msg);
-    // 先尝试从米游社公告获取当前UP信息
-    const { records } = await officialPool.fetch('bh3');
-    if (records.length) {
-      const cards = records.slice(0, 4).map(r => this.officialCard(r, '崩坏3'));
-      const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+    // 崩三米游社公告接口近期不稳定，这里优先用本地补给记录，避免因为官方接口异常导致整条命令失败。
+    const local = await this.loadBh3CurrentPools();
+    if (local.length) {
       return this.renderPoolImage(e, {
         game: '崩坏3',
         title: '崩坏3当前卡池',
-        subtitle: `数据来源：米游社公告 · v${CURRENT_VERSION.bh3}`,
+        subtitle: `v${CURRENT_VERSION.bh3} · 本地补给记录`,
         mode: 'bh3',
-        markIcon: firstCover || BH3_MARK_ICON,
-        markWide: !!firstCover,
-        cards
+        markIcon: BH3_MARK_ICON,
+        markWide: true,
+        cards: local
       });
     }
     // 兜底：显示补给菜单
@@ -731,6 +884,19 @@ export class xhh_gacha_pool extends plugin {
     }
   }
 
+  async loadBh3CurrentPools() {
+    const data = await this.loadBh3PoolHistory();
+    if (!data?.pools?.length) return [];
+    const now = Date.now();
+    let hit = data.pools.find(v => {
+      const s = new Date(v.start).getTime();
+      const e = new Date(v.end).getTime();
+      return !Number.isNaN(s) && !Number.isNaN(e) && now >= s && now <= e;
+    });
+    if (!hit) hit = data.pools.find(v => v.version === CURRENT_VERSION.bh3) || data.pools[0];
+    return hit.pools.map(p => this.bh3PoolToCard({ ...p, version: hit.version, start: hit.start, end: hit.end }));
+  }
+
   bh3PoolToCard(pool, version, phase) {
     return {
       version: pool.version || '-',
@@ -754,16 +920,8 @@ export class xhh_gacha_pool extends plugin {
     const versionPools = data.pools.filter(p => p.version === version && (!phase || p.phase === phase));
     if (!versionPools.length) return e.reply(`未查询到崩坏3 v${version}${phase || ''} 卡池数据。`);
     const pools = versionPools.flatMap(v => v.pools.map(p => ({ ...p, version: v.version, phase: v.phase, start: v.start, end: v.end })));
-    // 尝试从米游社公告获取封面图
     let markIcon = BH3_MARK_ICON;
     let markWide = true;
-    try {
-      const { records } = await officialPool.fetch('bh3', { version });
-      if (records.length && records[0].cover) {
-        markIcon = records[0].cover;
-        markWide = false;
-      }
-    } catch (_) {}
     return this.renderPoolImage(e, {
       game: '崩坏3',
       title: `v${phase ? `${version}${phase}` : version} 补给记录`,
@@ -819,20 +977,8 @@ export class xhh_gacha_pool extends plugin {
     const first = records[0];
     const rarity = hitName(first.s) ? 'S级' : 'A级';
     const type = first.type === 'weapon' ? '武器' : '角色';
-    // 尝试从米游社公告获取角色封面图
     let markIcon = BH3_MARK_ICON;
     let markWide = true;
-    try {
-      const { records: officialRecords } = await officialPool.fetch('bh3');
-      const matched = officialRecords.find(r => {
-        const t = r.title || '';
-        return t.includes(name) || t.includes(first.s) || (suitName !== name && t.includes(suitName));
-      });
-      if (matched?.cover) {
-        markIcon = matched.cover;
-        markWide = false;
-      }
-    } catch (_) {}
     return this.renderPoolImage(e, {
       game: '崩坏3',
       title: `${name} 补给记录`,
