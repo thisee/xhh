@@ -4,6 +4,78 @@ import { JSDOM } from 'jsdom';
 const { window } = new JSDOM();
 const DOMParser = window.DOMParser;
 
+
+function collectWikiValues(input, nameOnly = false, out = []) {
+  if (input === undefined || input === null) return out;
+  if (typeof input === 'string') {
+    if (nameOnly) {
+      const text = input.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+      if (text) out.push(text);
+    } else {
+      const links = input.match(/https?:\/\/[^\s"'<>\)]+/g) || [];
+      out.push(...links);
+      const srcs = [...input.matchAll(/(?:src|data-src)=['"]([^'"]+)['"]/g)].map(m => m[1]);
+      out.push(...srcs);
+    }
+    return out;
+  }
+  if (Array.isArray(input)) {
+    for (const item of input) collectWikiValues(item, nameOnly, out);
+    return out;
+  }
+  if (typeof input === 'object') {
+    const keys = nameOnly
+      ? ['name', 'title', 'label', 'text', 'value', 'desc', 'nickname']
+      : ['icon', 'img', 'image', 'url', 'src', 'avatar', 'file', 'value'];
+    for (const key of keys) {
+      if (typeof input[key] === 'string' && input[key]) out.push(input[key]);
+    }
+    for (const val of Object.values(input)) {
+      if (val && typeof val === 'object') collectWikiValues(val, nameOnly, out);
+    }
+  }
+  return out;
+}
+
+function extractUnique(input = [], nameOnly = false) {
+  const seen = new Set();
+  const values = collectWikiValues(input, nameOnly, [])
+    .map(v => String(v || '').trim())
+    .filter(Boolean)
+    .map(v => nameOnly ? v.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : v);
+  return values.filter(v => {
+    if (!v || seen.has(v)) return false;
+    seen.add(v);
+    return true;
+  });
+}
+
+function extractElements(arr = [], indexes = []) {
+  if (!Array.isArray(arr)) return [];
+  return indexes.map(i => arr[i]).filter(v => v !== undefined && v !== null && v !== '');
+}
+
+function extractUniqueHttpsLinks(text = '') {
+  const links = String(text || '').match(/https?:\/\/[^\s"'<>\)]+/g) || [];
+  return [...new Set(links)];
+}
+
+function extractChineseWords(text = '') {
+  return String(text || '').match(/[\u4e00-\u9fa5·・（）()]+/g) || [];
+}
+
+function extractHonkaiStarRailData(html = '') {
+  const text = String(html || '').replace(/<br\s*\/?\>/g, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ');
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return {
+    img: extractUniqueHttpsLinks(html)[0] || '',
+    fate: clean.match(/命途\s*([^\s]+)/)?.[1] || '',
+    rarity: clean.match(/稀有度\s*([^\s]+)/)?.[1] || '',
+    desc: clean,
+    jineng: ['', clean]
+  };
+}
+
 const pr = yaml.get('./plugins/xhh/config/other.yaml').wiki;
 export class Wiki extends plugin {
   constructor(e) {
@@ -683,7 +755,10 @@ export class Wiki extends plugin {
       if (isZZZ) {
         this.zzz_syw_pictures(e, data);
       } else if (isBH3) {
-        this.bh3_syw_pictures(e, data);
+        const id = data?.id;
+        const detail = id ? await mys.detail(id, false, false, true) : data;
+        if (!detail) return false;
+        this.bh3_syw_pictures(e, detail);
       } else if (isSr) {
         this.yiqi_pictures(e, data);
       } else {
@@ -1411,9 +1486,13 @@ export class Wiki extends plugin {
 
   // 崩坏3圣痕
   async bh3_syw_pictures(e, data) {
-    const content = data.content;
-    const title = content.title;
-    const stigma_data = content.stigma_data || {};
+    const content = data?.content || data || {};
+    const title = content.title || data?.title || data?.name || '未知圣痕';
+    if (!content || (!content.title && !data?.title && !data?.name)) {
+      await e.reply('未获取到圣痕详情，请稍后重试或使用完整圣痕名称查询。');
+      return false;
+    }
+    const stigma_data = content.stigma_data || content.stigmata_data || content.stigmaData || {};
     const info = stigma_data.info || {};
     const basicAttr = stigma_data.basicAttr || {};
     const setSkills = stigma_data.setSkills || [];
