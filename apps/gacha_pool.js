@@ -261,6 +261,63 @@ export class xhh_gacha_pool extends plugin {
     return render('gacha_pool/pool', data, { e, ret: true });
   }
 
+  async renderSrLogs(e, data, query = '') {
+    // 星铁也统一走新的“版本 + 时间 + UP头像行”样式，避免特定角色卡池还显示原版大卡片。
+    const sections = this.buildSrHistorySections(data, query);
+    let splash = '/root/TRSS_AllBot/TRSS-Yunzai/plugins/miao-plugin/resources/meta-sr/character/三月七/imgs/splash.webp';
+    const hitName = query ? this.normalizeSrName(query) : '';
+    if (hitName) {
+      const roleSplash = this.getSrCharacterSplash(hitName);
+      if (roleSplash) splash = roleSplash;
+    }
+    return render('gslogs/logs', { data: sections, splash }, { e, ret: true });
+  }
+
+  async renderGsLogs(e, sections) {
+    let charName = '';
+    for (const s of sections) {
+      for (const row of s.rows || []) {
+        for (const item of row.items || []) {
+          if (item.highlight) { charName = item.name; break; }
+        }
+        if (charName) break;
+      }
+      if (charName) break;
+    }
+    let splash = '';
+    if (charName) {
+      for (const ext of ['.webp', '.png', '.jpg']) {
+        const p = `./plugins/xhh/resources/gslogs/imgs/${charName}${ext}`;
+        if (fs.existsSync(p)) { splash = `gslogs/imgs/${charName}${ext}`; break; }
+      }
+      if (!splash) {
+        for (const sub of ['normal-character', 'super-character']) {
+          const dir = `./plugins/miao-plugin/resources/profile/${sub}/${charName}`;
+          if (!fs.existsSync(dir)) continue;
+          try {
+            const files = fs.readdirSync(dir).filter(f => /^y.+\.(webp|png)$/.test(f));
+            if (files.length) {
+              const pick = files[Math.floor(Math.random() * files.length)];
+              splash = `../../miao-plugin/resources/profile/${sub}/${charName}/${pick}`;
+              break;
+            }
+          } catch (_) {}
+        }
+      }
+    }
+    return render('gslogs/logs', { data: sections, splash }, { e, ret: true });
+  }
+
+  async renderZzzLogs(e, sections, query = '') {
+    // 优先使用 ZZZ-Plugin 的面板立绘做右上角角色图，缺失时回退小花火内置艾莲。
+    const splash = this.getZzzPanelSplash(query) || 'zzzlogs/imgs/ellen.png';
+    return render('zzzlogs/logs', { data: sections, splash }, { e, ret: true });
+  }
+
+  async renderBh3Logs(e, sections) {
+    return render('bh3logs/logs', { data: sections, splash: 'bh3logs/imgs/kiana.png' }, { e, ret: true });
+  }
+
   zzzPoolTime(pool) {
     return pool?.timer?.replace(/ \d{2}:\d{2}:\d{2}/g, '') || '-';
   }
@@ -516,6 +573,10 @@ export class xhh_gacha_pool extends plugin {
     };
     const records = data.filter(p => hitName(p.s) || (Array.isArray(p.a) && p.a.some(hitName)));
     if (!records.length) return silent ? false : e.reply(`未找到【${name}】的绝区零卡池记录。`);
+    const sections = this.buildZzzHistorySections(records, name);
+    if (sections.length) {
+      return this.renderZzzLogs(e, sections, name);
+    }
     const first = records[0];
     const rarity = hitName(first.s) ? 'S级' : 'A级';
     const type = first.type === '武器' ? '音擎' : '代理人';
@@ -524,18 +585,115 @@ export class xhh_gacha_pool extends plugin {
       title: `${name} 卡池记录`,
       subtitle: `${rarity}${type} · 共 ${records.length} 次记录`,
       mode: 'gs-history',
-      cards: this.buildZzzHistorySections(records, name)
+      cards: sections
     });
   }
 
+  getZzzCharSprite(name = '') {
+    try {
+      const data = JSON.parse(fs.readFileSync('./plugins/ZZZ-Plugin/resources/map/PartnerId2Data.json', 'utf-8'));
+      const clean = s => String(s || '').replace(/[「」&]/g, '');
+      const target = clean(name);
+      for (const info of Object.values(data)) {
+        const entry = clean(info?.name || '');
+        if (entry === target || entry.startsWith(target) || target.startsWith(entry)) {
+          return info.sprite_id || '';
+        }
+      }
+      for (const info of Object.values(data)) {
+        const full = clean(info?.full_name || '');
+        if (full === target || full.startsWith(target) || target.startsWith(full)) {
+          return info.sprite_id || '';
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  getZzzPanelSplash(name = '') {
+    const root = './plugins/ZZZ-Plugin/resources/images/panel';
+    if (!fs.existsSync(root)) return '';
+    const clean = v => String(v || '').replace(/[「」&·•\s]/g, '');
+    const target = clean(name) || '艾莲';
+    try {
+      const dirs = fs.readdirSync(root, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .map(d => d.name);
+      const dirName = dirs.find(d => clean(d) === target)
+        || dirs.find(d => clean(d).includes(target) || target.includes(clean(d)))
+        || (target === '艾莲' ? '艾莲' : '');
+      if (!dirName) return '';
+      const dir = `${root}/${dirName}`;
+      const files = fs.readdirSync(dir)
+        .filter(f => /\.(png|webp|jpg|jpeg)$/i.test(f))
+        .filter(f => !/avatar|icon|face|头像/i.test(f))
+        .map(f => ({ f, size: fs.statSync(`${dir}/${f}`).size }))
+        .sort((a, b) => {
+          // 右上角空间很小，优先半身/头像感更强的 Gu 系列；全身图容易缩到看不见头。
+          const score = f => {
+            if (/Gu[1-9]/i.test(f)) return 100;
+            if (/backgrounderaser/i.test(f)) return 60;
+            if (/立绘|半身|panel/i.test(f)) return 40;
+            return 0;
+          };
+          return score(b.f) - score(a.f) || b.size - a.size;
+        });
+      if (files.length) return fs.realpathSync(`${dir}/${files[0].f}`);
+    } catch (_) {}
+    return '';
+  }
+
+  getZzzPanelIcon(name = '') {
+    const root = './plugins/ZZZ-Plugin/resources/images/panel';
+    if (!fs.existsSync(root)) return '';
+    const clean = v => String(v || '').replace(/[「」&·•\s]/g, '');
+    const target = clean(name);
+    if (!target) return '';
+    try {
+      const dirs = fs.readdirSync(root, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .map(d => d.name);
+      const dirName = dirs.find(d => clean(d) === target)
+        || dirs.find(d => clean(d).includes(target) || target.includes(clean(d)));
+      if (!dirName) return '';
+      const dir = `${root}/${dirName}`;
+      const files = fs.readdirSync(dir)
+        .filter(f => /\.(png|webp|jpg|jpeg)$/i.test(f))
+        .filter(f => !/avatar|icon|face|头像/i.test(f))
+        .map(f => ({ f, size: fs.statSync(`${dir}/${f}`).size }))
+        .sort((a, b) => {
+          const score = f => {
+            if (/Gu[1-9]/i.test(f)) return 100;
+            if (/backgrounderaser/i.test(f)) return 60;
+            if (/半身|panel/i.test(f)) return 40;
+            return 0;
+          };
+          return score(b.f) - score(a.f) || b.size - a.size;
+        });
+      if (files.length) return fs.realpathSync(`${dir}/${files[0].f}`);
+    } catch (_) {}
+    return '';
+  }
+
   getZzzIcon(name = '', weapon = false) {
-    const dirs = weapon
-      ? ['./plugins/Atlas/zzz-atlas/W-Engine']
-      : ['./plugins/Atlas/zzz-atlas/material for role'];
-    for (const dir of dirs) {
+    if (weapon) {
+      const dir = './plugins/Atlas/zzz-atlas/W-Engine';
       const path = `${dir}/${name}.webp`;
       if (fs.existsSync(path)) return fs.realpathSync(path);
+      return '';
     }
+    // 左侧 UP 方块优先使用 ZZZ-Plugin panel 半身图；全身图在 44px 方块内很容易裁掉头。
+    const panelIcon = this.getZzzPanelIcon(name);
+    if (panelIcon) return panelIcon;
+    const sprite = this.getZzzCharSprite(name);
+    if (sprite) {
+      const localPath = `./plugins/ZZZ-Plugin/resources/images/role/IconRole${sprite}.png`;
+      if (fs.existsSync(localPath)) return fs.realpathSync(localPath);
+      return `https://static.nanoka.cc/assets/zzz/IconRole${sprite}.webp`;
+    }
+    const dir = './plugins/Atlas/zzz-atlas/material for role';
+    const path = `${dir}/${name}.webp`;
+    if (fs.existsSync(path)) return fs.realpathSync(path);
     return '';
   }
 
@@ -592,15 +750,13 @@ export class xhh_gacha_pool extends plugin {
         cards: records.slice(0, 6).map(r => this.officialCard(r, '星穹铁道'))
       });
     }
-    const localCards = await this.loadSrLocalCards('current');
-    if (localCards.length) {
-      return this.renderPoolImage(e, {
-        game: '星穹铁道',
-        title: '星铁当前卡池',
-        subtitle: '本地历史卡池库兜底',
-        mode: 'sr',
-        cards: localCards
-      });
+    const srData = yaml.get('./plugins/xhh/system/default/sr_logs.yaml');
+    if (Array.isArray(srData) && srData.length) {
+      const currentVersion = '4.3';
+      const current = srData.filter(v => String(v.ver || '').startsWith(currentVersion));
+      if (current.length) {
+        return this.renderSrLogs(e, current);
+      }
     }
     return e.reply(`星铁米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
   }
@@ -621,15 +777,16 @@ export class xhh_gacha_pool extends plugin {
         cards: (filtered.length ? filtered : records).map(r => this.officialCard(r, '星穹铁道'))
       });
     }
-    const localCards = await this.loadSrLocalCards(`${version}${phase || ''}`);
-    if (localCards.length) {
-      return this.renderPoolImage(e, {
-        game: '星穹铁道',
-        title: `星铁 v${version}${phase || ''} 卡池`,
-        subtitle: '本地历史卡池库',
-        mode: 'sr',
-        cards: localCards
+    const srData = yaml.get('./plugins/xhh/system/default/sr_logs.yaml');
+    if (Array.isArray(srData) && srData.length) {
+      const queryVer = `${version}${phase || ''}`;
+      const matched = srData.filter(v => {
+        const ver = String(v.ver || '');
+        return ver === queryVer || ver.startsWith(version + (phase || ''));
       });
+      if (matched.length) {
+        return this.renderSrLogs(e, matched);
+      }
     }
     return e.reply(`星铁 v${version}${phase || ''} 未找到卡池数据${error ? '：' + error : ''}`);
   }
@@ -643,15 +800,17 @@ export class xhh_gacha_pool extends plugin {
 
   async replySrNameHistory(e, name, silent = false) {
     if (!name) return false;
-    const localCards = await this.loadSrLocalCards(name);
-    if (localCards.length) {
-      return this.renderPoolImage(e, {
-        game: '星穹铁道',
-        title: `${name} 卡池记录`,
-        subtitle: `共 ${localCards.length} 条记录 · 本地历史卡池库`,
-        mode: 'sr',
-        cards: localCards
+    const srData = yaml.get('./plugins/xhh/system/default/sr_logs.yaml');
+    if (Array.isArray(srData) && srData.length) {
+      const query = this.normalizeSrName(name);
+      const matched = srData.filter(v => {
+        const jsMatch = (v.js_five || []).includes(query) || (v.js_four || []).includes(query);
+        const gzMatch = this.clSrNames(v.gz_five || []).includes(query) || this.clSrNames(v.gz_four || []).includes(query);
+        return jsMatch || gzMatch;
       });
+      if (matched.length) {
+        return this.renderSrLogs(e, matched, query);
+      }
     }
     const { records } = await officialPool.fetch('sr');
     const hit = records.filter(r => (r.title || '').includes(name));
@@ -678,6 +837,81 @@ export class xhh_gacha_pool extends plugin {
       }
     } catch (_) {}
     return query;
+  }
+
+  getSrCharacterIcon(name = '') {
+    const names = [name, String(name).replace(/Pro$/i, ''), String(name).replace('•', '·')].filter(Boolean);
+    for (const n of [...new Set(names)]) {
+      const base = `./plugins/miao-plugin/resources/meta-sr/character/${n}/imgs`;
+      for (const file of ['face.webp', 'face-q.webp', 'preview.webp', 'card.webp']) {
+        const path = `${base}/${file}`;
+        if (fs.existsSync(path)) return fs.realpathSync(path);
+      }
+    }
+    return '';
+  }
+
+  getSrCharacterSplash(name = '') {
+    const names = [name, String(name).replace(/Pro$/i, ''), String(name).replace('•', '·')].filter(Boolean);
+    for (const n of [...new Set(names)]) {
+      const base = `./plugins/miao-plugin/resources/meta-sr/character/${n}/imgs`;
+      for (const file of ['splash.webp', 'preview.webp', 'card.webp']) {
+        const path = `${base}/${file}`;
+        if (fs.existsSync(path)) return fs.realpathSync(path);
+      }
+    }
+    return '';
+  }
+
+  getSrWeaponIcon(name = '') {
+    const root = './plugins/miao-plugin/resources/meta-sr/weapon';
+    if (!fs.existsSync(root)) return '';
+    const raw = String(name || '');
+    const clean = raw.includes('/') ? raw.split('/').pop() : raw;
+    const direct = raw.includes('/') ? `${root}/${raw}` : '';
+    const candidates = direct ? [direct] : [];
+    try {
+      for (const type of fs.readdirSync(root)) candidates.push(`${root}/${type}/${clean}`);
+    } catch (_) {}
+    for (const base of candidates) {
+      for (const file of ['icon.webp', 'icon-s.webp', 'splash.webp']) {
+        const path = `${base}/${file}`;
+        if (fs.existsSync(path)) return fs.realpathSync(path);
+      }
+    }
+    return '';
+  }
+
+  buildSrHistoryItem(name = '', rarity = 'four', weapon = false, query = '') {
+    const display = weapon ? String(name || '').split('/').pop() : String(name || '');
+    const icon = weapon ? this.getSrWeaponIcon(name) : this.getSrCharacterIcon(display);
+    const q = this.normalizeSrName(query || '');
+    const cq = String(q || '').split('/').pop();
+    return {
+      name: display,
+      icon,
+      rarity,
+      weapon,
+      highlight: !!cq && (display === cq || display.includes(cq) || cq.includes(display))
+    };
+  }
+
+  buildSrHistorySections(data = [], query = '') {
+    if (!Array.isArray(data)) return [];
+    return data.map(item => {
+      const rows = [];
+      const jsItems = [
+        ...(item.js_five || []).map(n => this.buildSrHistoryItem(n, 'five', false, query)),
+        ...(item.js_four || []).map(n => this.buildSrHistoryItem(n, 'four', false, query))
+      ];
+      if (jsItems.length) rows.push({ title: '角色活动跃迁', weapon: false, items: jsItems });
+      const gzItems = [
+        ...(item.gz_five || []).map(n => this.buildSrHistoryItem(n, 'five', true, query)),
+        ...(item.gz_four || []).map(n => this.buildSrHistoryItem(n, 'four', true, query))
+      ];
+      if (gzItems.length) rows.push({ title: '光锥活动跃迁', weapon: true, items: gzItems });
+      return { version: item.ver || '-', time: item.time || '-', rows };
+    }).filter(v => v.rows.length);
   }
 
   async loadSrLocalCards(type = '') {
@@ -805,16 +1039,7 @@ export class xhh_gacha_pool extends plugin {
     // 特定角色/武器卡池优先使用本地历史库，渲染成“版本 + 时间 + UP头像行”的时间轴样式。
     const sections = await this.loadGsHistorySections(query);
     if (sections.length) {
-      return this.renderPoolImage(e, {
-        game: '原神',
-        title: `${query} 卡池记录`,
-        subtitle: `共 ${sections.length} 期 · 本地历史卡池库`,
-        mode: 'gs-history',
-        markIcon: GS_MARK_ICON,
-        markWide: true,
-        cards: sections,
-        note: '角色/武器头像来自本地资源；若缺少头像会自动显示文字占位。'
-      });
+      return this.renderGsLogs(e, sections);
     }
     const { records, error, cache } = await officialPool.fetch('gs');
     if (!records.length) return silent ? false : e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
@@ -1111,6 +1336,10 @@ export class xhh_gacha_pool extends plugin {
       }
     }
     if (!records.length) return silent ? false : e.reply(`未找到【${name}】的崩坏3补给记录。`);
+    const sections = await this.buildBh3HistorySections(records, name);
+    if (sections.length) {
+      return this.renderBh3Logs(e, sections);
+    }
     const first = records[0];
     const rarity = hitName(first.s) ? 'S级' : 'A级';
     const type = first.type === 'weapon' ? '武器' : '角色';
@@ -1123,30 +1352,120 @@ export class xhh_gacha_pool extends plugin {
       mode: 'gs-history',
       markIcon,
       markWide,
-      cards: this.buildBh3HistorySections(records, name)
+      cards: sections
     });
   }
 
-  buildBh3HistoryItem(name = '', rarity = 'four', weapon = false, highlightName = '') {
+  cleanBh3Name(name = '') {
+    return String(name || '')
+      .replace(/[\s「」『』【】［］()（）·・•!！♪♫♥❤☆★△▽▼▲×]/g, '')
+      .replace(/^(真我|薪炎|终焉|始源|空之|理之|雷之|识之|死生|人之|天元|月下|戒律|螺旋|黄金|繁星|无限|浮生|鏖灭|旭光|刹那|救世)之律者/g, '$1律者')
+      .trim();
+  }
+
+  findBh3IconFromDir(dir = '', name = '', prefixes = []) {
+    if (!fs.existsSync(dir)) return '';
+    const target = this.cleanBh3Name(name);
+    try {
+      const files = fs.readdirSync(dir).filter(f => /\.(png|webp|jpg|jpeg)$/i.test(f));
+      const exactNames = [];
+      for (const prefix of prefixes) {
+        for (const ext of ['png', 'webp', 'jpg', 'jpeg']) exactNames.push(`${prefix}${name}.${ext}`);
+      }
+      for (const file of exactNames) {
+        const path = `${dir}/${file}`;
+        if (fs.existsSync(path)) return fs.realpathSync(path);
+      }
+      for (const file of files) {
+        const base = file.replace(/\.(png|webp|jpg|jpeg)$/i, '').replace(/^(char_|weapon_|stigmata_|圣痕_|角色_|武器_)/, '');
+        const clean = this.cleanBh3Name(base);
+        if (clean && target && (clean === target || clean.includes(target) || target.includes(clean))) {
+          return fs.realpathSync(`${dir}/${file}`);
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  async getBh3WikiMaps() {
+    try {
+      const helper = Object.create(bh3_gacha.prototype);
+      return await helper.getStarMaps();
+    } catch (err) {
+      logger.warn?.('[xhh][gacha_pool] 崩三Wiki图标映射获取失败:', err);
+      return { charIcon: {}, weaponIcon: {} };
+    }
+  }
+
+  findBh3WikiIcon(name = '', weapon = false, maps = {}) {
+    const dict = weapon ? (maps.weaponIcon || {}) : (maps.charIcon || {});
+    const target = this.cleanBh3Name(name);
+    if (!target) return { title: name, url: '' };
+    for (const [title, url] of Object.entries(dict)) {
+      if (title === name) return { title, url };
+    }
+    for (const [title, url] of Object.entries(dict)) {
+      const clean = this.cleanBh3Name(title);
+      if (clean && (clean === target || clean.includes(target) || target.includes(clean))) return { title, url };
+    }
+    return { title: name, url: '' };
+  }
+
+  async getBh3HistoryIcon(name = '', weapon = false, maps = null) {
+    const prefixes = weapon ? ['weapon_', ''] : ['char_', '角色_', ''];
+    const dirs = [
+      './plugins/xhh/data/bh3_gacha/icons',
+      './plugins/xhh/resources/bh3logs/icons'
+    ];
+    for (const dir of dirs) {
+      const icon = this.findBh3IconFromDir(dir, name, prefixes);
+      if (icon) return icon;
+    }
+
+    // 复用崩三抽卡记录的 Wiki 图标来源：本地没缓存时现场拉取并写入 data/bh3_gacha/icons。
+    if (maps) {
+      const hit = this.findBh3WikiIcon(name, weapon, maps);
+      if (hit.url) {
+        try {
+          const helper = Object.create(bh3_gacha.prototype);
+          await helper.cacheIcon(hit.title, hit.url, weapon ? 'weapon' : 'char');
+          for (const dir of dirs) {
+            const icon = this.findBh3IconFromDir(dir, hit.title, prefixes) || this.findBh3IconFromDir(dir, name, prefixes);
+            if (icon) return icon;
+          }
+          return hit.url;
+        } catch (err) {
+          logger.warn?.('[xhh][gacha_pool] 崩三卡池图标缓存失败:', name, err);
+          return hit.url;
+        }
+      }
+    }
+    return '';
+  }
+
+  async buildBh3HistoryItem(name = '', rarity = 'four', weapon = false, highlightName = '', maps = null) {
+    const clean = this.cleanBh3Name(name);
+    const hit = this.cleanBh3Name(highlightName);
     return {
       name,
-      icon: '',
+      icon: await this.getBh3HistoryIcon(name, weapon, maps),
       rarity,
       weapon,
-      highlight: name === highlightName || String(name).includes(highlightName) || String(highlightName).includes(name)
+      highlight: !!hit && !!clean && (clean === hit || clean.includes(hit) || hit.includes(clean))
     };
   }
 
-  buildBh3HistorySections(records = [], query = '') {
+  async buildBh3HistorySections(records = [], query = '') {
     const map = new Map();
+    const maps = await this.getBh3WikiMaps();
     for (const p of records) {
       const time = p.start && p.end ? `${p.start.slice(0, 10)} ~ ${p.end.slice(0, 10)}` : '';
       const key = `${p.version || '-'}${p.phase || ''}|${time}`;
       if (!map.has(key)) map.set(key, { version: `${p.version || '-'}${p.phase || ''}`, time, rows: [] });
       const weapon = p.type === 'weapon';
-      const items = [this.buildBh3HistoryItem(p.s || '-', 'five', weapon, query)];
+      const items = [await this.buildBh3HistoryItem(p.s || '-', 'five', weapon, query, maps)];
       for (const a of (Array.isArray(p.a) ? p.a : String(p.a || '').split(/[，,/]/).filter(Boolean))) {
-        items.push(this.buildBh3HistoryItem(a, 'four', weapon, query));
+        items.push(await this.buildBh3HistoryItem(a, 'four', weapon, query, maps));
       }
       map.get(key).rows.push({ title: weapon ? '武器补给' : '角色补给', weapon, items });
     }

@@ -24,6 +24,9 @@ body {
   padding: 20px 10px 0px 10px;
   background-image: url('./imgs/bg.jpg');
   background-size: 500px;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
 }
 .xkl_box {
   width: 460px;
@@ -167,6 +170,9 @@ body {
 }
 
 .logo {
+  width: 500px;
+  margin-left: -10px;
+  margin-top: auto;
   font-size: 12px;
   font-family: '宋';
   text-align: center;
