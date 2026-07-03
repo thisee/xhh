@@ -27,8 +27,8 @@ export class xhh_gacha_pool extends plugin {
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)v?(\\d+\\.\\d+)(上半|下半)?(卡池|补给)$', fnc: 'bh3VersionPool' },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)(卡池|补给)(统计|记录|历史|全)$', fnc: 'bh3AllPool' },
         // 原神卡池
-        { reg: '^#*(小花火)?原神(当前|本期|当期)?卡池$', fnc: 'gsCurrentPool' },
-        { reg: '^#*(小花火)?原神v?(\\d+\\.\\d+)(上半|下半)?卡池$', fnc: 'gsVersionPool' },
+        { reg: '^[#＃井]*\\s*(?:小花火)?\\s*原神\\s*(?:当前|本期|当期)?\\s*卡池$', fnc: 'gsCurrentPool' },
+        { reg: '^[#＃井]*\\s*(?:小花火)?\\s*原神\\s*v?(\\d+\\.\\d+)\\s*(上半|下半)?\\s*卡池$', fnc: 'gsVersionPool' },
         { reg: '^#*(小花火)?原神(.+)卡池$', fnc: 'gsNameHistory' },
         { reg: '^#*(小花火)?原神(卡池)(统计|记录|历史|全)$', fnc: 'gsAllPool' },
         // 星铁卡池
@@ -49,6 +49,20 @@ export class xhh_gacha_pool extends plugin {
         { reg: '^#*(小花火)?(?!原神|星铁|崩铁|崩三|崩坏3|崩坏三|BH3|绝区零|ZZZ)(.+)(卡池|复刻)(统计|记录|历史)?$', fnc: 'genericNameHistory' }
       ]
     });
+  }
+
+  async accept(e) {
+    const msg = String(e?.msg || '')
+      .replace(/[\u200b-\u200f\ufeff]/g, '')
+      .replace(/[＃井]/g, '#')
+      .replace(/\s+/g, '');
+    // 有些插件/适配器会在规则前抢“原神卡池”，这里用 accept 兜底优先接管当前卡池。
+    if (/^#*(?:小花火)?原神(?:当前|本期|当期)?卡池$/.test(msg)) {
+      e.msg = msg;
+      await this.gsCurrentPool(e);
+      return 'return';
+    }
+    return false;
   }
 
   parseTime(pool = {}) {
