@@ -35,6 +35,19 @@ function fmtTime(d) {
   return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, '0')} 周${week} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+async function sendGroupMsgCompat(groupId, msg, e = null) {
+  const gid = Number(groupId) || groupId;
+  if (e?.isGroup && String(e.group_id) === String(groupId) && e.group?.sendMsg) {
+    return e.group.sendMsg(msg);
+  }
+  const botObj = globalThis.Bot || (typeof Bot !== 'undefined' ? Bot : null) || globalThis.bot;
+  if (botObj?.sendGroupMsg) return botObj.sendGroupMsg(gid, msg);
+  if (botObj?.pickGroup) return botObj.pickGroup(gid).sendMsg(msg);
+  if (e?.bot?.pickGroup) return e.bot.pickGroup(gid).sendMsg(msg);
+  if (e?.pickGroup) return e.pickGroup(gid).sendMsg(msg);
+  throw new Error('Bot对象不可用，无法发送群消息');
+}
+
 export class bh3_remind extends plugin {
   constructor(e) {
     super({
@@ -168,7 +181,7 @@ export class bh3_remind extends plugin {
     const results = [];
     for (const groupId of groups) {
       try {
-        await bot.sendGroupMsg(groupId, msg);
+        await sendGroupMsgCompat(groupId, msg, e);
         results.push(`${groupId}: 成功`);
       } catch (err) {
         results.push(`${groupId}: 失败 ${err.message}`);
@@ -204,7 +217,7 @@ export class bh3_remind extends plugin {
 
       for (const groupId of groups) {
         try {
-          await bot.sendGroupMsg(groupId, msg);
+          await sendGroupMsgCompat(groupId, msg);
           logger.mark(`[bh3_remind] 已发送到群 ${groupId}: ${item.key || item.name}`);
         } catch (err) {
           logger.warn(`[bh3_remind] 发送到群 ${groupId} 失败: ${err.message}`);
