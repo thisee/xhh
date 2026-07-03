@@ -40,8 +40,11 @@ const files = fs
 
 let ret = [];
 
+const cacheKey = Date.now();
 files.forEach(file => {
-  ret.push(import(`./apps/${file}`));
+  // TRSS 的插件热重载只给 index.js 加 cache bust；apps 子模块也要带版本号，
+  // 否则 #重启/#热重载 后仍可能使用旧的 ESM 缓存。
+  ret.push(import(`./apps/${file}?v=${cacheKey}`));
 });
 
 ret = await Promise.allSettled(ret);

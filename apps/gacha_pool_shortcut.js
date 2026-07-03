@@ -4,7 +4,7 @@ import { xhh_gacha_pool } from './gacha_pool.js';
 export class xhh_gacha_pool_shortcut extends xhh_gacha_pool {
   constructor(e) {
     super(e);
-    this.name = '[小花火]原神卡池快捷入口';
+    this.name = '[小花火]全游戏卡池';
     this.dsc = '原神当前卡池快捷入口';
     this.event = 'message';
     this.priority = -1000000001;
