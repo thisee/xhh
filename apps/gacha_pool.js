@@ -462,6 +462,13 @@ export class xhh_gacha_pool extends plugin {
       return this.gsCurrentPool(e);
     }
     const name = normalized.replace(/^#*(小花火)?/, '').replace(/(卡池|复刻)(统计|记录|历史)?$/, '').trim();
+    const cnName = name.replace(/[^\u4e00-\u9fa5]/g, '');
+    // 兜底中的兜底：如果通用名称规则已经把“#原神卡池”吃进来了，name 会变成“原神”。
+    // 这时不要继续查历史名称，直接转当前卡池。
+    if (/^(原神|原神当前|原神本期|原神当期)$/.test(cnName)) {
+      e.msg = '#原神卡池';
+      return this.gsCurrentPool(e);
+    }
     if (!name || /^(当前|本期|当期|时间|剩余|剩下)$/i.test(name)) return false;
     logger.mark('[xhh][gacha_pool] 尝试通用名称卡池:', name);
     // 先查绝区零

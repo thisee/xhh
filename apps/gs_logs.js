@@ -36,6 +36,10 @@ export class gs_logs extends plugin {
     }
     if (!config().gs_logs) return false;
     let type = e.msg.replace(/#|卡池|原神/g, '').trim();
+    if (!type) {
+      e.msg = '#原神卡池';
+      return new xhh_gacha_pool(e).gsCurrentPool(e);
+    }
     // 崩三/绝区零卡池由 apps/gacha_pool.js 单独处理，避免被原神卡池的宽泛正则抢走。
     if (/^(崩三|崩坏3|崩坏三|BH3|绝区零|ZZZ)/i.test(type)) return false;
     if (!type.includes('.')) {
