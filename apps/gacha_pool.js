@@ -19,9 +19,9 @@ export class xhh_gacha_pool extends plugin {
       name: '[小花火]全游戏卡池',
       dsc: '原神/星铁/绝区零/崩三卡池查询',
       event: 'message',
-      // ZZZ-Plugin 也有“绝区零卡池”宽泛规则，这里提前到更高优先级，先让 xhh 接管。
-      // 原神/星铁的卡池命令很容易被其它插件的宽泛“xx卡池”抢走，这里进一步提前。
-      priority: -100000000,
+      // 卡池命令容易被 gs_logs/sr_logs 或其它插件的宽泛“xx卡池”规则抢走，
+      // 这里使用更高优先级，先让统一卡池图片接管；未命中的再交给历史卡池兜底。
+      priority: 999999999,
       rule: [
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)(当前|本期|当期)?(卡池|补给)$', fnc: 'bh3CurrentPool' },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)v?(\\d+\\.\\d+)(上半|下半)?(卡池|补给)$', fnc: 'bh3VersionPool' },

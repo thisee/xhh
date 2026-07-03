@@ -13,7 +13,7 @@ export class gs_logs extends plugin {
       priority: -99,
       rule: [
         {
-          reg: '^#*(.*)卡池$',
+          reg: '^(?!#*(?:小花火)?原神(?:当前|本期|当期)?卡池$)#*(.*)卡池$',
           fnc: 'gslogs',
         },
         {
