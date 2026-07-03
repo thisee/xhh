@@ -57,7 +57,7 @@ export class xhh_gacha_pool extends plugin {
       .replace(/[＃井]/g, '#')
       .replace(/\s+/g, '');
     // 有些插件/适配器会在规则前抢“原神卡池”，这里用 accept 兜底优先接管当前卡池。
-    if (/^#*(?:小花火)?原神(?:当前|本期|当期)?卡池$/.test(msg)) {
+    if (/^(?:[#＃井]*\s*)?(?:小花火)?\s*原神\s*(?:当前|本期|当期)?\s*卡池$/.test(msg)) {
       e.msg = msg;
       await this.gsCurrentPool(e);
       return 'return';
@@ -454,7 +454,7 @@ export class xhh_gacha_pool extends plugin {
       .replace(/[＃井]/g, '#')
       .replace(/\s+/g, '');
     // 兜底：如果“原神卡池/#原神卡池”被通用规则误吞，直接转到当前卡池。
-    if (/^#*(?:小花火)?原神(?:当前|本期|当期)?卡池$/.test(normalized)) {
+    if (/^(?:[#＃井]*\s*)?(?:小花火)?\s*原神\s*(?:当前|本期|当期)?\s*卡池$/.test(normalized)) {
       e.msg = normalized;
       return this.gsCurrentPool(e);
     }
