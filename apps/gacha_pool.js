@@ -46,7 +46,7 @@ export class xhh_gacha_pool extends plugin {
         { reg: '^#*(小花火)?(绝区零|ZZZ)(.+)(卡池|复刻)(统计|记录|历史)$', fnc: 'zzzNameHistory' },
         { reg: '^#*(小花火)?(绝区零|ZZZ)(卡池|复刻)(统计|记录|历史)$', fnc: 'zzzAllPool' },
         // 类似"雷神卡池/德莉莎卡池/白厄卡池"的用法：依次查绝区零、崩三、星铁、原神
-        { reg: '^#*(小花火)?(?!原神|星铁|崩铁|崩三|崩坏3|崩坏三|BH3|绝区零|ZZZ)(.+)(卡池|复刻)(统计|记录|历史)?$', fnc: 'genericNameHistory' }
+        { reg: '^(?!#*(?:小花火)?(?:原神|星铁|崩铁|崩三|崩坏3|崩坏三|BH3|绝区零|ZZZ))#*(小花火)?(.+)(卡池|复刻)(统计|记录|历史)?$', fnc: 'genericNameHistory' }
       ]
     });
   }
@@ -449,7 +449,16 @@ export class xhh_gacha_pool extends plugin {
   }
 
   async genericNameHistory(e) {
-    const name = e.msg.replace(/^#*(小花火)?/, '').replace(/(卡池|复刻)(统计|记录|历史)?$/, '').trim();
+    const normalized = String(e?.msg || '')
+      .replace(/[\u200b-\u200f\ufeff]/g, '')
+      .replace(/[＃井]/g, '#')
+      .replace(/\s+/g, '');
+    // 兜底：如果“原神卡池/#原神卡池”被通用规则误吞，直接转到当前卡池。
+    if (/^#*(?:小花火)?原神(?:当前|本期|当期)?卡池$/.test(normalized)) {
+      e.msg = normalized;
+      return this.gsCurrentPool(e);
+    }
+    const name = normalized.replace(/^#*(小花火)?/, '').replace(/(卡池|复刻)(统计|记录|历史)?$/, '').trim();
     if (!name || /^(当前|本期|当期|时间|剩余|剩下)$/i.test(name)) return false;
     logger.mark('[xhh][gacha_pool] 尝试通用名称卡池:', name);
     // 先查绝区零

@@ -2,6 +2,7 @@ import { yaml, makeForwardMsg, config } from '#xhh';
 
 const path = './plugins/xhh/system/default/gslogs.yaml';
 import common from '../../../lib/common/common.js';
+import { xhh_gacha_pool } from './gacha_pool.js';
 const GS_CURRENT_VERSION = '6.7';
 
 export class gs_logs extends plugin {
@@ -24,6 +25,15 @@ export class gs_logs extends plugin {
     });
   }
   async gslogs(e) {
+    const normalized = String(e?.msg || '')
+      .replace(/[\u200b-\u200f\ufeff]/g, '')
+      .replace(/[＃井]/g, '#')
+      .replace(/\s+/g, '');
+    // 兜底：旧历史卡池如果抢到“原神卡池/#原神卡池”，直接转统一卡池图片。
+    if (/^#*(?:小花火)?原神(?:当前|本期|当期)?卡池$/.test(normalized)) {
+      e.msg = normalized;
+      return new xhh_gacha_pool(e).gsCurrentPool(e);
+    }
     if (!config().gs_logs) return false;
     let type = e.msg.replace(/#|卡池|原神/g, '').trim();
     // 崩三/绝区零卡池由 apps/gacha_pool.js 单独处理，避免被原神卡池的宽泛正则抢走。
