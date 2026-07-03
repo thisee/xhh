@@ -12,6 +12,7 @@ const BH3_POOL_HISTORY_PATH = './plugins/xhh/system/default/bh3_gacha_pool_histo
 const BH3_MARK_ICON = 'bh3_note/bh3_pool_banner.png';
 const ZZZ_MARK_ICON = 'zzz_md/imgs/ellen.png';
 const GS_MARK_ICON = 'gs_mark/paimon.png';
+const SR_MARK_ICON = '/root/TRSS_AllBot/TRSS-Yunzai/plugins/miao-plugin/resources/meta-sr/character/三月七/imgs/splash.webp';
 const CURRENT_VERSION = { zzz: '3.1', bh3: '8.9' };
 
 export class xhh_gacha_pool extends plugin {
@@ -243,7 +244,20 @@ export class xhh_gacha_pool extends plugin {
     };
   }
 
+  gameMarkIcon(game = '') {
+    if (game === '原神') return GS_MARK_ICON;
+    if (game === '星穹铁道') return SR_MARK_ICON;
+    if (game === '绝区零') return ZZZ_MARK_ICON;
+    if (game === '崩坏3') return BH3_MARK_ICON;
+    return '';
+  }
+
   async renderPoolImage(e, data) {
+    const mark = this.gameMarkIcon(data?.game);
+    if (mark) {
+      data.markIcon = mark;
+      data.markWide = data.game === '原神' || data.game === '崩坏3';
+    }
     return render('gacha_pool/pool', data, { e, ret: true });
   }
 
@@ -509,10 +523,45 @@ export class xhh_gacha_pool extends plugin {
       game: '绝区零',
       title: `${name} 卡池记录`,
       subtitle: `${rarity}${type} · 共 ${records.length} 次记录`,
-      mode: 'zzz_history',
-      markIcon: ZZZ_MARK_ICON,
-      cards: records.map((p, i) => ({ ...this.poolToCard(p), index: i + 1 }))
+      mode: 'gs-history',
+      cards: this.buildZzzHistorySections(records, name)
     });
+  }
+
+  getZzzIcon(name = '', weapon = false) {
+    const dirs = weapon
+      ? ['./plugins/Atlas/zzz-atlas/W-Engine']
+      : ['./plugins/Atlas/zzz-atlas/material for role'];
+    for (const dir of dirs) {
+      const path = `${dir}/${name}.webp`;
+      if (fs.existsSync(path)) return fs.realpathSync(path);
+    }
+    return '';
+  }
+
+  buildZzzHistoryItem(name = '', rarity = 'four', weapon = false, highlightName = '') {
+    return {
+      name,
+      icon: this.getZzzIcon(name, weapon),
+      rarity,
+      weapon,
+      highlight: name === highlightName || String(name).includes(highlightName) || String(highlightName).includes(name)
+    };
+  }
+
+  buildZzzHistorySections(records = [], query = '') {
+    const map = new Map();
+    for (const p of records) {
+      const key = `${p.version || '-'}|${this.zzzPoolTime(p)}`;
+      if (!map.has(key)) map.set(key, { version: p.version || '-', time: this.zzzPoolTime(p), rows: [] });
+      const weapon = p.type === '武器';
+      const items = [this.buildZzzHistoryItem(p.s || '-', 'five', weapon, query)];
+      for (const a of (Array.isArray(p.a) ? p.a : String(p.a || '').split(/[，,/]/).filter(Boolean))) {
+        items.push(this.buildZzzHistoryItem(a, 'four', weapon, query));
+      }
+      map.get(key).rows.push({ title: weapon ? '音擎频段' : '代理人频段', weapon, items });
+    }
+    return [...map.values()];
   }
 
   async zzzAllPool(e) {
@@ -1071,11 +1120,37 @@ export class xhh_gacha_pool extends plugin {
       game: '崩坏3',
       title: `${name} 补给记录`,
       subtitle: `${rarity}${type} · 共 ${records.length} 次记录`,
-      mode: 'bh3_history',
+      mode: 'gs-history',
       markIcon,
       markWide,
-      cards: records.map((p, i) => ({ ...this.bh3PoolToCard(p), index: i + 1 }))
+      cards: this.buildBh3HistorySections(records, name)
     });
+  }
+
+  buildBh3HistoryItem(name = '', rarity = 'four', weapon = false, highlightName = '') {
+    return {
+      name,
+      icon: '',
+      rarity,
+      weapon,
+      highlight: name === highlightName || String(name).includes(highlightName) || String(highlightName).includes(name)
+    };
+  }
+
+  buildBh3HistorySections(records = [], query = '') {
+    const map = new Map();
+    for (const p of records) {
+      const time = p.start && p.end ? `${p.start.slice(0, 10)} ~ ${p.end.slice(0, 10)}` : '';
+      const key = `${p.version || '-'}${p.phase || ''}|${time}`;
+      if (!map.has(key)) map.set(key, { version: `${p.version || '-'}${p.phase || ''}`, time, rows: [] });
+      const weapon = p.type === 'weapon';
+      const items = [this.buildBh3HistoryItem(p.s || '-', 'five', weapon, query)];
+      for (const a of (Array.isArray(p.a) ? p.a : String(p.a || '').split(/[，,/]/).filter(Boolean))) {
+        items.push(this.buildBh3HistoryItem(a, 'four', weapon, query));
+      }
+      map.get(key).rows.push({ title: weapon ? '武器补给' : '角色补给', weapon, items });
+    }
+    return [...map.values()];
   }
 
   async bh3AllPool(e) {

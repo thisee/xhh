@@ -14,7 +14,7 @@
         <p>{{subtitle}}</p>
       </div>
       {{if markIcon}}
-      <img class="mark mark-img {{markWide ? 'mark-wide' : ''}}" src="{{markIcon.startsWith('http') ? markIcon : ppath + markIcon}}" />
+      <img class="mark mark-img {{markWide ? 'mark-wide' : ''}}" src="{{(markIcon.startsWith('http') || markIcon.startsWith('/')) ? markIcon : ppath + markIcon}}" />
       {{else}}
       <div class="mark">{{game === '崩坏3' ? 'HI3' : (game === '原神' ? 'GS' : (game === '星穹铁道' ? 'SR' : (game === '米游社' ? 'MYS' : 'ZZZ')))}}</div>
       {{/if}}
@@ -52,7 +52,7 @@
       {{each cards card}}
       <div class="pool-card {{card.weapon ? 'weapon' : ''}}">
         {{if card.charImg}}
-        <img class="pool-char" src="{{card.charImg.startsWith('http') ? card.charImg : ppath + card.charImg}}" />
+        <img class="pool-char" src="{{(card.charImg.startsWith('http') || card.charImg.startsWith('/')) ? card.charImg : ppath + card.charImg}}" />
         {{/if}}
         {{if card.img}}
         <img class="pool-bg" src="{{card.img}}" />
