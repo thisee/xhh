@@ -1,4 +1,5 @@
 import { makeForwardMsg, render, yaml } from '#xhh';
+import fs from 'fs';
 import { bh3_gacha } from './bh3_gacha.js';
 import officialPool from '../system/gacha_pool_official.js';
 
@@ -751,32 +752,33 @@ export class xhh_gacha_pool extends plugin {
 
   async replyGsNameHistory(e, name, silent = false) {
     if (!name) return false;
+    const query = this.normalizeGsName(name);
+    // 特定角色/武器卡池优先使用本地历史库，渲染成“版本 + 时间 + UP头像行”的时间轴样式。
+    const sections = await this.loadGsHistorySections(query);
+    if (sections.length) {
+      return this.renderPoolImage(e, {
+        game: '原神',
+        title: `${query} 卡池记录`,
+        subtitle: `共 ${sections.length} 期 · 本地历史卡池库`,
+        mode: 'gs-history',
+        markIcon: GS_MARK_ICON,
+        markWide: true,
+        cards: sections,
+        note: '角色/武器头像来自本地资源；若缺少头像会自动显示文字占位。'
+      });
+    }
     const { records, error, cache } = await officialPool.fetch('gs');
     if (!records.length) return silent ? false : e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
     const hit = records.filter(r => {
       const t = r.title || '';
-      return t.includes(name);
+      return t.includes(query) || t.includes(name);
     });
-    if (!hit.length) {
-      const localCards = await this.loadGsLocalCards(name);
-      if (localCards.length) {
-        return this.renderPoolImage(e, {
-          game: '原神',
-          title: `${name} 卡池记录`,
-          subtitle: `共 ${localCards.length} 条记录 · 本地历史卡池库`,
-          mode: 'gs',
-          markIcon: GS_MARK_ICON,
-          markWide: true,
-          cards: localCards
-        });
-      }
-      return silent ? false : e.reply(`未找到【${name}】的原神卡池记录。`);
-    }
+    if (!hit.length) return silent ? false : e.reply(`未找到【${query}】的原神卡池记录。`);
     const cards = hit.map(r => this.officialCard(r, '原神'));
     const firstCover = hit[0]?.cover || hit[0]?.images?.[0] || '';
     return this.renderPoolImage(e, {
       game: '原神',
-      title: `${name} 卡池记录`,
+      title: `${query} 卡池记录`,
       subtitle: `共 ${hit.length} 条记录 · 数据来源：米游社公告${cache ? '（缓存）' : ''}`,
       mode: 'gs',
       markIcon: firstCover || GS_MARK_ICON,
@@ -798,6 +800,59 @@ export class xhh_gacha_pool extends plugin {
       }
     } catch (_) {}
     return query;
+  }
+
+  getGsCharacterIcon(name = '') {
+    const base = `./plugins/miao-plugin/resources/meta-gs/character/${name}/imgs`;
+    for (const file of ['face.webp', 'face-q.webp', 'face0.webp', 'card.webp']) {
+      const path = `${base}/${file}`;
+      if (fs.existsSync(path)) return fs.realpathSync(path);
+    }
+    return '';
+  }
+
+  getGsWeaponIcon(name = '') {
+    const root = './plugins/miao-plugin/resources/meta-gs/weapon';
+    if (!fs.existsSync(root)) return '';
+    try {
+      for (const type of fs.readdirSync(root)) {
+        const base = `${root}/${type}/${name}`;
+        for (const file of ['icon.webp', 'gacha.webp', 'awaken.webp']) {
+          const path = `${base}/${file}`;
+          if (fs.existsSync(path)) return fs.realpathSync(path);
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  buildGsHistoryItem(name = '', rarity = 'four', weapon = false, highlight = false) {
+    const icon = weapon ? this.getGsWeaponIcon(name) : this.getGsCharacterIcon(name);
+    return { name, icon, rarity, weapon, highlight };
+  }
+
+  async loadGsHistorySections(type = '') {
+    const data = yaml.get('./plugins/xhh/system/default/gslogs.yaml');
+    if (!data?.date) return [];
+    const query = this.normalizeGsName(type);
+    const sections = [];
+    for (const [dateKey, lines = []] of Object.entries(data.date)) {
+      const pools = lines.map(line => String(line || '').split(',').map(v => v.trim()).filter(Boolean));
+      if (!pools.some(arr => arr.includes(query))) continue;
+      const version = dateKey.match('【(.*)】')?.[1] || '';
+      const time = dateKey.replace(`【${version}】`, '').replace('~', ' ~ ');
+      const rows = pools.map((arr, idx) => {
+        const weapon = idx === 2;
+        const title = idx === 2 ? '武器活动祈愿' : (idx === 3 ? '集录祈愿' : '角色活动祈愿');
+        return {
+          title,
+          weapon,
+          items: arr.map((n, i) => this.buildGsHistoryItem(n, i === 0 || (weapon && i < 2) ? 'five' : 'four', weapon, n === query))
+        };
+      }).filter(row => row.items.length);
+      sections.push({ version, time, rows });
+    }
+    return sections;
   }
 
   async loadGsLocalCards(type = '') {

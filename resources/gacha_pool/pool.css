@@ -309,3 +309,113 @@ h1 {
   font-size: 12px;
   text-shadow: .5px .5px 1px #fff;
 }
+
+/* 特定角色/武器卡池历史：版本时间轴样式 */
+.history-cards {
+  position: relative;
+  z-index: 1;
+  width: 460px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.history-card {
+  position: relative;
+  padding: 48px 12px 14px;
+  border-radius: 20px;
+  background: rgba(232, 255, 252, .78);
+  box-shadow: 2px 2px 8px rgba(39, 71, 109, .28), inset 2px 2px 12px rgba(255,255,255,.9);
+  overflow: hidden;
+}
+.history-card:after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 18px;
+  width: 70px;
+  height: 54px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,154,197,.85), rgba(143,212,255,.85));
+  opacity: .75;
+  transform: rotate(-7deg);
+}
+.version-badge {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  min-width: 118px;
+  height: 34px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  color: #ec72a6;
+  font-family: '主','宋';
+  font-size: 20px;
+  font-weight: 900;
+  background: linear-gradient(180deg, rgba(225,250,255,.96), rgba(181,229,246,.94));
+  box-shadow: 2px 3px 8px rgba(83, 142, 180, .35), inset 2px 2px 6px rgba(255,255,255,.95);
+}
+.time-bar {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 10px 4px;
+  padding: 0 18px;
+  color: #64b3df;
+  font-family: '主','宋';
+  font-size: 17px;
+  font-weight: 900;
+  border: 3px solid #b79555;
+  border-radius: 8px;
+  background: #fff0bf;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.6);
+}
+.history-panel {
+  background: rgba(255,255,255,.84);
+  border: 1px solid rgba(218, 226, 228, .85);
+  box-shadow: inset 0 0 18px rgba(205, 222, 221, .35);
+}
+.history-row {
+  position: relative;
+  min-height: 76px;
+  padding: 20px 10px 12px;
+  border-bottom: 1px solid rgba(218,226,228,.82);
+}
+.history-row:last-child { border-bottom: 0; }
+.row-title {
+  position: absolute;
+  top: 4px;
+  left: 10px;
+  color: #c8d2d8;
+  font-size: 11px;
+  font-weight: bold;
+}
+.history-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.history-item {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #d79bff, #8ccfff);
+  box-shadow: 0 7px 13px rgba(54,70,83,.22);
+}
+.history-item.five { background: linear-gradient(135deg, #fff1a7, #ffb357); }
+.history-item.weapon { border-radius: 7px; }
+.history-item.highlight { outline: 3px solid rgba(255,119,172,.95); outline-offset: 2px; }
+.history-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gs-history .header { min-height: 96px; }
+.gs-history .pool-card { display: none; }

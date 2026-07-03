@@ -20,6 +20,34 @@
       {{/if}}
     </div>
 
+    {{if mode === 'gs-history'}}
+    <div class="history-cards">
+      {{each cards card}}
+      <div class="history-card">
+        <div class="version-badge">{{card.version}}</div>
+        <div class="time-bar">时间: {{card.time}}</div>
+        <div class="history-panel">
+          {{each card.rows row}}
+          <div class="history-row {{row.weapon ? 'weapon' : ''}}">
+            <div class="row-title">{{row.title}}</div>
+            <div class="history-items">
+              {{each row.items item}}
+              <div class="history-item {{item.rarity}} {{item.weapon ? 'weapon' : ''}} {{item.highlight ? 'highlight' : ''}}">
+                {{if item.icon}}
+                <img src="{{item.icon}}" />
+                {{else}}
+                <span>{{item.name.slice(0, 2)}}</span>
+                {{/if}}
+              </div>
+              {{/each}}
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{else}}
     <div class="cards">
       {{each cards card}}
       <div class="pool-card {{card.weapon ? 'weapon' : ''}}">
@@ -58,6 +86,7 @@
       </div>
       {{/each}}
     </div>
+    {{/if}}
 
     {{if note}}
     <div class="note">{{note}}</div>
