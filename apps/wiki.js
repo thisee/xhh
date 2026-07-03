@@ -128,11 +128,19 @@ export class Wiki extends plugin {
     name = name.startsWith('图鉴') ? name.replace(/^图鉴/, '') : name.replace(/图鉴$/, '');
     name = name.replace(/^[:：\s]+|[:：\s]+$/g, '').trim();
     if (!name) return false;
-    if (isBH3 && /(专武|专属武器|专属圣痕|专属套|毕业圣痕|圣痕套)/.test(name)) {
+    const hasBh3ExclusiveWords = /(专武|专属武器|专属圣痕|专属套|毕业圣痕|圣痕套)/.test(name);
+    const hasZzzExclusiveWords = /(专武|专属武器|专属音擎|签名音擎|专属驱动盘|推荐驱动盘|驱动盘套|驱动套)/.test(name);
+    if (isBH3 && hasBh3ExclusiveWords) {
       if (await this.bh3ExclusiveEquip(e, name)) return true;
     }
-    if (isZZZ && /(专武|专属武器|专属音擎|签名音擎|专属驱动盘|推荐驱动盘|驱动盘套|驱动套)/.test(name)) {
+    if (isZZZ && hasZzzExclusiveWords) {
       if (await this.zzzExclusiveEquip(e, name)) return true;
+    }
+    // 没写游戏前缀时也支持“艾莲专武图鉴 / 希儿专武图鉴”。
+    // 先按绝区零代理人匹配，再按崩三装甲匹配；都没命中时继续走普通图鉴。
+    if (!isSr && !isZZZ && !isBH3) {
+      if (hasZzzExclusiveWords && await this.zzzExclusiveEquip(e, name)) return true;
+      if (hasBh3ExclusiveWords && await this.bh3ExclusiveEquip(e, name)) return true;
     }
     // 统一处理角色/武器/遗器查询
     const checkTypes = [
@@ -722,7 +730,7 @@ export class Wiki extends plugin {
   }
 
   //圣遗物和遗器
-  async syw_yiqi(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+  async syw_yiqi(e, name, isSr = false, isZZZ = false, isBH3 = false, roleName = '') {
     if (isZZZ) {
       name = await this.resolveZzzWikiName(name, 46);
       const ret = await mys.data(name, 'syw', false, true);
@@ -749,16 +757,17 @@ export class Wiki extends plugin {
     if (Object.keys(_name).includes(name)) {
       let data = await mys.data(name, isZZZ ? 'syw' : isBH3 ? 'syw' : isSr ? 'yq' : 'syw', isSr, isZZZ, isBH3);
       if (!data) return false;
-      data.map(v => {
-        if (v.title == name) data = v;
-      });
+      if (Array.isArray(data)) {
+        data = data.find(v => v.title == name);
+        if (!data) return false;
+      }
       if (isZZZ) {
         this.zzz_syw_pictures(e, data);
       } else if (isBH3) {
-        const id = data?.id;
+        const id = data?.id || data?.content_id;
         const detail = id ? await mys.detail(id, false, false, true) : data;
         if (!detail) return false;
-        this.bh3_syw_pictures(e, detail);
+        this.bh3_syw_pictures(e, detail, roleName);
       } else if (isSr) {
         this.yiqi_pictures(e, data);
       } else {
@@ -770,7 +779,7 @@ export class Wiki extends plugin {
   }
 
   //武器
-  async weapon(e, name, isSr = false, isZZZ = false, isBH3 = false) {
+  async weapon(e, name, isSr = false, isZZZ = false, isBH3 = false, roleName = '') {
     if (isZZZ) {
       name = await this.resolveZzzWikiName(name, 45);
       const ret = await mys.data(name, 'wq', false, true);
@@ -799,7 +808,7 @@ export class Wiki extends plugin {
       if (!id) return false;
       let data = await mys.detail(id, isSr, isZZZ, isBH3);
       if (isZZZ) this.zzz_wq_pictures(e, data);
-      else if (isBH3) this.bh3_wq_pictures(e, data);
+      else if (isBH3) this.bh3_wq_pictures(e, data, roleName);
       else if (isSr) this.sr_gz_pictures(e, data);
       else this.gs_wq_pictures(e, data);
       return true;
@@ -1176,8 +1185,8 @@ export class Wiki extends plugin {
     for (const name of names) {
       if (!name) continue;
       const ok = wantStigma
-        ? await this.syw_yiqi(e, name, false, false, true)
-        : await this.weapon(e, name, false, false, true);
+        ? await this.syw_yiqi(e, name, false, false, true, roleName)
+        : await this.weapon(e, name, false, false, true, roleName);
       if (ok) return true;
     }
     await e.reply(`已识别「${roleName}」${wantStigma ? '专属圣痕' : '专武'}：${names.filter(Boolean).join(' / ')}，但图鉴别名暂未命中。可以直接用完整装备名查询。`);
@@ -1444,82 +1453,237 @@ export class Wiki extends plugin {
   }
 
   // 崩坏3武器
-  async bh3_wq_pictures(e, data) {
-    const content = data.content;
-    const title = content.title;
-    const weapon_data = content.weapon_data || {};
-    const info = weapon_data.info || {};
-    const skills = weapon_data.skills || [];
-    const materials = weapon_data.materials || [];
-    const gainMethods = weapon_data.gainMethods || [];
-    const roles = weapon_data.roles || [];
-    
-    const type = info.attr?.find(a => a.key === '武器类型')?.value || '未知';
-    const star = info.starValue || 5;
-    const atk = info.attr?.find(a => a.key === '攻击力')?.value || '未知';
-    const sub_attr = info.attr?.find(a => a.key !== '攻击力' && a.key !== '武器类型')?.value || '未知';
-    
-    let week = '未知';
-    for (const gm of gainMethods) {
-      if (gm.key === '获取途径') {
-        week = gm.value;
-        break;
-      }
+  async bh3_wq_pictures(e, data, roleName = '') {
+    if (!data || !data.content) {
+      globalThis.logger?.debug?.('[xhh] BH3武器详情数据为空');
+      await e.reply(`未获取到武器详情，请稍后重试。`);
+      return false;
     }
-    
-    const img = `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${info.icon}`;
-    
-    data = {
-      name: title,
-      type: type,
-      star: star + '星',
-      img: img,
-      rich_text: skills.map(s => `${s.key}: ${s.value}`).join('\n\n'),
-      attr: info.attr || [],
-      materials: materials.map(m => ({ name: m.name, icon: m.icon, count: m.count })),
-      atk: atk,
-      attr_: { key: '副属性', value: sub_attr },
-      week: week
+    const content = data.content;
+    const title = content.title || '未知武器';
+
+    const decodeHtml = (text = '') => String(text || '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    const stripHtml = (text = '') => decodeHtml(text)
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s*\n\s*/g, '\n')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+    const absImg = (url = '') => {
+      if (!url) return '';
+      if (/^https?:/i.test(url)) return url;
+      if (url.startsWith('//')) return `https:${url}`;
+      return `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${url}`;
     };
-    render('wiki/bh3_wq', data, { e, ret: true });
+    const cleanRich = (html = '') => decodeHtml(html)
+      .replace(/<span[^>]*data-type="详情"[\s\S]*?<\/span>/g, '')
+      .replace(/<sup[^>]*>[\s\S]*?<\/sup>/g, '')
+      .replace(/<table[\s\S]*?<\/table>/g, m => m.length > 1600 ? '' : m)
+      .replace(/style="[^"]*"/g, '')
+      .replace(/class="[^"]*"/g, '')
+      .replace(/<p>\s*<\/p>/g, '')
+      .trim();
+    const parseTmplParts = () => {
+      const parts = [];
+      for (const section of content.contents || []) {
+        const text = String(section.text || '');
+        for (const match of text.matchAll(/data-data="([^"]+)"/g)) {
+          try {
+            const arr = JSON.parse(decodeURIComponent(match[1]));
+            if (Array.isArray(arr)) parts.push(...arr);
+          } catch (err) {
+            globalThis.logger?.debug?.(`[xhh] BH3武器模板解析失败: ${title} ${err?.message || err}`);
+          }
+        }
+      }
+      return parts;
+    };
+
+    const parts = parseTmplParts();
+    const weaponPart = parts.find(p => p?.tmplKey === 'weapon');
+    const info = weaponPart?.data || {};
+    const skillData = parts.find(p => p?.tmplKey === 'weapon' && p?.partKey === 'skill')?.data || {};
+    const forgingData = parts.find(p => p?.tmplKey === 'weapon' && p?.partKey === 'forging')?.data || {};
+    const materialData = parts.find(p => p?.partKey === 'material')?.data || {};
+
+    let type = '未知';
+    let star = info.starValue || 5;
+    try {
+      const ext = JSON.parse(content.ext || '{}');
+      const filters = JSON.parse(ext.c_20?.filter?.text || ext.filter?.text || '[]');
+      for (const item of filters) {
+        if (String(item).includes('武器类型/')) type = String(item).replace('武器类型/', '');
+        if (String(item).includes('武器星级/')) {
+          const v = String(item).replace('武器星级/', '');
+          if (/超限/.test(v)) star = 6;
+          else if (/\d/.test(v)) star = v.match(/\d+/)?.[0] || star;
+        }
+      }
+    } catch (_) {}
+
+    let attr = Array.isArray(info.attr) ? info.attr.map(a => ({ key: a.key, value: stripHtml(a.value) })).filter(a => a.key && a.value) : [];
+    if (type !== '未知' && !attr.some(a => a.key === '武器类型')) attr.unshift({ key: '武器类型', value: type });
+    if (star && !attr.some(a => a.key === '星级')) attr.unshift({ key: '星级', value: `${star}星` });
+    const atk = attr.find(a => /攻击|攻击力/.test(a.key))?.value || (attr.length > 0 ? '-' : '未知');
+    const sub = attr.find(a => !/攻击|武器类型|星级/.test(a.key)) || { key: '副属性', value: attr.length > 0 ? '-' : '未知' };
+
+    const skillRows = [
+      ...(Array.isArray(skillData.attr) ? skillData.attr : [])
+    ].filter(v => v?.key || v?.name);
+    let richText = skillRows.map(s => {
+      const key = s.key || s.name || '技能';
+      const value = cleanRich(s.value || s.desc || '');
+      return `<div class="bh3-skill"><h3>${key}</h3><div>${value || '-'}</div></div>`;
+    }).join('');
+    if (!richText && info.desc) {
+      richText = `<div class="bh3-skill"><h3>武器介绍</h3><div>${cleanRich(info.desc)}</div></div>`;
+    } else if (info.desc) {
+      richText = `<div class="bh3-skill intro"><h3>武器介绍</h3><div>${cleanRich(info.desc)}</div></div>` + richText;
+    }
+    if (!richText && content.summary) {
+      richText = `<div class="bh3-skill"><h3>武器介绍</h3><div>${content.summary}</div></div>`;
+    }
+
+    const materialSource = []
+      .concat(forgingData.materials || forgingData.attr || [])
+      .concat(materialData.materials || materialData.attr || []);
+    const materials = materialSource.map(m => ({
+      name: stripHtml(m.name || m.key || m.title || m.text || ''),
+      icon: absImg(m.icon || m.img || ''),
+      count: m.count || m.num || m.value || ''
+    })).filter(m => m.name || m.icon);
+
+    let week = 'Wiki收录';
+    for (const gm of info.gainMethods || []) {
+      if (gm.key === '获取途径' && gm.value) week = stripHtml(gm.value);
+    }
+
+    const img = absImg(info.icon || content.icon);
+    const view = {
+      name: title,
+      type,
+      star: `${star || 5}星`,
+      img,
+      rich_text: richText || '<p>暂无武器技能详情，请稍后刷新 Wiki 数据。</p>',
+      attr,
+      materials,
+      atk,
+      attr_: { key: sub.key || '副属性', value: sub.value || '未知' },
+      week,
+      roleName
+    };
+    return render('wiki/bh3_wq', view, { e, ret: true });
   }
 
   // 崩坏3圣痕
-  async bh3_syw_pictures(e, data) {
-    const content = data?.content || data || {};
-    const title = content.title || data?.title || data?.name || '未知圣痕';
-    if (!content || (!content.title && !data?.title && !data?.name)) {
+  async bh3_syw_pictures(e, data, roleName = '') {
+    if (!data || !data.content) {
+      globalThis.logger?.debug?.('[xhh] BH3圣痕详情数据为空');
       await e.reply('未获取到圣痕详情，请稍后重试或使用完整圣痕名称查询。');
       return false;
     }
-    const stigma_data = content.stigma_data || content.stigmata_data || content.stigmaData || {};
-    const info = stigma_data.info || {};
-    const basicAttr = stigma_data.basicAttr || {};
-    const setSkills = stigma_data.setSkills || [];
-    const stigmaSkill = stigma_data.stigmaSkill || {};
-    const roles = stigma_data.roles || [];
-    const materials = stigma_data.materials || [];
-    const gainMethods = stigma_data.gainMethods || [];
-    
-    const desc2 = stigmaSkill.value || '无';
-    const desc4 = setSkills.map(s => `${s.key}: ${s.value}`).join('\n') || '无';
-    const icon = info.avatar || content.icon;
-    
-    let table = [];
-    if (basicAttr.attr) {
-      table = basicAttr.attr.map(a => ({ key: a.key, value: a.value }));
+
+    const stripHtml = (text = '') => String(text || '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<p[^>]*>/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s*\n\s*/g, '\n')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+
+    const parseContent = (cnt) => {
+      const parts = [];
+      for (const section of cnt.contents || []) {
+        for (const match of String(section.text || '').matchAll(/data-data="([^"]+)"/g)) {
+          try {
+            const arr = JSON.parse(decodeURIComponent(match[1]));
+            if (Array.isArray(arr)) parts.push(...arr);
+          } catch (_) {}
+        }
+      }
+      return {
+        main: parts.find(p => p?.tmplKey === 'stigmata' && p?.partKey === 'main')?.data || {},
+        role: parts.find(p => p?.tmplKey === 'stigmata' && p?.partKey === 'role')?.data || {},
+        basic: parts.find(p => p?.tmplKey === 'stigmata' && p?.partKey === 'basicAttr')?.data || {},
+        equip: parts.find(p => p?.tmplKey === 'stigmata' && p?.partKey === 'equipmentRecommendation')?.data || {}
+      };
+    };
+
+    const absImg = (url = '') => {
+      if (!url) return '';
+      if (/^https?:/i.test(url)) return url;
+      if (url.startsWith('//')) return `https:${url}`;
+      return `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${url}`;
+    };
+
+    const extractId = (url = '') => {
+      const m = url.match(/\/content\/(\d+)\/detail/);
+      return m ? m[1] : null;
+    };
+
+    const buildPiece = (cnt) => {
+      const parsed = parseContent(cnt);
+      const pos = (parsed.main.subFields || []).find(s => s.name === '位置')?.value || '';
+      const skillList = (parsed.role.attr || []).map(a => stripHtml(a.value || '')).filter(Boolean);
+      const attrList = Array.isArray(parsed.basic.attr) ? parsed.basic.attr.map(a => ({ key: a.key, value: String(a.value ?? '') })) : [];
+      const comment = stripHtml(parsed.basic.comment || '');
+      return {
+        name: cnt.title || '未知',
+        position: pos,
+        icon: absImg(parsed.main.avatar || cnt.icon),
+        skill: skillList.join('\n') || '无',
+        attr: attrList,
+        comment
+      };
+    };
+
+    const firstContent = data.content;
+    const firstParsed = parseContent(firstContent);
+    const firstMain = firstParsed.main;
+    const setInfo = (firstMain.subFields || []).find(s => s.name === '所属套装');
+    const setName = setInfo?.value || '';
+    const relatives = firstMain.relatives || [];
+    const equipRec = firstParsed.equip;
+
+    // Collect all piece content_ids: current + relatives
+    const ids = [firstContent.id];
+    for (const rel of relatives) {
+      const rid = extractId(rel.url);
+      if (rid && !ids.includes(rid)) ids.push(rid);
     }
-    if (basicAttr.comment) {
-      table.push({ key: '备注', value: basicAttr.comment });
-    }
-    
+
+    // Fetch all pieces in parallel
+    const allData = await Promise.all(ids.map(id => mys.detail(id, false, false, true)));
+    const pieces = allData.filter(Boolean).map(d => buildPiece(d.content || d));
+
+    const setDesc = (equipRec.equipment || []).map(g => stripHtml(g.reason || '')).filter(Boolean).join('\n')
+      || pieces.map(p => p.comment).filter(Boolean).join('\n')
+      || pieces.map(p => p.skill).join('\n');
+
     data = {
-      name: title,
-      icon: `https://api-takumi-static.mihoyo.com/hoyowiki/bh3_wiki${icon}`,
-      desc2: desc2,
-      desc4: desc4,
-      table: table,
-      star: 5
+      setName,
+      pieces,
+      setDesc: setDesc || '无',
+      star: 5,
+      roleName
     };
     render('wiki/bh3_syw', data, { e, ret: true });
   }

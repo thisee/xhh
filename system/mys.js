@@ -365,16 +365,27 @@ js,wq,syw,yq 角色,武器,圣痕,人偶
                 break;
             case 'syw':
                 list = data.syw_list;
-                if (name) return list;
                 break;
             case 'yq':
                 list = data.yq_list;
-                if (name) return list;
         }
         if (name) {
-            for (let va of list) {
-                if (va.title.replace(/ /g, '') == name) return { id: va.content_id };
-            }
+            const cleanName = String(name).replace(/[（(](上|中|下)[）)]|·(上|中|下)$|-(上|中|下)$/g, '').replace(/\s+/g, '');
+            const isSetItem = va => {
+                if (type !== 'syw') return true;
+                try {
+                    const ext = JSON.parse(va.ext || '{}');
+                    const filters = JSON.parse(ext.c_19?.filter?.text || ext.filter?.text || '[]');
+                    return filters.some(s => s.includes('圣痕构成') && s.includes('套装'));
+                } catch (_) { return false; }
+            };
+            const matchTitle = va => {
+                const cleanTitle = String(va.title).replace(/[（(](上|中|下)[）)]|·(上|中|下)$|-(上|中|下)$/g, '').replace(/\s+/g, '');
+                return cleanTitle == cleanName || cleanTitle.startsWith(cleanName) || cleanName.startsWith(cleanTitle);
+            };
+            let found = list.find(va => matchTitle(va) && isSetItem(va));
+            if (!found) found = list.find(va => matchTitle(va));
+            if (found) return { id: found.content_id };
             return false;
         } else {
             data = [];
