@@ -29,6 +29,12 @@ function sameMinute(a, b) {
   return Math.floor(a.getTime() / 60000) === Math.floor(b.getTime() / 60000);
 }
 
+function fmtTime(d) {
+  if (!d) return '-';
+  const week = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+  return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, '0')} 周${week} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export class bh3_remind extends plugin {
   constructor(e) {
     super({
@@ -39,6 +45,7 @@ export class bh3_remind extends plugin {
       rule: [
         { reg: '^#*(小花火)?(?=.*(崩三|崩坏3|崩坏三|BH3))(?=.*(提醒|定时提醒|开关提醒))(?=.*(开启|关闭|on|off)).*$', fnc: 'toggleRemind', priority: pluginPriority('bh3_remind', -1000001) },
         { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3).*?提醒状态$', fnc: 'remindStatus', priority: pluginPriority('bh3_remind', -1000001) },
+        { reg: '^#*(小花火)?(崩三|崩坏3|崩坏三|BH3)?提醒测试$', fnc: 'remindTest', priority: pluginPriority('bh3_remind', -1000001) },
       ],
     });
 
@@ -83,6 +90,40 @@ export class bh3_remind extends plugin {
     return null;
   }
 
+  getNextDueTime(item, now = new Date()) {
+    const parts = String(item.cron || '').trim().split(/\s+/);
+    if (parts.length !== 5) return null;
+    const [minField, hourField, dayField, monthField, weekField] = parts;
+    const mins = cronValues(minField, 0, 59);
+    const hours = cronValues(hourField, 0, 23);
+    const days = cronValues(dayField, 1, 31);
+    const months = cronValues(monthField, 1, 12);
+    const weeks = cronValues(weekField, 0, 7);
+    if (!mins?.length || !hours?.length) return null;
+    const advance = Number(item.advance_minutes || 0);
+    let best = null;
+    for (let offset = 0; offset <= 14; offset++) {
+      const base = new Date(now);
+      base.setDate(now.getDate() + offset);
+      base.setSeconds(0, 0);
+      const cronWeek = base.getDay();
+      const weekOk = !weeks || weeks.includes(cronWeek) || (cronWeek === 0 && weeks.includes(7));
+      const dayOk = !days || days.includes(base.getDate());
+      const monthOk = !months || months.includes(base.getMonth() + 1);
+      if (!weekOk || !dayOk || !monthOk) continue;
+      for (const h of hours) {
+        for (const m of mins) {
+          const eventTime = new Date(base);
+          eventTime.setHours(h, m, 0, 0);
+          const pushTime = new Date(eventTime.getTime() - advance * 60000);
+          if (pushTime.getTime() < now.getTime() - 60000) continue;
+          if (!best || pushTime < best.pushTime) best = { eventTime, pushTime };
+        }
+      }
+    }
+    return best;
+  }
+
   async toggleRemind(e) {
     if (!e.isMaster) return e.reply('仅主人可操作');
     if (!e.isGroup) return e.reply('请在需要提醒的群聊里操作');
@@ -111,9 +152,29 @@ export class bh3_remind extends plugin {
     const inThisGroup = e.isGroup ? groups.includes(String(e.group_id)) : false;
     const itemLines = (cfg.items || []).map(item => {
       const adv = Number(item.advance_minutes || 0);
-      return `- ${item.name || item.key}: ${item.cron}${adv ? `，提前${adv}分钟` : '，准时'}`;
+      const due = this.getNextDueTime(item);
+      const eventText = due && due.pushTime.getTime() !== due.eventTime.getTime() ? `（事件${fmtTime(due.eventTime)}）` : '';
+      return `- ${item.name || item.key}: ${item.cron}${adv ? `，提前${adv}分钟` : '，准时'}，下次${fmtTime(due?.pushTime)}${eventText}`;
     }).join('\n');
     return e.reply(`崩三定时提醒：${enabled ? '已开启' : '未开启'}${e.isGroup ? `\n本群：${inThisGroup ? '已开启' : '未开启'}` : ''}\n提醒群：${groups.join('、') || '无'}\n${itemLines}`);
+  }
+
+  async remindTest(e) {
+    if (!e.isMaster) return e.reply('仅主人可操作');
+    const cfg = getRemindConfig();
+    const groups = normalizeGroups(cfg.groups);
+    if (!groups.length) return e.reply('崩三提醒测试失败：提醒群为空，请先在锅巴填写群号或在群内发送 #小花火开启崩三提醒');
+    const msg = `【小花火崩三提醒测试】\n如果你看到了这条消息，说明提醒群配置和 Bot 发群消息正常。\n当前配置群：${groups.join('、')}`;
+    const results = [];
+    for (const groupId of groups) {
+      try {
+        await bot.sendGroupMsg(groupId, msg);
+        results.push(`${groupId}: 成功`);
+      } catch (err) {
+        results.push(`${groupId}: 失败 ${err.message}`);
+      }
+    }
+    return e.reply(`崩三提醒测试完成：\n${results.join('\n')}`);
   }
 
   async checkAndPush() {
@@ -129,6 +190,7 @@ export class bh3_remind extends plugin {
       if (!due) continue;
       const dedupKey = `xhh:bh3_remind:sent:${item.key}:${Math.floor(due.pushTime.getTime() / 60000)}`;
       if (await redis.get(dedupKey)) continue;
+      logger.mark(`[bh3_remind] 触发提醒 ${item.key || item.name} push=${fmtTime(due.pushTime)} event=${fmtTime(due.eventTime)} groups=${groups.join(',')}`);
 
       let msg = String(item.msg)
         .replace(/\{time\}/g, `${String(due.eventTime.getHours()).padStart(2, '0')}:${String(due.eventTime.getMinutes()).padStart(2, '0')}`)
@@ -143,6 +205,7 @@ export class bh3_remind extends plugin {
       for (const groupId of groups) {
         try {
           await bot.sendGroupMsg(groupId, msg);
+          logger.mark(`[bh3_remind] 已发送到群 ${groupId}: ${item.key || item.name}`);
         } catch (err) {
           logger.warn(`[bh3_remind] 发送到群 ${groupId} 失败: ${err.message}`);
         }
