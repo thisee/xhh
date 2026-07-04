@@ -171,7 +171,7 @@
         {{each advance as a i}}
           <div class="advance-item">
             {{if a.icon}}<img src="{{a.icon}}">{{/if}}
-            <div><b>消耗 {{a.cost || '-'}}</b><p>{{a.desc}}</p></div>
+            <div><b>{{a.costLabel || ('消耗 ' + (a.cost || '-'))}}</b><p>{{a.desc}}</p></div>
           </div>
         {{/each}}
       </div>

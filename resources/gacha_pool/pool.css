@@ -12,7 +12,7 @@ body {
 }
 .page {
   position: relative;
-  min-height: 720px;
+  min-height: 0;
   padding: 20px 10px 0;
   background-image: url('../srlogs/imgs/bg.jpg');
   background-size: 500px auto;
@@ -359,7 +359,7 @@ h1 {
   box-shadow: inset 2px 2px 8px rgba(255,255,255,.85);
 }
 .footer {
-  margin-top: auto;
+  margin-top: 14px;
   position: relative;
   z-index: 1;
   padding: 12px 0 8px;
@@ -512,3 +512,8 @@ h1 {
 .official .rank-badge { width: 25px; height: 25px; border-radius: 7px; font-size: 13px; margin-top: 1px; }
 .sr .up-name, .gs .up-name, .zzz .up-name, .bh3 .up-name { white-space: normal; text-overflow: clip; }
 .sr .up-name { -webkit-line-clamp: 3; }
+/* 崩三补给卡片不在单卡右侧放角色/装备立绘，顶部保留角色立绘即可 */
+.bh3 .pool-icon-wrap,
+.bh3 .pool-placeholder {
+  display: none;
+}

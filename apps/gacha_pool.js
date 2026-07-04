@@ -14,11 +14,17 @@ const SR_POOL_HISTORY_YAML_PATH = './plugins/xhh/system/default/sr_logs.yaml';
 const BH3_POOL_HISTORY_YAML_PATH = './plugins/xhh/system/default/bh3_gacha_pool_history.yaml';
 const BH3_POOL_HISTORY_PATH = './plugins/xhh/system/default/bh3_gacha_pool_history.json';
 const BH3_MARK_ICON = 'bh3_note/bh3_pool_banner.png';
+const BH3_CARD_FALLBACK_ICON = 'bh3_note/bh3_icon.png';
 const ZZZ_MARK_ICON = 'zzz_md/imgs/ellen.png';
 const GS_MARK_ICON = 'gs_mark/paimon.png';
 const SR_MARK_ICON = '/root/TRSS_AllBot/TRSS-Yunzai/plugins/miao-plugin/resources/meta-sr/character/三月七/imgs/splash.webp';
 const MYS_MARK_ICON = 'gacha_pool/mys.png';
 const CURRENT_VERSION = { gs: '6.7', sr: '4.3', zzz: '3.0', bh3: '8.9' };
+const ZZZ_VERSION_UP_NAMES = {
+  '3.0上半': ['维琳娜', '叶瞬光'],
+  '3.0下半': ['诺姆', '千夏'],
+  '3.0': ['维琳娜', '叶瞬光', '诺姆', '千夏']
+};
 
 export class xhh_gacha_pool extends plugin {
   constructor(e) {
@@ -550,12 +556,27 @@ export class xhh_gacha_pool extends plugin {
 
   getZzzHeaderSplashFromCards(cards = [], fallback = ZZZ_MARK_ICON) {
     // 绝区零顶部立绘只从当前展示卡片里的 S 级代理人里选，避免回退到旧版本自定义图。
-    const names = [];
+    let names = [];
     for (const card of cards || []) {
       if (card?.weapon) continue;
       if (card?.s && card.s !== '-') names.push(...String(card.s).split(/[\/，,、]/));
     }
-    return this.getCardSplashByGame('绝区零', names) || fallback;
+    names = names.map(v => String(v || '').trim()).filter(Boolean);
+    const versions = [...new Set((cards || []).map(c => String(c?.version || '').trim()).filter(Boolean))];
+    const allow = [];
+    for (const ver of versions) {
+      if (ZZZ_VERSION_UP_NAMES[ver]) allow.push(...ZZZ_VERSION_UP_NAMES[ver]);
+      else if (ver.startsWith(CURRENT_VERSION.zzz)) allow.push(...ZZZ_VERSION_UP_NAMES[CURRENT_VERSION.zzz] || []);
+    }
+    if (allow.length) {
+      const allowClean = new Set(allow.map(v => this.cleanZzzName(v)));
+      const filtered = names.filter(v => allowClean.has(this.cleanZzzName(this.normalizeZzzName(v))));
+      // 如果官方解析混入了旧角色/武器名，直接丢弃，只在该版本真实 UP 中选。
+      names = filtered.length ? filtered : allow;
+    }
+    const splash = this.getCardSplashByGame('绝区零', names);
+    if (!splash && names.length) logger.mark('[xhh][gacha_pool] 绝区零顶部立绘未取到，候选:', names.join('/'));
+    return splash || fallback;
   }
 
   async getBh3HeaderSplashFromPools(pools = [], fallback = BH3_MARK_ICON) {
@@ -610,7 +631,9 @@ export class xhh_gacha_pool extends plugin {
     const { records, error, cache } = await officialPool.fetch(game);
     if (!records.length) return e.reply(`${meta.name}米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
     const cards = records.map(r => this.officialCard(r, meta.name));
-    const markIcon = await this.getHeaderSplashByGame(meta.name, records, this.getMarkIcon(meta.name));
+    const markIcon = game === 'zzz'
+      ? this.getZzzHeaderSplashFromCards(cards, this.getMarkIcon(meta.name))
+      : await this.getHeaderSplashByGame(meta.name, records, this.getMarkIcon(meta.name));
     return this.renderPoolImage(e, {
       game: meta.name,
       title: `${meta.name}米游社官方卡池`,
@@ -633,7 +656,9 @@ export class xhh_gacha_pool extends plugin {
     const { records, error, cache } = await officialPool.fetch(game, { version });
     if (!records.length) return e.reply(`${meta.name} v${version} 未找到米游社官方卡池公告${error ? '：' + error : ''}`);
     const cards = records.map(r => this.officialCard(r, meta.name));
-    const markIcon = await this.getHeaderSplashByGame(meta.name, records, this.getMarkIcon(meta.name));
+    const markIcon = game === 'zzz'
+      ? this.getZzzHeaderSplashFromCards(cards, this.getMarkIcon(meta.name))
+      : await this.getHeaderSplashByGame(meta.name, records, this.getMarkIcon(meta.name));
     return this.renderPoolImage(e, {
       game: meta.name,
       title: `${meta.name} v${version} 官方卡池`,
@@ -678,7 +703,12 @@ export class xhh_gacha_pool extends plugin {
     // 先尝试从米游社公告获取当前UP信息（含封面图）
     const { records } = await officialPool.fetch('zzz');
     if (records.length) {
-      const rawCards = records.map((r, i) => {
+      // 只使用公告标题能明确解析到当前版本的记录；避免旧公告解析不到版本时被 officialCard 兜底成 3.0，导致右上角抽到旧角色（如比利）。
+      const useRecords = records.filter(r => String(r.version || '').startsWith(CURRENT_VERSION.zzz));
+      if (!useRecords.length) {
+        logger.mark('[xhh][gacha_pool] 绝区零官方公告未解析到当前版本记录，改用本地卡池数据兜底');
+      } else {
+      const rawCards = useRecords.map((r, i) => {
         const card = this.officialCard(r, '绝区零');
         card.index = i + 1;
         card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
@@ -701,6 +731,7 @@ export class xhh_gacha_pool extends plugin {
         markWide,
         cards
       });
+      }
     }
     // 兜底：使用本地数据
     const data = await this.fetchZzzPools();
@@ -946,7 +977,7 @@ export class xhh_gacha_pool extends plugin {
     if (!sprite) return '';
     const local = `./plugins/ZZZ-Plugin/resources/images/nanoka/role/IconRole${sprite}_01.webp`;
     if (fs.existsSync(local)) return fs.realpathSync(local);
-    return '';
+    return `https://static.nanoka.cc/assets/zzz/IconRole${sprite}_01.webp`;
   }
 
   getZzzRoleGeneralImage(name = '') {
@@ -954,7 +985,7 @@ export class xhh_gacha_pool extends plugin {
     if (!sprite) return '';
     const local = `./plugins/ZZZ-Plugin/resources/images/nanoka/role_general/IconRoleGeneral${sprite}.webp`;
     if (fs.existsSync(local)) return fs.realpathSync(local);
-    return '';
+    return `https://static.nanoka.cc/assets/zzz/IconRoleGeneral${sprite}.webp`;
   }
 
   getZzzPanelSplash(name = '') {
@@ -1027,7 +1058,25 @@ export class xhh_gacha_pool extends plugin {
           };
           return score(b.f) - score(a.f) || b.size - a.size;
         });
-      if (files.length) return fs.realpathSync(`${dir}/${files[0].f}`);
+      if (files.length) {
+        const bestScore = (() => {
+          const score = f => {
+            if (/Gu[1-9]/i.test(f)) return 100;
+            if (/backgrounderaser/i.test(f)) return 60;
+            if (/半身|panel/i.test(f)) return 40;
+            return 0;
+          };
+          return score(files[0].f);
+        })();
+        const scoreFile = f => {
+          if (/Gu[1-9]/i.test(f)) return 100;
+          if (/backgrounderaser/i.test(f)) return 60;
+          if (/半身|panel/i.test(f)) return 40;
+          return 0;
+        };
+        const pool = files.filter(v => scoreFile(v.f) >= Math.max(40, bestScore - 20));
+        return fs.realpathSync(`${dir}/${this.randomPick(pool).f}`);
+      }
     } catch (_) {}
     return '';
   }
@@ -1790,12 +1839,33 @@ export class xhh_gacha_pool extends plugin {
     });
   }
 
+  async attachBh3OfficialCovers(cards = []) {
+    try {
+      const { records } = await officialPool.fetch('bh3');
+      if (!records?.length) return cards;
+      const coverOf = r => r.cover || r.images?.[0] || '';
+      for (const card of cards) {
+        const names = [card.s, card.title].map(v => this.cleanBh3Name(v)).filter(Boolean);
+        const hit = records.find(r => {
+          const text = this.cleanBh3Name(`${r.title || ''} ${r.summary || ''} ${r.contentText || ''}`);
+          return names.some(n => n && text.includes(n));
+        });
+        const cover = hit ? coverOf(hit) : '';
+        if (cover) card.img = cover;
+      }
+    } catch (err) {
+      logger.warn?.('[xhh][gacha_pool] 崩三官方补给封面匹配失败:', err);
+    }
+    return cards;
+  }
+
   async bh3CurrentPool(e) {
     logger.mark('[xhh][gacha_pool] 命中崩三补给菜单:', e.msg);
     // 崩三米游社公告接口近期不稳定，这里优先用本地补给记录，避免因为官方接口异常导致整条命令失败。
     const local = await this.loadBh3CurrentPools();
     if (local.length) {
       local.forEach((c, i) => { c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; });
+      await this.attachBh3OfficialCovers(local);
       const markIcon = await this.getBh3HeaderSplashFromPools(local, BH3_MARK_ICON);
       let markWide = true;
       return this.renderPoolImage(e, {
@@ -1884,7 +1954,7 @@ export class xhh_gacha_pool extends plugin {
 
   async bh3PoolToCard(pool, maps = null) {
     const weapon = pool.type === 'weapon';
-    const icon = await this.getBh3HistoryIcon(pool.s || '', weapon, maps) || BH3_MARK_ICON;
+    // 崩三卡池单个 UP 卡片右侧不再放立绘/图标，只保留顶部卡片立绘。
     return {
       version: pool.version || '-',
       title: pool.name || '',
@@ -1893,7 +1963,7 @@ export class xhh_gacha_pool extends plugin {
       s: pool.s || '-',
       a: Array.isArray(pool.a) ? pool.a.join(' / ') : (pool.a || '-'),
       img: '',
-      icon,
+      icon: '',
       weapon
     };
   }

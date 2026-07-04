@@ -40,7 +40,7 @@ h1 { font-size:64px; line-height:1.05; text-shadow:0 0 26px rgba(255,221,88,.28)
 /* xhh统一图鉴背景：绝区零角色/音擎/驱动盘/邦布共用 */
 .zzz-page {
   background-image:
-    linear-gradient(145deg, rgba(8,13,28,.90), rgba(11,18,36,.86)),
+    linear-gradient(145deg, rgba(8,13,28,.58), rgba(11,18,36,.50)),
     url('../srlogs/imgs/bg.jpg');
   background-size: cover;
   background-position: center top;

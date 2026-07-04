@@ -32,7 +32,7 @@ body { width: 980px; min-width: 980px; background: #070b16; color: #fff; font-fa
 /* xhh统一图鉴背景：崩坏3圣痕 */
 .wiki-page {
   background-image:
-    linear-gradient(145deg, rgba(7,12,28,.90), rgba(13,19,40,.86)),
+    linear-gradient(145deg, rgba(7,12,28,.58), rgba(13,19,40,.50)),
     url('../srlogs/imgs/bg.jpg');
   background-size: cover;
   background-position: center top;

@@ -1427,11 +1427,15 @@ export class Wiki extends plugin {
       };
     }).filter(item => item.name || item.desc);
 
-    const advance = (advanceGeneralPart.advanceGeneral || []).slice(0, 6).map(item => ({
-      icon: item.icon || '',
-      cost: item.cost,
-      desc: shortText(item.desc, 78)
-    })).filter(item => item.desc || item.icon);
+    const advance = (advanceGeneralPart.advanceGeneral || []).map(item => {
+      const cost = String(item.cost || '').trim();
+      return {
+        icon: item.icon || '',
+        cost,
+        costLabel: /^[ABSSS]+$/i.test(cost) ? `晋升至 ${cost}` : `消耗 ${cost || '-'}`,
+        desc: shortText(String(item.desc || '').replace(/提高高/g, '提高'), 78)
+      };
+    }).filter(item => item.desc || item.icon);
 
     const maxRankData = (advanceDataPart.advanceData || []).slice(-1)[0] || {};
     const maxStats = [
