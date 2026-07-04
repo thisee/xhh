@@ -19,7 +19,7 @@
           <div class="seg {{row.weapon ? 'w' : ''}}">
             <div class="seg-items">
               {{each row.items item}}
-              <div class="icon {{item.rarity}} {{item.highlight ? 'hl' : ''}}">
+              <div class="icon {{item.rarity}} {{item.weapon ? 'weapon' : ''}} {{item.highlight ? 'hl' : ''}}">
                 {{if item.icon}}
                 <img src="{{item.icon}}" />
                 {{else}}

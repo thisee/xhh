@@ -54,17 +54,22 @@ body {
 }
 .t-line {
   position: relative;
-  font-size: 14px;
+  font-size: 13px;
   font-family: '宋';
   font-weight: bold;
   background: url('../srlogs/imgs/h.png');
   background-repeat: no-repeat;
-  background-size: 300px 30px;
-  padding-top: 6px;
+  background-size: 100% 100%;
+  padding: 6px 10px 5px 23px;
   padding-left: 23px;
-  width: 300px;
-  height: 30px;
+  width: 332px;
+  min-height: 30px;
+  height: auto;
+  line-height: 18px;
   margin-bottom: 10px;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .body {
   background: rgba(255,255,255,0.84);
