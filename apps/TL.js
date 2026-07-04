@@ -39,7 +39,7 @@ export class TL extends plugin {
       priority: pluginPriority('tl', -99),
       rule: [
         {
-          reg: '^(#|\\*|%)*(原神|星铁|绝区零)*体力$',
+          reg: '^(#|\\*|%)*(小花火体力|全体力|四游戏体力|米游社体力|体力总览|(小花火|xhh)*(原神|星铁|绝区零)*体力)$',
           fnc: 'note_',
         },
       ],
@@ -65,7 +65,7 @@ export class TL extends plugin {
     if (!config().Tl) return false;
     let hasAllData = false;
     const rawMsg = (e.msg || '').replace(/^(#|\*|%)*/, '');
-    const isQueryAll = rawMsg === '体力' || rawMsg === '小花火体力';
+    const isQueryAll = ['体力', '小花火体力', '全体力', '四游戏体力', '米游社体力', '体力总览'].includes(rawMsg);
     const isStarRail = e.msg.includes('星铁');
     const isZZZ = e.msg.includes('绝区零');
     const isBH3 = /崩三|崩坏3|崩坏三|BH3/i.test(e.msg);
@@ -224,9 +224,9 @@ export class TL extends plugin {
     let indexRes, noteRes, signRes;
     try {
       [indexRes, noteRes, signRes] = await Promise.all([
-        api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
-        api(e, { type: 'bh3_note', uid: auth.uid, headers, game: 'bh3', server: auth.region }),
-        api(e, { type: 'sign_info', uid: auth.uid, headers: signHeaders, game: 'bh3', server: auth.region }).catch(() => null),
+        api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region, silent: san }),
+        api(e, { type: 'bh3_note', uid: auth.uid, headers, game: 'bh3', server: auth.region, silent: san }),
+        api(e, { type: 'sign_info', uid: auth.uid, headers: signHeaders, game: 'bh3', server: auth.region, silent: true }).catch(() => null),
       ]);
     } catch (err) {
       logger.error('[xhh][TL][bh3] API error:', err);
@@ -323,8 +323,10 @@ export class TL extends plugin {
     let res = await api(e, {
       type: 'GameRoles',
       headers: headers,
+      silent: true,
     });
     let data;
+    if (!Array.isArray(res?.data?.list)) return data;
     res.data.list.forEach(v => {
       if (v.game_uid == uid) {
         data = {

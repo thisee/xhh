@@ -72,7 +72,8 @@ export class bh3_all_note extends plugin {
       event: 'message',
       priority: pluginPriority('bh3_all_note', 100),
       rule: [
-        { reg: '^#*(小花火体力|全体力|四游戏体力|米游社体力|体力总览)$', fnc: 'allNote' },
+        // “#小花火体力/#四游戏体力”等统一交给 Tl 模板渲染；这里保留一个备用入口。
+        { reg: '^#*(四游戏体力备用|米游社体力备用)$', fnc: 'allNote' },
       ],
     });
   }
@@ -213,7 +214,8 @@ export class bh3_all_note extends plugin {
   }
 
   async getRoleInfo(e, headers, uid) {
-    const roles = await api(e, { type: 'GameRoles', headers });
+    // 四游戏聚合里角色列表只是用于补昵称/等级，失败时不要让 api() 单独回复“米游社接口异常...”
+    const roles = await api(e, { type: 'GameRoles', headers, silent: true });
     return roles?.data?.list?.find(v => String(v.game_uid) === String(uid)) || {};
   }
 
@@ -288,8 +290,9 @@ export class bh3_all_note extends plugin {
     if (!bh3Auth.uid || !bh3Auth.ck) return null;
     const headers = mhy.getHeaders(e, bh3Auth.ck);
     const [indexRes, noteRes] = await Promise.all([
-      api(e, { type: 'bh3_index', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region }),
-      api(e, { type: 'bh3_note', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region }),
+      // 聚合查询只展示成功的游戏，单个游戏失败不要额外刷一条错误消息
+      api(e, { type: 'bh3_index', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region, silent: true }),
+      api(e, { type: 'bh3_note', uid: bh3Auth.uid, headers, game: 'bh3', server: bh3Auth.region, silent: true }),
     ]);
     if (indexRes?.retcode !== 0 || noteRes?.retcode !== 0) return null;
     const role = indexRes.data?.role || {};

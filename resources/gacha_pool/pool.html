@@ -51,16 +51,21 @@
     <div class="cards">
       {{each cards card}}
       <div class="pool-card {{card.weapon ? 'weapon' : ''}}">
-        {{if card.charImg}}
-        <img class="pool-char" src="{{(card.charImg.startsWith('http') || card.charImg.startsWith('/')) ? card.charImg : ppath + card.charImg}}" />
-        {{/if}}
         {{if card.img}}
         <img class="pool-bg" src="{{card.img}}" />
+        {{/if}}
+        {{if card.icon}}
+        <div class="pool-icon-wrap"><img class="pool-icon" src="{{(card.icon.startsWith('http') || card.icon.startsWith('/')) ? card.icon : ppath + card.icon}}" /></div>
         {{/if}}
         <div class="pool-overlay"></div>
         <div class="pool-content">
           <div class="pool-top">
-            <span class="pool-tag version">{{card.versionTag || '-'}}</span>
+            {{if card.index}}
+            <span class="pool-tag version">#{{card.index}}</span>
+            {{if card.version && card.version !== '-'}}<span class="pool-tag version ver">{{card.version}}</span>{{/if}}
+            {{else}}
+            <span class="pool-tag version">{{card.versionTag || (card.version || '-')}}</span>
+            {{/if}}
             {{if card.type}}<span class="pool-tag type">{{card.type}}</span>{{/if}}
           </div>
           <div class="pool-title">{{card.title}}</div>
@@ -81,7 +86,7 @@
             {{/if}}
           </div>
         </div>
-        {{if !card.img && !card.charImg}}
+        {{if !card.img && !card.icon}}
         <div class="pool-placeholder">{{card.weapon ? 'W' : (game === '崩坏3' ? 'H' : (game === '原神' ? 'G' : 'Z'))}}</div>
         {{/if}}
       </div>

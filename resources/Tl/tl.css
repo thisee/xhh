@@ -4,6 +4,11 @@
 }
 
 @font-face {
+  font-family: 'NotoCJK';
+  src: url('../font/NotoSansCJKsc-Regular.ttf') format('truetype');
+}
+
+@font-face {
   font-family: 'xhhFallback';
   src: local('WenQuanYi Zen Hei'), local('Droid Sans Fallback'), local('Noto Sans SC'), local('Noto Sans CJK SC'), local('Unifont');
 }
@@ -20,7 +25,7 @@
 
 body {
   font-size: 16px;
-  font-family: 'yuan', 'xhhFallback', 'WenQuanYi Zen Hei', 'Droid Sans Fallback', 'Noto Sans SC', 'Noto Sans CJK SC', 'Unifont', 'RareCJK', sans-serif;
+  font-family: 'NotoCJK', 'yuan', 'xhhFallback', 'WenQuanYi Zen Hei', 'Droid Sans Fallback', 'Noto Sans SC', 'Noto Sans CJK SC', 'Unifont', 'RareCJK', sans-serif;
   width: 620px;
   transform-origin: 0 0;
 }
