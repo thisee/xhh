@@ -74,6 +74,7 @@ async function MysSign(e, games) {
             const ck = mys.ck;
             const uids = mys.uids;
             const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : game == 'zzz' ? '绝区零' : '崩坏3';
+            if (!Array.isArray(uids?.[game])) continue;
             for (let i = 0; i < uids[game].length; i++) {
                 const uid = uids[game][i];
                 if (i > 0) await sleep(1000);
