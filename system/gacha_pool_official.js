@@ -32,6 +32,7 @@ const GAME_META = {
 };
 
 const CACHE_TTL = 6 * 60 * 60;
+const CACHE_VER = 'v2';
 
 class OfficialGachaPool {
   get games() {
@@ -55,7 +56,7 @@ class OfficialGachaPool {
   }
 
   cacheKey(game, version = 'latest') {
-    return `xhh:gacha_pool:official:${game}:${this.normalizeVersion(version) || 'latest'}`;
+    return `xhh:gacha_pool:official:${CACHE_VER}:${game}:${this.normalizeVersion(version) || 'latest'}`;
   }
 
   async requestNews(game, pageSize = 30) {
@@ -76,6 +77,130 @@ class OfficialGachaPool {
       throw new Error(`米游社公告接口异常：${JSON.stringify(json).slice(0, 180)}`);
     }
     return json.data.list;
+  }
+
+  async requestPostFull(game, postId = '') {
+    const meta = GAME_META[game];
+    if (!meta || !postId) return null;
+    const url = `https://bbs-api.miyoushe.com/post/wapi/getPostFull?gids=${meta.gid}&read=1&post_id=${postId}`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Referer: 'https://www.miyoushe.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
+      },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!res.ok) throw new Error(`米游社公告详情 HTTP ${res.status}`);
+    const json = await res.json();
+    if (json?.retcode !== 0) throw new Error(`米游社公告详情异常：${JSON.stringify(json).slice(0, 180)}`);
+    return json?.data?.post?.post || null;
+  }
+
+  decodeHtml(text = '') {
+    return String(text || '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&gt;/g, '>')
+      .replace(/&lt;/g, '<')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  }
+
+  htmlToText(html = '') {
+    return this.decodeHtml(String(html || '')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, ' '))
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n\s+/g, '\n')
+      .trim();
+  }
+
+  cleanUpName(name = '') {
+    return String(name || '')
+      .replace(/[「」『』【】［］\[\]]/g, '')
+      .replace(/[（(].*?[）)]/g, '')
+      .replace(/^(限定|常驻)?[SA]\s*级/, '')
+      .replace(/^\d星/, '')
+      .trim();
+  }
+
+  pushName(list, name = '') {
+    const clean = this.cleanUpName(name);
+    if (clean && !list.includes(clean) && clean.length <= 20) list.push(clean);
+  }
+
+  extractQuotedNames(text = '') {
+    const ret = [];
+    const re = /[「\[]([^」\]\n]+)[」\]]/g;
+    let m;
+    while ((m = re.exec(text))) this.pushName(ret, m[1]);
+    return ret;
+  }
+
+  extractRankNames(text = '', rank = '5', categories = []) {
+    const ret = [];
+    const cat = categories.length ? `(?:${categories.join('|')})` : '[\\u4e00-\\u9fa5A-Za-z]*';
+    // 取“5星角色/限定S级代理人/4星光锥”后，到“概率/获取概率/跃迁/祈愿/调频/。”之前的名字段。
+    const re = new RegExp(`(?:限定)?${rank}(?:星|级)${cat}([\\s\\S]{0,220}?)(?:以及|的?(?:祈愿|跃迁|调频)?(?:获取)?概率|概率|将|，|。)`, 'g');
+    let m;
+    while ((m = re.exec(text))) {
+      for (const name of this.extractQuotedNames(m[1])) this.pushName(ret, name);
+    }
+    return ret;
+  }
+
+  parseUpInfo(game, text = '') {
+    const plain = this.htmlToText(text);
+    const activeText = plain
+      // 不按感叹号切句，避免把「点个关注吧！」这类道具名截断。
+      .split(/(?<=。)|\n/g)
+      .filter(v => /概率/.test(v) && /(提升|UP|提高|大幅|限时)/i.test(v))
+      .join('。') || plain;
+    const s = [];
+    const a = [];
+    if (game === 'gs') {
+      for (const v of this.extractRankNames(activeText, '5', ['角色', '武器'])) this.pushName(s, v);
+      for (const v of this.extractRankNames(activeText, '4', ['角色', '武器'])) this.pushName(a, v);
+    } else if (game === 'sr') {
+      for (const v of this.extractRankNames(activeText, '5', ['角色', '光锥'])) this.pushName(s, v);
+      for (const v of this.extractRankNames(activeText, '4', ['角色', '光锥'])) this.pushName(a, v);
+    } else if (game === 'zzz') {
+      for (const v of this.extractRankNames(activeText, 'S', ['代理人', '音擎'])) this.pushName(s, v);
+      for (const v of this.extractRankNames(activeText, 'A', ['代理人', '音擎'])) this.pushName(a, v);
+    } else if (game === 'bh3') {
+      for (const v of this.extractRankNames(activeText, 'S', ['角色', '女武神', '人偶', '协同者', '武器', '圣痕'])) this.pushName(s, v);
+      for (const v of this.extractRankNames(activeText, 'A', ['角色', '女武神', '人偶', '协同者', '武器', '圣痕'])) this.pushName(a, v);
+      // 崩三补给公告的写法较散，至少把“角色补给/装备补给”里显眼的限定名抓出来。
+      if (!s.length) {
+        const m = plain.match(/(?:角色补给|扩充补给|装备补给|精准补给)[\s\S]{0,80}?[「『]([^」』]+)[」』]/);
+        if (m) this.pushName(s, m[1]);
+      }
+    }
+    return { s: s.slice(0, 6), a: a.slice(0, 8) };
+  }
+
+  async enrichRecords(game, records = []) {
+    const ret = [];
+    for (const record of records) {
+      try {
+        const full = await this.requestPostFull(game, record.postId);
+        const content = full?.content || full?.structured_content || record.summary || '';
+        const up = this.parseUpInfo(game, content);
+        ret.push({
+          ...record,
+          contentText: this.htmlToText(content).slice(0, 500),
+          up,
+          images: full?.images?.length ? full.images : record.images,
+          cover: full?.cover || record.cover || full?.images?.[0] || record.images?.[0] || ''
+        });
+      } catch (err) {
+        logger.warn(`[xhh][gacha_pool] ${GAME_META[game]?.name || game} 公告UP解析失败:`, record.title, err);
+        ret.push({ ...record, up: this.parseUpInfo(game, record.summary || record.title || '') });
+      }
+    }
+    return ret;
   }
 
   toRecord(game, item = {}) {
@@ -147,6 +272,8 @@ class OfficialGachaPool {
         const more = await this.requestNews(game, 80);
         records = this.filterRecords(game, more, ver);
       }
+      // 详情接口需要逐条请求；当前卡池只展示靠前公告，限制数量避免首次查询卡太久。
+      records = await this.enrichRecords(game, records.slice(0, ver ? 16 : 8));
       await redis.set(key, JSON.stringify(records), { EX: CACHE_TTL });
       return { game, records, cache: false };
     } catch (err) {

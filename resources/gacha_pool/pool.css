@@ -216,12 +216,29 @@ h1 {
   font-size: 13px;
   color: rgba(255,255,255,.85);
   font-weight: bold;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   max-width: 285px;
   line-height: 1.35;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+.pool-note {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 240px;
+  margin: 0 0 10px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.16);
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
 }
 
 /* 底部UP信息 */
@@ -269,6 +286,36 @@ h1 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+}
+
+.official .pool-card {
+  min-height: 250px;
+}
+.official .pool-content {
+  max-width: 390px;
+  min-height: 250px;
+}
+.official .pool-title {
+  max-width: 360px;
+  font-size: 20px;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.official .up-name {
+  max-width: 350px;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.official .up-name.sub {
+  max-width: 350px;
+  font-size: 11.5px;
+  -webkit-line-clamp: 4;
 }
 
 /* 无图片时的占位 */

@@ -17,6 +17,7 @@ const BH3_MARK_ICON = 'bh3_note/bh3_pool_banner.png';
 const ZZZ_MARK_ICON = 'zzz_md/imgs/ellen.png';
 const GS_MARK_ICON = 'gs_mark/paimon.png';
 const SR_MARK_ICON = '/root/TRSS_AllBot/TRSS-Yunzai/plugins/miao-plugin/resources/meta-sr/character/三月七/imgs/splash.webp';
+const MYS_MARK_ICON = 'gacha_pool/mys.png';
 const CURRENT_VERSION = { gs: '6.7', sr: '4.3', zzz: '3.1', bh3: '8.9' };
 
 export class xhh_gacha_pool extends plugin {
@@ -38,12 +39,12 @@ export class xhh_gacha_pool extends plugin {
         // 原神卡池
         { reg: '^[#＃井]*\\s*(?:小花火)?\\s*原神\\s*(?:当前|本期|当期)?\\s*卡池$', fnc: 'gsCurrentPool' },
         { reg: '^[#＃井]*\\s*(?:小花火)?\\s*原神\\s*v?(\\d+\\.\\d+)\\s*(上半|下半)?\\s*卡池$', fnc: 'gsVersionPool' },
-        { reg: '^#*(小花火)?原神(.+)卡池$', fnc: 'gsNameHistory' },
+        { reg: '^#*(小花火)?原神(?!官方|米游社)(.+)卡池$', fnc: 'gsNameHistory' },
         { reg: '^#*(小花火)?原神(卡池)(统计|记录|历史|全)$', fnc: 'gsAllPool' },
         // 星铁卡池
         { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)(当前|本期|当期)?(卡池|跃迁)$', fnc: 'srCurrentPool' },
         { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)v?(\\d+\\.\\d+)(上半|下半)?(卡池|跃迁)$', fnc: 'srVersionPool' },
-        { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)(?!v?\\d+\\.\\d+)(.+)(卡池|跃迁)$', fnc: 'srNameHistory' },
+        { reg: '^#*(小花火)?(星铁|崩铁|星穹铁道)(?!v?\\d+\\.\\d+)(?!官方|米游社)(.+)(卡池|跃迁)$', fnc: 'srNameHistory' },
         // 官方/米游社卡池必须在 bh3NameHistory 之前，否则"崩三官方卡池"会被误判为角色名
         { reg: '^#*(小花火)?((原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3))?(米游社|官方)?(更新|刷新)卡池(数据)?$', fnc: 'refreshOfficialPools' },
         { reg: '^#*(小花火)?(原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3)?(米游社|官方)(当前|本期|当期)?卡池$', fnc: 'officialCurrentPool' },
@@ -69,6 +70,13 @@ export class xhh_gacha_pool extends plugin {
     if (/^(?:[#＃井]*\s*)?(?:小花火)?\s*原神\s*(?:当前|本期|当期)?\s*卡池$/.test(msg)) {
       e.msg = msg;
       await this.gsCurrentPool(e);
+      return 'return';
+    }
+    // 兜底优先接管“原神官方卡池/星铁官方卡池”等指定游戏官方卡池。
+    // 部分环境下进入 rule 后 e.msg 可能只剩“#官方卡池”，这里在 accept 阶段保留完整命令。
+    if (/^#*(?:小花火)?(?:原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3)(?:米游社|官方)(?:当前|本期|当期)?卡池$/i.test(msg)) {
+      e.msg = msg;
+      await this.officialCurrentPool(e);
       return 'return';
     }
     return false;
@@ -102,8 +110,8 @@ export class xhh_gacha_pool extends plugin {
         img: '', title: '「云霓孤光」独家频段', type: '角色', version: '3.0上半',
         timer: '2026/06/17 10:00:00 ~ 2026/07/08 11:59:59', s: '叶瞬光', a: ['妮可', '派派']
       }, {
-        img: '', title: '「光于指尖」音擎频段', type: '武器', version: '3.0上半',
-        timer: '2026/06/17 10:00:00 ~ 2026/07/08 11:59:59', s: '光于指尖', a: ['含羞恶面', '好斗的阿炮']
+        img: '', title: '「云霓孤光」音擎频段', type: '武器', version: '3.0上半',
+        timer: '2026/06/17 10:00:00 ~ 2026/07/08 11:59:59', s: '云霓孤光', a: ['含羞恶面', '好斗的阿炮']
       });
     }
     if (!data.some(v => v.version === '3.0下半')) {
@@ -120,6 +128,12 @@ export class xhh_gacha_pool extends plugin {
         img: '', title: '「思络成歌」音擎频段', type: '武器', version: '3.0下半',
         timer: '2026/07/08 10:00:00 ~ 2026/07/28 11:59:59', s: '思络成歌', a: ['含羞恶面', '好斗的阿炮']
       });
+    }
+    for (const pool of data) {
+      if (pool?.version === '3.0上半' && (pool.s === '光于指尖' || /光于指尖/.test(pool.title || ''))) {
+        pool.title = '「云霓孤光」音擎频段';
+        pool.s = '云霓孤光';
+      }
     }
     data.sort((a, b) => this.poolEndStamp(a) - this.poolEndStamp(b));
     for (let i = 0; i < data.length; i++) {
@@ -202,6 +216,12 @@ export class xhh_gacha_pool extends plugin {
 
   mergeZzzLocalPools(remote = []) {
     const data = Array.isArray(remote) ? [...remote] : [];
+    for (const pool of data) {
+      if (pool?.version === '3.0上半' && (pool.s === '光于指尖' || /光于指尖/.test(pool.title || ''))) {
+        pool.title = '「云霓孤光」音擎频段';
+        pool.s = '云霓孤光';
+      }
+    }
     const local = this.loadZzzLocalPools().map(pool => {
       const item = { ...pool };
       if (item.timer) {
@@ -285,6 +305,7 @@ export class xhh_gacha_pool extends plugin {
       s: pool.s || '-',
       a: Array.isArray(pool.a) ? pool.a.join(' / ') : (pool.a || '-'),
       img: pool.img || '',
+      charImg: pool.type === '武器' ? '' : this.getZzzCharacterSplash(pool.s || ''),
       weapon: pool.type === '武器'
     };
   }
@@ -294,6 +315,7 @@ export class xhh_gacha_pool extends plugin {
     if (game === '星穹铁道') return SR_MARK_ICON;
     if (game === '绝区零') return ZZZ_MARK_ICON;
     if (game === '崩坏3') return BH3_MARK_ICON;
+    if (game === '米游社') return MYS_MARK_ICON;
     return '';
   }
 
@@ -343,13 +365,23 @@ export class xhh_gacha_pool extends plugin {
   }
 
   async renderZzzLogs(e, sections, query = '') {
-    // 优先使用 ZZZ-Plugin 的面板立绘做右上角角色图，缺失时回退小花火内置艾莲。
-    const splash = this.getZzzPanelSplash(query) || 'zzzlogs/imgs/ellen.png';
+    // 优先使用 ZZZ-Plugin/Nanoka 的角色立绘做右上角角色图，缺失时回退小花火内置艾莲。
+    const splash = this.getZzzCharacterSplash(query) || 'zzzlogs/imgs/ellen.png';
     return render('zzzlogs/logs', { data: sections, splash }, { e, ret: true });
   }
 
   async renderBh3Logs(e, sections) {
-    return render('bh3logs/logs', { data: sections, splash: 'bh3logs/imgs/kiana.png' }, { e, ret: true });
+    let charName = '';
+    for (const sec of sections || []) {
+      for (const row of sec.rows || []) {
+        if (row.weapon) continue;
+        const hit = (row.items || []).find(item => item.highlight && !item.weapon) || (row.items || []).find(item => item.rarity === 'five' && !item.weapon);
+        if (hit?.name) { charName = hit.name; break; }
+      }
+      if (charName) break;
+    }
+    const splash = await this.getBh3CharacterSplash(charName) || 'bh3logs/imgs/kiana.png';
+    return render('bh3logs/logs', { data: sections, splash }, { e, ret: true });
   }
 
   zzzPoolTime(pool) {
@@ -400,20 +432,41 @@ export class xhh_gacha_pool extends plugin {
   }
 
   officialCard(r, gameName = '') {
+    const s = Array.isArray(r.up?.s) ? r.up.s.join(' / ') : (r.up?.s || '');
+    const a = Array.isArray(r.up?.a) ? r.up.a.join(' / ') : (r.up?.a || '');
     return {
       version: r.version || '-',
       title: r.title,
       type: gameName || r.gameName || '米游社公告',
       time: r.createdAt ? `发布：${new Date(r.createdAt).toLocaleDateString('zh-CN')}` : '',
-      s: '',
-      a: r.url ? '点击公告原文查看完整UP详情' : '',
+      s,
+      a,
+      note: s || a ? '' : (r.url ? '查看公告原文' : ''),
       img: r.cover || r.images?.[0] || '',
       weapon: false
     };
   }
 
+  detectOfficialGame(text = '') {
+    const msg = String(text || '').replace(/[\u200b-\u200f\ufeff]/g, '').replace(/[＃井]/g, '#').replace(/\s+/g, '').toLowerCase();
+    if (/原神/.test(msg)) return 'gs';
+    if (/(星铁|崩铁|星穹铁道)/.test(msg)) return 'sr';
+    if (/(绝区零|绝区|zzz)/i.test(msg)) return 'zzz';
+    if (/(崩三|崩坏3|崩坏三|bh3)/i.test(msg)) return 'bh3';
+    return '';
+  }
+
+  eventText(e = {}) {
+    const parts = [e.msg, e.raw_message, e.message?.map?.(v => v?.text || v?.data?.text || '').join('')].filter(Boolean);
+    return parts.join(' ');
+  }
+
   async officialCurrentPool(e) {
-    const game = officialPool.resolveGame(e.msg);
+    const msg = this.eventText(e).replace(/[\u200b-\u200f\ufeff]/g, '').replace(/[＃井]/g, '#').replace(/\s+/g, '');
+    // 明确指定游戏时必须按单游戏查，避免“#原神官方卡池”被当成“官方卡池”汇总。
+    const gameLabel = msg.match(/(?:#|小花火)*(原神|星铁|崩铁|星穹铁道|绝区零|ZZZ|崩三|崩坏3|崩坏三|BH3)(?:米游社|官方)/i)?.[1] || '';
+    const game = this.detectOfficialGame(msg) || officialPool.resolveGame(gameLabel) || officialPool.resolveGame(msg) || officialPool.resolveGame(e.msg);
+    logger.mark('[xhh][gacha_pool] 官方卡池识别:', msg, '=>', game || 'all');
     if (!game) {
       const results = await officialPool.fetchAll();
       const cards = results.flatMap(r => {
@@ -438,7 +491,7 @@ export class xhh_gacha_pool extends plugin {
       game: meta.name,
       title: `${meta.name}米游社官方卡池`,
       subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
-      mode: 'zzz',
+      mode: 'official official-game',
       markIcon: this.getMarkIcon(meta.name),
       markWide: this.getMarkWide(meta.name),
       cards
@@ -460,7 +513,7 @@ export class xhh_gacha_pool extends plugin {
       game: meta.name,
       title: `${meta.name} v${version} 官方卡池`,
       subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
-      mode: 'zzz',
+      mode: 'official official-game',
       markIcon: this.getMarkIcon(meta.name),
       markWide: this.getMarkWide(meta.name),
       cards
@@ -482,6 +535,19 @@ export class xhh_gacha_pool extends plugin {
     return e.reply('米游社官方卡池数据已刷新：\n' + lines.join('\n'));
   }
 
+  getLocalZzzMarkIcon() {
+    const customDir = './plugins/xhh/resources/zzz_md/imgs/custom/';
+    if (!fs.existsSync(customDir)) return '';
+    try {
+      const files = fs.readdirSync(customDir)
+        .filter(f => /\.(png|webp|jpg|jpeg)$/i.test(f))
+        .map(f => ({ f, mtime: fs.statSync(`${customDir}/${f}`).mtime }))
+        .sort((a, b) => b.mtime - a.mtime);
+      if (files.length) return `zzz_md/imgs/custom/${files[0].f}`;
+    } catch (_) {}
+    return '';
+  }
+
   async zzzCurrentPool(e) {
     logger.mark('[xhh][gacha_pool] 命中绝区零当前卡池:', e.msg);
     // 先尝试从米游社公告获取当前UP信息（含封面图）
@@ -489,12 +555,13 @@ export class xhh_gacha_pool extends plugin {
     if (records.length) {
       const cards = records.slice(0, 4).map(r => this.officialCard(r, '绝区零'));
       const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+      const localMark = this.getLocalZzzMarkIcon();
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '绝区零当前卡池',
         subtitle: `数据来源：米游社公告 · v${CURRENT_VERSION.zzz}`,
         mode: 'zzz',
-        markIcon: firstCover || ZZZ_MARK_ICON,
+        markIcon: firstCover || localMark || ZZZ_MARK_ICON,
         markWide: false,
         cards
       });
@@ -512,24 +579,26 @@ export class xhh_gacha_pool extends plugin {
       const latest = data.filter(p => this.poolEndStamp(p) === latestEnd);
       if (!latest.length) return e.reply('当前没有匹配到正在开放的绝区零活动卡池。');
       const latestStage = latest[0]?.version ? `；数据源最新收录：${latest[0].version}` : '';
+      const localMark = this.getLocalZzzMarkIcon();
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '最新收录卡池',
         subtitle: `当前版本 ${CURRENT_VERSION.zzz}${latestStage}；展示最新收录内容`,
         mode: 'zzz',
-        markIcon: ZZZ_MARK_ICON,
+        markIcon: localMark || ZZZ_MARK_ICON,
         cards: latest.map(p => this.poolToCard(p))
       });
     }
     const sample = pools[0];
     const { end } = this.parseTime(sample);
     const days = end ? Math.max(Math.ceil((end.getTime() - now.getTime()) / 86400000), 0) : '?';
+    const localMark = this.getLocalZzzMarkIcon();
     return this.renderPoolImage(e, {
       game: '绝区零',
       title: '本期卡池',
       subtitle: `v${sample.version} · ${this.zzzPoolTime(sample)} · 剩余约${days}天`,
       mode: 'zzz',
-      markIcon: ZZZ_MARK_ICON,
+      markIcon: localMark || ZZZ_MARK_ICON,
       cards: pools.map(p => this.poolToCard(p))
     });
   }
@@ -604,6 +673,7 @@ export class xhh_gacha_pool extends plugin {
     const query = this.normalizeZzzName(name);
     const qClean = this.cleanZzzName(query);
     const strict = qClean === '安比' || this.cleanZzzName(name) !== qClean;
+    const isAgentQuery = this.isZzzAgentName(query);
     const hitName = v => {
       const raw = String(v || '');
       const vClean = this.cleanZzzName(this.normalizeZzzName(raw));
@@ -614,8 +684,13 @@ export class xhh_gacha_pool extends plugin {
       // 普通查询允许较长名称互相包含，但要求至少2字符，避免“雅”误匹配。
       return vClean.length >= 2 && qClean.length >= 2 && (vClean.includes(qClean) || qClean.includes(vClean));
     };
-    const matched = data.filter(p => hitName(p.s) || (Array.isArray(p.a) && p.a.some(hitName)));
-    // 查询代理人时，把同一期的音擎频段也带出来，方便直接看到对应 UP 武器。
+    // 查询代理人时，只用“代理人频段”判断命中，再补同一期音擎频段。
+    // 避免“艾莲卡池”被她的专属音擎「深海访客」后续复刻/陪跑记录串出来。
+    const matched = data.filter(p => {
+      if (isAgentQuery && p.type === '武器') return false;
+      return hitName(p.s) || (Array.isArray(p.a) && p.a.some(hitName));
+    });
+    // 命中代理人频段后，把同一期的音擎频段也带出来，方便直接看到对应 UP 武器。
     const hitKeys = new Set(matched.map(p => `${p.version || '-'}|${this.zzzPoolTime(p)}`));
     const records = data.filter(p => {
       const key = `${p.version || '-'}|${this.zzzPoolTime(p)}`;
@@ -664,6 +739,20 @@ export class xhh_gacha_pool extends plugin {
     return raw;
   }
 
+  isZzzAgentName(name = '') {
+    const target = this.cleanZzzName(name);
+    if (!target) return false;
+    try {
+      const data = JSON.parse(fs.readFileSync('./plugins/ZZZ-Plugin/resources/map/PartnerId2Data.json', 'utf-8'));
+      for (const info of Object.values(data)) {
+        const name = this.cleanZzzName(info?.name || '');
+        const full = this.cleanZzzName(info?.full_name || '');
+        if (name === target || full === target) return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   getZzzCharSprite(name = '') {
     try {
       const data = JSON.parse(fs.readFileSync('./plugins/ZZZ-Plugin/resources/map/PartnerId2Data.json', 'utf-8'));
@@ -682,6 +771,26 @@ export class xhh_gacha_pool extends plugin {
         }
       }
     } catch (_) {}
+    return '';
+  }
+
+  getZzzCharacterSplash(name = '') {
+    return this.getZzzPanelSplash(name) || this.getZzzNanokaRoleImage(name) || this.getZzzRoleGeneralImage(name);
+  }
+
+  getZzzNanokaRoleImage(name = '') {
+    const sprite = this.getZzzCharSprite(name);
+    if (!sprite) return '';
+    const local = `./plugins/ZZZ-Plugin/resources/images/nanoka/role/IconRole${sprite}_01.webp`;
+    if (fs.existsSync(local)) return fs.realpathSync(local);
+    return '';
+  }
+
+  getZzzRoleGeneralImage(name = '') {
+    const sprite = this.getZzzCharSprite(name);
+    if (!sprite) return '';
+    const local = `./plugins/ZZZ-Plugin/resources/images/nanoka/role_general/IconRoleGeneral${sprite}.webp`;
+    if (fs.existsSync(local)) return fs.realpathSync(local);
     return '';
   }
 
@@ -1544,6 +1653,44 @@ export class xhh_gacha_pool extends plugin {
       }
     } catch (_) {}
     return [...set];
+  }
+
+
+  async getBh3CharacterSplash(name = '') {
+    if (!name) return '';
+    const candidates = this.getBh3NameCandidates(name);
+    const targets = candidates.map(v => this.cleanBh3Name(v)).filter(Boolean);
+    if (!targets.length) return '';
+    try {
+      const listUrl = 'https://api-takumi-static.mihoyo.com/common/blackboard/bh3_wiki/v1/home/content/list?app_sn=bh3_wiki&channel_id=18';
+      const listJson = await fetch(listUrl, { signal: AbortSignal.timeout(8000) }).then(r => r.json());
+      const list = listJson?.data?.list?.[0]?.list || [];
+      const hit = list.find(item => targets.includes(this.cleanBh3Name(item.title)))
+        || list.find(item => targets.some(t => this.cleanBh3Name(item.title).includes(t) || t.includes(this.cleanBh3Name(item.title))));
+      if (!hit?.content_id) return hit?.icon || '';
+      const detailUrl = `https://api-takumi-static.mihoyo.com/common/blackboard/bh3_wiki/v1/content/info?app_sn=bh3_wiki&content_id=${hit.content_id}`;
+      const detail = await fetch(detailUrl, { signal: AbortSignal.timeout(8000) }).then(r => r.json());
+      const content = detail?.data?.content || {};
+      const imgs = [];
+      for (const section of content.contents || []) {
+        const text = String(section.text || '');
+        const matches = text.matchAll(/data-data="([^"]+)"/g);
+        for (const match of matches) {
+          try {
+            const arr = JSON.parse(decodeURIComponent(match[1]));
+            for (const part of Array.isArray(arr) ? arr : []) {
+              const data = part?.data || {};
+              if (data.avatar) imgs.push(data.avatar);
+              if (data.finalLevel) imgs.push(data.finalLevel);
+            }
+          } catch (_) {}
+        }
+      }
+      return imgs.find(Boolean) || content.avatar_url || content.icon || hit.icon || '';
+    } catch (err) {
+      logger.warn?.('[xhh][gacha_pool] 崩三角色立绘获取失败:', name, err);
+      return '';
+    }
   }
 
   getBh3IconNameCandidates(name = '') {
