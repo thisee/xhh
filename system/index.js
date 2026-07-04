@@ -40,6 +40,42 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
+function isForwardCompatMode() {
+    try {
+        return !!config().hbxx;
+    } catch (_) {
+        return false;
+    }
+}
+
+function forwardPlainText(message) {
+    if (!message) return '';
+    if (typeof message === 'string') return message;
+    if (Array.isArray(message)) return message.map(forwardPlainText).filter(Boolean).join('\n');
+    if (typeof message === 'object') {
+        if (message.type === 'text') return message.text || message.data?.text || '';
+        if (message.type === 'image') return '[图片]';
+        if (message.type === 'node') return forwardPlainText(message.data?.content || message.data?.message || '');
+        return message.data?.text || message.text || '';
+    }
+    return String(message || '');
+}
+
+function normalizeForwardMessage(message) {
+    if (!isForwardCompatMode()) return message;
+    // 兼容模式：去掉合并转发里的嵌套node，避免部分OneBot/NapCat适配器报“合并消息内嵌合并消息”。
+    if (Array.isArray(message)) {
+        const arr = message
+            .filter(v => v?.type !== 'node')
+            .map(v => normalizeForwardMessage(v))
+            .filter(Boolean);
+        return arr.length ? arr : forwardPlainText(message);
+    }
+    if (message?.type === 'node') return forwardPlainText(message);
+    return message;
+}
+
 //合并转发消息
 async function makeForwardMsg(e, msg = [], dec = '', Id = '', isGroup = true) {
     let name = Bot.nickname;
@@ -60,27 +96,37 @@ async function makeForwardMsg(e, msg = [], dec = '', Id = '', isGroup = true) {
         if (!message) {
             continue;
         }
+        const safeMessage = normalizeForwardMessage(message);
+        if (!safeMessage) continue;
         forwardMsg.push({
             ...userInfo,
-            message: message,
+            message: safeMessage,
         });
     }
     let msg_ = false;
 
     if (!msg_ || !msg_.data) {
-        if (e?.group?.makeForwardMsg) {
-            msg_ = await e.group.makeForwardMsg(forwardMsg);
-        } else if (e?.friend?.makeForwardMsg) {
-            msg_ = await e.friend.makeForwardMsg(forwardMsg);
-        } else if (Id) {
-            try {
-                //兼容napcat-adapter，解决napcat-adapter的Bot.makeForwardMsg发不出去的bug
-                msg_ = isGroup ? await Bot.pickGroup(Id).makeForwardMsg(forwardMsg) : await Bot.pickFriend(Id).makeForwardMsg(forwardMsg);
-            } catch (err) {
-                msg_ = await Bot.makeForwardMsg(forwardMsg);
+        try {
+            if (e?.group?.makeForwardMsg) {
+                msg_ = await e.group.makeForwardMsg(forwardMsg);
+            } else if (e?.friend?.makeForwardMsg) {
+                msg_ = await e.friend.makeForwardMsg(forwardMsg);
+            } else if (Id) {
+                try {
+                    //兼容napcat-adapter，解决napcat-adapter的Bot.makeForwardMsg发不出去的bug
+                    msg_ = isGroup ? await Bot.pickGroup(Id).makeForwardMsg(forwardMsg) : await Bot.pickFriend(Id).makeForwardMsg(forwardMsg);
+                } catch (err) {
+                    msg_ = await Bot.makeForwardMsg(forwardMsg);
+                }
+            } else {
+                return msg.map(forwardPlainText).filter(Boolean).join('\n');
             }
-        } else {
-            return msg.join('\n');
+        } catch (err) {
+            if (isForwardCompatMode()) {
+                logger.warn?.('[xhh] 合并转发生成失败，已按hbxx兼容模式改为纯文本:', err?.message || err);
+                return msg.map(forwardPlainText).filter(Boolean).join('\n');
+            }
+            throw err;
         }
     }
 

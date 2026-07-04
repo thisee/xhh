@@ -1,7 +1,7 @@
 import fs from 'fs';
 import moment from 'moment';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
-import { yaml, mhy, api } from '#xhh';
+import { yaml, mhy, api, config } from '#xhh';
 
 const STOKEN_DIR = './plugins/xhh/data/Stoken';
 const BH3_REGIONS = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02', 'cn_gf01', 'cn_qd01'];
@@ -173,7 +173,7 @@ export async function fetchCurrentAbyssInfo(auth) {
           return info;
         }
       } catch (err) {
-        logger.debug?.(`[xhh][bh3_abyss_boss] ${item.label} ${server} failed: ${err.message}`);
+        if (config().debug) logger.mark(`[xhh][bh3_abyss_boss] ${item.label} ${server} failed: ${err.message}`);
       }
     }
   }

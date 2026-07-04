@@ -25,7 +25,7 @@ async function ensureCookieToken(e, ck, entry = null) {
     if (cookieToken && ltoken) return `ltoken=${ltoken};ltuid=${stuid};cookie_token=${cookieToken};account_id=${stuid};`;
     if (cookieToken) return `stuid=${stuid};stoken=${stoken};cookie_token=${cookieToken};account_id=${stuid};`;
   } catch (err) {
-    logger.debug?.(`[xhh][TL][bh3] refresh cookie_token failed: ${err.message}`);
+    if (config().debug) logger.mark(`[xhh][TL][bh3] refresh cookie_token failed: ${err.message}`);
   }
   return ck;
 }

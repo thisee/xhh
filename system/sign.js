@@ -6,7 +6,8 @@ import {
     api,
     mhy,
     render,
-    yaml
+    yaml,
+    config
 } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 
@@ -79,7 +80,7 @@ async function ensureCookieToken(e, ck, entry = null) {
         if (cookieToken && ltoken) return `ltoken=${ltoken};ltuid=${stuid};cookie_token=${cookieToken};account_id=${stuid};`;
         if (cookieToken) return `stuid=${stuid};stoken=${stoken};cookie_token=${cookieToken};account_id=${stuid};`;
     } catch (err) {
-        logger.debug?.(`[xhh][sign] refresh cookie_token failed: ${err.message}`);
+        if (config().debug) logger.mark(`[xhh][sign] refresh cookie_token failed: ${err.message}`);
     }
     return ck;
 }
@@ -329,7 +330,7 @@ async function bbsForumSign(e, account, forum) {
     try {
         taskTip = await bbsForumTasks(e, account, forum);
     } catch (err) {
-        logger.debug?.(`[xhh][bbs_task] ${forum.name}: ${err.message}`);
+        if (config().debug) logger.mark(`[xhh][bbs_task] ${forum.name}: ${err.message}`);
     }
     return taskTip ? `${signTip} ${taskTip}` : signTip;
 }

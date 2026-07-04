@@ -419,7 +419,7 @@ js,wq,syw,yq 角色,武器,圣痕,人偶
                         }
                     }
                 } catch (err) {
-                    globalThis.logger?.debug?.(`[xhh] BH3 wiki ext解析失败: ${title}`);
+                    try { if ((yaml.get('./plugins/xhh/config/config.yaml') || {}).debug) logger.mark(`[xhh] BH3 wiki ext解析失败: ${title}`); } catch (_) {}
                 }
 
                 data.push({

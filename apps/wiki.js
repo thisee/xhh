@@ -492,7 +492,7 @@ export class Wiki extends plugin {
       if (!id) return null;
       return await mys.detail(id, false, true);
     } catch (err) {
-      globalThis.logger?.debug?.(`[xhh] ZZZ专属装备获取代理人详情失败: ${roleName} ${err?.message || err}`);
+      if (config().debug) logger.mark(`[xhh] ZZZ专属装备获取代理人详情失败: ${roleName} ${err?.message || err}`);
       return null;
     }
   }
@@ -1230,7 +1230,7 @@ export class Wiki extends plugin {
       if (!id) return null;
       return await mys.detail(id, false, false, true);
     } catch (err) {
-      globalThis.logger?.debug?.(`[xhh] BH3专属装备获取角色详情失败: ${roleName} ${err?.message || err}`);
+      if (config().debug) logger.mark(`[xhh] BH3专属装备获取角色详情失败: ${roleName} ${err?.message || err}`);
       return null;
     }
   }
@@ -1311,7 +1311,7 @@ export class Wiki extends plugin {
             const arr = JSON.parse(decodeURIComponent(match[1]));
             if (Array.isArray(arr)) parts.push(...arr);
           } catch (err) {
-            globalThis.logger?.debug?.(`[xhh] BH3 wiki模板解析失败: ${title}`);
+            if (config().debug) logger.mark(`[xhh] BH3 wiki模板解析失败: ${title}`);
           }
         }
       }
@@ -1472,7 +1472,7 @@ export class Wiki extends plugin {
   // 崩坏3武器
   async bh3_wq_pictures(e, data, roleName = '') {
     if (!data || !data.content) {
-      globalThis.logger?.debug?.('[xhh] BH3武器详情数据为空');
+      if (config().debug) logger.mark('[xhh] BH3武器详情数据为空');
       await e.reply(`未获取到武器详情，请稍后重试。`);
       return false;
     }
@@ -1518,7 +1518,7 @@ export class Wiki extends plugin {
             const arr = JSON.parse(decodeURIComponent(match[1]));
             if (Array.isArray(arr)) parts.push(...arr);
           } catch (err) {
-            globalThis.logger?.debug?.(`[xhh] BH3武器模板解析失败: ${title} ${err?.message || err}`);
+            if (config().debug) logger.mark(`[xhh] BH3武器模板解析失败: ${title} ${err?.message || err}`);
           }
         }
       }
@@ -1604,7 +1604,7 @@ export class Wiki extends plugin {
   // 崩坏3圣痕
   async bh3_syw_pictures(e, data, roleName = '') {
     if (!data || !data.content) {
-      globalThis.logger?.debug?.('[xhh] BH3圣痕详情数据为空');
+      if (config().debug) logger.mark('[xhh] BH3圣痕详情数据为空');
       await e.reply('未获取到圣痕详情，请稍后重试或使用完整圣痕名称查询。');
       return false;
     }
