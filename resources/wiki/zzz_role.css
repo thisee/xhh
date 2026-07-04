@@ -36,3 +36,19 @@ h1 { font-size:64px; line-height:1.05; text-shadow:0 0 26px rgba(255,221,88,.28)
 .footer { position:relative; z-index:1; text-align:center; color:#8090a8; font-size:16px; margin-top:18px; }
 
 .avatar-img { width: 190px; height: 190px; object-fit: contain; border-radius: 34px; background: rgba(255,255,255,.72); padding: 8px; transform: rotate(-4deg); filter: drop-shadow(0 12px 18px rgba(0,0,0,.28)); }
+
+/* xhh统一图鉴背景：绝区零角色/音擎/驱动盘/邦布共用 */
+.zzz-page {
+  background-image:
+    linear-gradient(145deg, rgba(8,13,28,.90), rgba(11,18,36,.86)),
+    url('../srlogs/imgs/bg.jpg');
+  background-size: cover;
+  background-position: center top;
+}
+.hero,.block {
+  background: linear-gradient(145deg, rgba(18,30,52,.92), rgba(9,13,26,.84));
+  backdrop-filter: blur(5px);
+}
+.hero { align-items: center; }
+.tags { max-width: 590px; }
+.profile-text,.skill-card p,.talent-card p { text-shadow: 0 1px 3px rgba(0,0,0,.42); }

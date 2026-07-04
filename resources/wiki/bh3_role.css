@@ -115,3 +115,18 @@ body {
 .intro-item:has(.intro-icon) b { padding-right: 32px; }
 .sub-info-title { display: flex; align-items: center; gap: 7px; }
 .sub-info-icon { width: 21px; height: 21px; object-fit: contain; filter: drop-shadow(0 0 7px rgba(90,223,255,.42)); }
+
+/* xhh统一图鉴背景：崩坏3角色 */
+.wiki-page {
+  background-image:
+    linear-gradient(145deg, rgba(7,12,28,.90), rgba(13,19,40,.86)),
+    url('../srlogs/imgs/bg.jpg');
+  background-size: cover;
+  background-position: center top;
+}
+.hero-card,.section-block {
+  background: linear-gradient(145deg, rgba(17,30,58,.93), rgba(12,16,35,.86));
+  backdrop-filter: blur(5px);
+}
+.hero-copy { width: 500px; }
+.summary,.sub-info-text,.skill-card p,.advance-item p { text-shadow: 0 1px 3px rgba(0,0,0,.42); }

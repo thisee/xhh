@@ -333,6 +333,15 @@ export class xhh_gacha_pool extends plugin {
     return arr;
   }
 
+  useCustomGachaArt() {
+    try {
+      const cfg = yaml.get('./plugins/xhh/config/config.yaml') || {};
+      return (cfg.gacha_art_source || 'custom') !== 'official';
+    } catch (_) {
+      return true;
+    }
+  }
+
   async renderPoolImage(e, data) {
     if (Array.isArray(data?.cards) && data.mode !== 'gs-history') {
       data.cards.forEach((card, i) => {
@@ -538,6 +547,17 @@ export class xhh_gacha_pool extends plugin {
     return splash || fallback || this.gameMarkIcon(gameName);
   }
 
+
+  getZzzHeaderSplashFromCards(cards = [], fallback = ZZZ_MARK_ICON) {
+    // 绝区零顶部立绘只从当前展示卡片里的 S 级代理人里选，避免回退到旧版本自定义图。
+    const names = [];
+    for (const card of cards || []) {
+      if (card?.weapon) continue;
+      if (card?.s && card.s !== '-') names.push(...String(card.s).split(/[\/，,、]/));
+    }
+    return this.getCardSplashByGame('绝区零', names) || fallback;
+  }
+
   async getBh3HeaderSplashFromPools(pools = [], fallback = BH3_MARK_ICON) {
     // 顶部右侧只取角色补给的角色立绘，避免装备/圣痕图标被误当成立绘。
     const charPools = (pools || []).filter(p => !p.weapon && p.type !== 'weapon');
@@ -658,27 +678,20 @@ export class xhh_gacha_pool extends plugin {
     // 先尝试从米游社公告获取当前UP信息（含封面图）
     const { records } = await officialPool.fetch('zzz');
     if (records.length) {
-      const cards = records.slice(0, 4).map((r, i) => {
+      const rawCards = records.map((r, i) => {
         const card = this.officialCard(r, '绝区零');
         card.index = i + 1;
         card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
         return card;
       });
-      const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
-      let markIcon = firstCover || ZZZ_MARK_ICON;
-      let markWide = !!firstCover;
-      for (const r of records) {
-        const names = [];
-        if (Array.isArray(r.up?.s)) names.push(...r.up.s);
-        const re = /[「『]([^」』]+)[」』]/g;
-        let m; while ((m = re.exec(r.title || ''))) names.push(m[1]);
-        if (r.contentText) { re.lastIndex = 0; let cm; while ((cm = re.exec(r.contentText))) names.push(cm[1]); }
-        for (const name of names) {
-          const splash = this.getZzzCharacterSplash(name);
-          if (splash) { markIcon = splash; markWide = true; break; }
-        }
-        if (markIcon !== firstCover && markIcon !== ZZZ_MARK_ICON) break;
-      }
+      const currentCards = rawCards.filter(c => String(c.version || '').startsWith(CURRENT_VERSION.zzz));
+      const cards = (currentCards.length ? currentCards : rawCards).slice(0, 4).map((card, i) => {
+        card.index = i + 1;
+        card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
+        return card;
+      });
+      const markIcon = this.getZzzHeaderSplashFromCards(cards, ZZZ_MARK_ICON);
+      let markWide = !!markIcon;
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '绝区零当前卡池',
@@ -702,9 +715,8 @@ export class xhh_gacha_pool extends plugin {
       const latest = data.filter(p => this.poolEndStamp(p) === latestEnd);
       if (!latest.length) return e.reply('当前没有匹配到正在开放的绝区零活动卡池。');
       const latestStage = latest[0]?.version ? `；数据源最新收录：${latest[0].version}` : '';
-      const localMark = this.getLocalZzzMarkIcon();
       const cards = latest.map((p, i) => { const c = this.poolToCard(p); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
-      const markIcon = this.getHeaderSplashFromCards('绝区零', cards, localMark || ZZZ_MARK_ICON);
+      const markIcon = this.getZzzHeaderSplashFromCards(cards, ZZZ_MARK_ICON);
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '最新收录卡池',
@@ -718,9 +730,8 @@ export class xhh_gacha_pool extends plugin {
     const sample = pools[0];
     const { end } = this.parseTime(sample);
     const days = end ? Math.max(Math.ceil((end.getTime() - now.getTime()) / 86400000), 0) : '?';
-    const localMark = this.getLocalZzzMarkIcon();
     const cards = pools.map((p, i) => { const c = this.poolToCard(p); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
-    const markIcon = this.getHeaderSplashFromCards('绝区零', cards, localMark || ZZZ_MARK_ICON);
+    const markIcon = this.getZzzHeaderSplashFromCards(cards, ZZZ_MARK_ICON);
     return this.renderPoolImage(e, {
       game: '绝区零',
       title: '本期卡池',
@@ -745,7 +756,7 @@ export class xhh_gacha_pool extends plugin {
     }
     if (!pools.length) return e.reply(`未查询到绝区零 ${version}${phase || ''} 卡池数据。`);
     const cards = pools.map((p, i) => { const c = this.poolToCard(p); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
-    const markIcon = this.getHeaderSplashFromCards('绝区零', cards, ZZZ_MARK_ICON);
+    const markIcon = this.getZzzHeaderSplashFromCards(cards, ZZZ_MARK_ICON);
     return this.renderPoolImage(e, {
       game: '绝区零',
       title: `v${phase ? pools[0].version : version} 卡池`,
@@ -924,10 +935,10 @@ export class xhh_gacha_pool extends plugin {
   }
 
   getZzzCharacterSplash(name = '') {
-    // 顶部立绘优先用 panel/半身透明图；没有额外资源时再退到 nanoka 资源，避免抽到很小的通用头像。
-    return this.getZzzPanelSplash(name)
-      || this.getZzzNanokaRoleImage(name)
-      || this.getZzzRoleGeneralImage(name);
+    // 自定义：优先 panel/额外图；官方：优先官方/nanoka角色图。
+    return this.useCustomGachaArt()
+      ? (this.getZzzPanelSplash(name) || this.getZzzNanokaRoleImage(name) || this.getZzzRoleGeneralImage(name))
+      : (this.getZzzNanokaRoleImage(name) || this.getZzzRoleGeneralImage(name) || this.getZzzPanelSplash(name));
   }
 
   getZzzNanokaRoleImage(name = '') {
@@ -1040,14 +1051,20 @@ export class xhh_gacha_pool extends plugin {
       // Atlas 的 W-Engine 图不少是带文字海报，卡池小图里容易裁切/露字；没有 ZZZ-Plugin 干净图标时宁可只显示名称。
       return '';
     }
-    // 左侧 UP 方块优先使用 ZZZ-Plugin panel 半身图；全身图在 44px 方块内很容易裁掉头。
-    const panelIcon = this.getZzzPanelIcon(name);
-    if (panelIcon) return panelIcon;
     const sprite = this.getZzzCharSprite(name);
-    if (sprite) {
+    const officialIcon = (() => {
+      if (!sprite) return '';
       const localPath = `./plugins/ZZZ-Plugin/resources/images/role/IconRole${sprite}.png`;
       if (fs.existsSync(localPath)) return fs.realpathSync(localPath);
       return `https://static.nanoka.cc/assets/zzz/IconRole${sprite}.webp`;
+    })();
+    const panelIcon = this.getZzzPanelIcon(name);
+    if (this.useCustomGachaArt()) {
+      if (panelIcon) return panelIcon;
+      if (officialIcon) return officialIcon;
+    } else {
+      if (officialIcon) return officialIcon;
+      if (panelIcon) return panelIcon;
     }
     const dir = './plugins/Atlas/zzz-atlas/material for role';
     const path = `${dir}/${name}.webp`;
@@ -1312,8 +1329,8 @@ export class xhh_gacha_pool extends plugin {
     const fallback = [];
     for (const n of [...new Set(names)]) {
       const profile = this.getMiaoProfileImage(n);
-      if (profile) primary.push(profile);
       const base = `./plugins/miao-plugin/resources/meta-sr/character/${n}/imgs`;
+      if (this.useCustomGachaArt() && profile) primary.push(profile);
       for (const file of ['splash.webp', 'preview.webp']) {
         const path = `${base}/${file}`;
         if (fs.existsSync(path)) primary.push(fs.realpathSync(path));
@@ -1321,6 +1338,12 @@ export class xhh_gacha_pool extends plugin {
       for (const file of ['card.webp']) {
         const path = `${base}/${file}`;
         if (fs.existsSync(path)) fallback.push(fs.realpathSync(path));
+      }
+    }
+    if (!this.useCustomGachaArt()) {
+      for (const n of [...new Set(names)]) {
+        const profile = this.getMiaoProfileImage(n);
+        if (profile) fallback.push(profile);
       }
     }
     return this.randomPick(primary) || this.randomPick(fallback);
@@ -1626,8 +1649,8 @@ export class xhh_gacha_pool extends plugin {
         if (fs.existsSync(p)) primary.push(fs.realpathSync(p));
       }
       const profile = this.getMiaoProfileImage(n);
-      if (profile) primary.push(profile);
       const metaBase = `./plugins/miao-plugin/resources/meta-gs/character/${n}/imgs`;
+      if (this.useCustomGachaArt() && profile) primary.push(profile);
       for (const file of ['splash.webp', 'side.webp', 'gacha.webp']) {
         const path = `${metaBase}/${file}`;
         if (fs.existsSync(path)) primary.push(fs.realpathSync(path));
@@ -1635,6 +1658,12 @@ export class xhh_gacha_pool extends plugin {
       for (const file of ['card.webp', 'face.webp', 'face-q.webp', 'face0.webp']) {
         const path = `${metaBase}/${file}`;
         if (fs.existsSync(path)) fallback.push(fs.realpathSync(path));
+      }
+    }
+    if (!this.useCustomGachaArt()) {
+      for (const n of candidates) {
+        const profile = this.getMiaoProfileImage(n);
+        if (profile) fallback.push(profile);
       }
     }
     return this.randomPick(primary) || this.randomPick(fallback);
@@ -1855,7 +1884,7 @@ export class xhh_gacha_pool extends plugin {
 
   async bh3PoolToCard(pool, maps = null) {
     const weapon = pool.type === 'weapon';
-    const icon = await this.getBh3HistoryIcon(pool.s || '', weapon, maps);
+    const icon = await this.getBh3HistoryIcon(pool.s || '', weapon, maps) || BH3_MARK_ICON;
     return {
       version: pool.version || '-',
       title: pool.name || '',

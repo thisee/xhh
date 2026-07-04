@@ -275,6 +275,22 @@ export const supportGuoba = () => ({
       },
       {
         component: 'Divider',
+        label: '卡池/图鉴外观',
+      },
+      {
+        field: 'gacha_art_source',
+        label: '卡池立绘来源',
+        helpMessage: '自定义=优先本地/插件额外图；官方=优先游戏官方资源，影响顶部立绘和UP小图',
+        component: 'Select',
+        componentProps: {
+          options: [
+            { label: '自定义立绘', value: 'custom' },
+            { label: '官方立绘', value: 'official' },
+          ],
+        },
+      },
+      {
+        component: 'Divider',
         label: '崩坏3扩展',
       },
       {
@@ -466,6 +482,7 @@ export const supportGuoba = () => ({
         Tl: !!cfg.Tl,
         hbxx: !!cfg.hbxx,
         debug: !!cfg.debug,
+        gacha_art_source: cfg.gacha_art_source || 'custom',
         tl_priority: cfg.tl_priority ?? -99,
         sign_priority: cfg.sign_priority ?? -26,
         user_priority: cfg.user_priority ?? -9999999999,
@@ -531,6 +548,8 @@ export const supportGuoba = () => ({
       for (const [k, v] of Object.entries(numMap)) {
         if (v != null) yaml.set(_path + 'config.yaml', k, Number(v))
       }
+
+      if (data.gacha_art_source) yaml.set(_path + 'config.yaml', 'gacha_art_source', data.gacha_art_source === 'official' ? 'official' : 'custom')
 
       yaml.set(_path + 'sign.yaml', 'zd_sign', Number(data.zd_sign) ?? 0)
       yaml.set(_path + 'sign.yaml', 'sbai', !!data.sbai)

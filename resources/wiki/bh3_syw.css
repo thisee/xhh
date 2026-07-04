@@ -29,3 +29,17 @@ body { width: 980px; min-width: 980px; background: #070b16; color: #fff; font-fa
 .p-attr { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.05); border: 1px solid rgba(148,218,255,.12); }
 .p-attr span { color: #91aac8; font-size: 13px; }
 .p-attr b { color: #fff; font-size: 14px; }
+/* xhh统一图鉴背景：崩坏3圣痕 */
+.wiki-page {
+  background-image:
+    linear-gradient(145deg, rgba(7,12,28,.90), rgba(13,19,40,.86)),
+    url('../srlogs/imgs/bg.jpg');
+  background-size: cover;
+  background-position: center top;
+}
+.hero,.panel,.piece-col {
+  background: linear-gradient(145deg, rgba(17,30,58,.94), rgba(12,16,35,.87));
+  backdrop-filter: blur(5px);
+}
+.title-area { max-width: 900px; }
+.desc-text,.piece-skill { text-shadow: 0 1px 3px rgba(0,0,0,.42); }

@@ -98,6 +98,9 @@ hbxx: false
 #http://ttocr.com/
 Verification_API_KEY: ''
 
+#卡池立绘来源：custom 使用本地/插件额外图，official 使用官方资源优先
+gacha_art_source: custom
+
 #插件优先级（修改后需重启）
 tl_priority: -99
 sign_priority: -26
