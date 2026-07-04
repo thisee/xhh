@@ -1117,7 +1117,7 @@ export class Wiki extends plugin {
     const name = data.content.title;
     let grow = content.match(/80级<\/td>(.*?)<\/table>/g)[0].match(/\d+/g);
     let material = content.match(/晋阶材料(.*)信用点/g)[0];
-    content = content.match(
+    const rawHtml = content.match(
       /<img src=(.*?)基础介绍(.*?)命途(.*?)稀有度(.*?)技能(.*?)光锥描述(.*?)<img/g
     );
     const cn = extractChineseWords(material);
@@ -1126,15 +1126,28 @@ export class Wiki extends plugin {
     if (cn[2] === cn[5])
       mat = [0, 5, 11, 3, 6, 12, 1].map(index => material[index]); //另一种排版
     let mat_num = [20, 20, 14, 4, 12, 15, '89.3w'];
-    content = extractHonkaiStarRailData(content[0]);
+    content = extractHonkaiStarRailData(rawHtml[0]);
     content.jineng[1] = content.jineng[1].replace(
       /【([\d.%/]+)】/g,
       '<p class="lan">【$1】</p>'
     );
-    if (content.xiyoudu == '4星') mat_num = [15, 15, 12, 3, 9, 12, '70.7w'];
+    if (content.rarity == '4星') mat_num = [15, 15, 12, 3, 9, 12, '70.7w'];
+    let miaoshu = '';
+    const descMatch = rawHtml[0].match(/光锥描述(.*?)<img/);
+    if (descMatch) {
+      miaoshu = descMatch[1]
+        .replace(/<br\s*\/?\>/g, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
     data = {
       name,
       ...content,
+      mingtu: content.fate,
+      xiyoudu: content.rarity,
+      miaoshu,
       grow,
       mat,
       mat_num,

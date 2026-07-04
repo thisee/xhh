@@ -98,8 +98,13 @@ h1 {
   background: none;
 }
 .mark-wide {
-  width: 120px;
+  height: 100px;
+  max-width: 150px;
+  width: auto;
+  object-fit: contain;
+  object-position: right top;
   border-radius: 12px;
+  filter: drop-shadow(-2px 2px 4px rgba(80,120,150,.22));
 }
 .cards {
   position: relative;
@@ -125,18 +130,19 @@ h1 {
   background: linear-gradient(135deg, rgba(120,60,180,.9), rgba(60,30,100,.95));
 }
 
-/* 角色立绘 - 从右侧溢出卡片 */
+/* 角色立绘 - 右上角小头像，与桑多涅卡池风格一致 */
 .pool-char {
   position: absolute;
-  right: -10px;
-  bottom: 0;
-  height: 120%;
-  max-height: 320px;
-  object-fit: contain;
-  object-position: bottom right;
+  right: 10px;
+  top: 8px;
+  height: 66px;
+  max-width: 112px;
   z-index: 3;
-  filter: drop-shadow(-4px 0 12px rgba(0,0,0,.4));
+  object-fit: contain;
+  object-position: right top;
   pointer-events: none;
+  filter: drop-shadow(-2px 2px 4px rgba(80,120,150,.22));
+  border-radius: 6px;
 }
 
 /* 背景图片 */
@@ -205,9 +211,9 @@ h1 {
   line-height: 1.3;
   text-shadow: 0 2px 8px rgba(0,0,0,.5);
   margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-all;
   max-width: 285px;
 }
 

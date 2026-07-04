@@ -320,10 +320,12 @@ export class xhh_gacha_pool extends plugin {
   }
 
   async renderPoolImage(e, data) {
-    const mark = this.gameMarkIcon(data?.game);
-    if (mark) {
-      data.markIcon = mark;
-      data.markWide = data.game === '原神' || data.game === '崩坏3';
+    if (!data.markIcon) {
+      const mark = this.gameMarkIcon(data?.game);
+      if (mark) {
+        data.markIcon = mark;
+        data.markWide = data.game === '原神' || data.game === '崩坏3';
+      }
     }
     return render('gacha_pool/pool', data, { e, ret: true });
   }
@@ -553,16 +555,34 @@ export class xhh_gacha_pool extends plugin {
     // 先尝试从米游社公告获取当前UP信息（含封面图）
     const { records } = await officialPool.fetch('zzz');
     if (records.length) {
-      const cards = records.slice(0, 4).map(r => this.officialCard(r, '绝区零'));
+      const cards = records.slice(0, 4).map((r, i) => {
+        const card = this.officialCard(r, '绝区零');
+        card.index = i + 1;
+        card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
+        return card;
+      });
       const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
-      const localMark = this.getLocalZzzMarkIcon();
+      let markIcon = firstCover || ZZZ_MARK_ICON;
+      let markWide = !!firstCover;
+      for (const r of records) {
+        const names = [];
+        if (Array.isArray(r.up?.s)) names.push(...r.up.s);
+        const re = /[「『]([^」』]+)[」』]/g;
+        let m; while ((m = re.exec(r.title || ''))) names.push(m[1]);
+        if (r.contentText) { re.lastIndex = 0; let cm; while ((cm = re.exec(r.contentText))) names.push(cm[1]); }
+        for (const name of names) {
+          const splash = this.getZzzCharacterSplash(name);
+          if (splash) { markIcon = splash; markWide = true; break; }
+        }
+        if (markIcon !== firstCover && markIcon !== ZZZ_MARK_ICON) break;
+      }
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '绝区零当前卡池',
         subtitle: `数据来源：米游社公告 · v${CURRENT_VERSION.zzz}`,
         mode: 'zzz',
-        markIcon: firstCover || localMark || ZZZ_MARK_ICON,
-        markWide: false,
+        markIcon,
+        markWide,
         cards
       });
     }
@@ -580,6 +600,7 @@ export class xhh_gacha_pool extends plugin {
       if (!latest.length) return e.reply('当前没有匹配到正在开放的绝区零活动卡池。');
       const latestStage = latest[0]?.version ? `；数据源最新收录：${latest[0].version}` : '';
       const localMark = this.getLocalZzzMarkIcon();
+      let cards = latest.map((p, i) => { const c = this.poolToCard(p); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
       return this.renderPoolImage(e, {
         game: '绝区零',
         title: '最新收录卡池',
@@ -593,13 +614,14 @@ export class xhh_gacha_pool extends plugin {
     const { end } = this.parseTime(sample);
     const days = end ? Math.max(Math.ceil((end.getTime() - now.getTime()) / 86400000), 0) : '?';
     const localMark = this.getLocalZzzMarkIcon();
+    let cards = pools.map((p, i) => { const c = this.poolToCard(p); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
     return this.renderPoolImage(e, {
       game: '绝区零',
       title: '本期卡池',
       subtitle: `v${sample.version} · ${this.zzzPoolTime(sample)} · 剩余约${days}天`,
       mode: 'zzz',
       markIcon: localMark || ZZZ_MARK_ICON,
-      cards: pools.map(p => this.poolToCard(p))
+      cards
     });
   }
 
@@ -615,13 +637,14 @@ export class xhh_gacha_pool extends plugin {
       return e.reply(`绝区零当前版本已标记为 ${CURRENT_VERSION.zzz}，但卡池数据源还没有收录 ${CURRENT_VERSION.zzz}${phase || ''} 的具体UP信息。`);
     }
     if (!pools.length) return e.reply(`未查询到绝区零 ${version}${phase || ''} 卡池数据。`);
+    const cards = pools.map((p, i) => { const c = this.poolToCard(p); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
     return this.renderPoolImage(e, {
       game: '绝区零',
       title: `v${phase ? pools[0].version : version} 卡池`,
       subtitle: phase ? this.zzzPoolTime(pools[0]) : '历史版本卡池记录',
       mode: 'zzz',
       markIcon: ZZZ_MARK_ICON,
-      cards: pools.map(p => this.poolToCard(p))
+      cards
     });
   }
 
@@ -941,12 +964,41 @@ export class xhh_gacha_pool extends plugin {
     logger.mark('[xhh][gacha_pool] 命中星铁当前卡池:', e.msg);
     const { records, error, cache } = await officialPool.fetch('sr');
     if (records.length) {
+      const cards = records.slice(0, 6).map((r, i) => {
+        const card = this.officialCard(r, '星穹铁道');
+        card.index = i + 1;
+        card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
+        return card;
+      });
+      let ver = records.find(r => r.version && r.version !== '-')?.version;
+      if (!ver) {
+        const srData = this.loadSrPoolHistory();
+        if (Array.isArray(srData) && srData.length) ver = srData[0]?.ver || '';
+      }
+      if (ver) cards.forEach(c => { if (!c.version || c.version === '-') { c.version = ver; c.versionTag = `#${c.index} ${ver}`; } });
+      const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+      let markIcon = firstCover || SR_MARK_ICON;
+      let markWide = !!firstCover;
+      for (const r of records) {
+        const names = [];
+        if (Array.isArray(r.up?.s)) names.push(...r.up.s);
+        const re = /[「『]([^」』]+)[」』]/g;
+        let m; while ((m = re.exec(r.title || ''))) names.push(m[1]);
+        if (r.contentText) { re.lastIndex = 0; let cm; while ((cm = re.exec(r.contentText))) names.push(cm[1]); }
+        for (const name of names) {
+          const splash = this.getSrCharacterSplash(name);
+          if (splash) { markIcon = splash; markWide = true; break; }
+        }
+        if (markIcon !== firstCover && markIcon !== SR_MARK_ICON) break;
+      }
       return this.renderPoolImage(e, {
         game: '星穹铁道',
         title: '星铁当前卡池',
         subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
         mode: 'sr',
-        cards: records.slice(0, 6).map(r => this.officialCard(r, '星穹铁道'))
+        markIcon,
+        markWide,
+        cards
       });
     }
     const srData = this.loadSrPoolHistory();
@@ -968,12 +1020,36 @@ export class xhh_gacha_pool extends plugin {
     const { records, error, cache } = await officialPool.fetch('sr', { version });
     if (records.length) {
       const filtered = phase ? records.filter(r => (r.title || '').includes(phase) || (r.version || '').includes(phase)) : records;
+      const cards = (filtered.length ? filtered : records).map((r, i) => {
+        const card = this.officialCard(r, '星穹铁道');
+        card.index = i + 1;
+        const ver = card.version && card.version !== '-' ? ' ' + card.version : '';
+        card.versionTag = `#${card.index}${ver}`;
+        return card;
+      });
+      const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+      let markIcon = firstCover || SR_MARK_ICON;
+      let markWide = !!firstCover;
+      for (const r of records) {
+        const names = [];
+        if (Array.isArray(r.up?.s)) names.push(...r.up.s);
+        const re = /[「『]([^」』]+)[」』]/g;
+        let m; while ((m = re.exec(r.title || ''))) names.push(m[1]);
+        if (r.contentText) { re.lastIndex = 0; let cm; while ((cm = re.exec(r.contentText))) names.push(cm[1]); }
+        for (const name of names) {
+          const splash = this.getSrCharacterSplash(name);
+          if (splash) { markIcon = splash; markWide = true; break; }
+        }
+        if (markIcon !== firstCover && markIcon !== SR_MARK_ICON) break;
+      }
       return this.renderPoolImage(e, {
         game: '星穹铁道',
         title: `星铁 v${version}${phase || ''} 卡池`,
         subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
         mode: 'sr',
-        cards: (filtered.length ? filtered : records).map(r => this.officialCard(r, '星穹铁道'))
+        markIcon,
+        markWide,
+        cards
       });
     }
     const srData = this.loadSrPoolHistory();
@@ -1198,6 +1274,10 @@ export class xhh_gacha_pool extends plugin {
     if (!records.length) {
       const localCards = await this.loadGsLocalCards('current');
       if (localCards.length) {
+        localCards.forEach((card, i) => {
+          card.index = i + 1;
+          card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
+        });
         return this.renderPoolImage(e, {
           game: '原神',
           title: '原神当前卡池',
@@ -1210,15 +1290,48 @@ export class xhh_gacha_pool extends plugin {
       }
       return e.reply(`原神米游社公告卡池数据获取失败${error ? '：' + error : ''}`);
     }
-    const cards = records.slice(0, 4).map(r => this.officialCard(r, '原神'));
+    const cards = records.slice(0, 4).map((r, i) => {
+      const card = this.officialCard(r, '原神');
+      card.index = i + 1;
+      card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
+      return card;
+    });
+    let verFromApi = records.find(r => r.version && r.version !== '-')?.version;
+    if (!verFromApi) {
+      const localCards = await this.loadGsLocalCards('current');
+      verFromApi = localCards.find(c => c.version && c.version !== '-')?.version || '';
+    }
+    if (verFromApi) {
+      cards.forEach(c => {
+        if (!c.version || c.version === '-') { c.version = verFromApi; c.versionTag = `#${c.index} ${verFromApi}`; }
+      });
+    }
     const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+    let markIcon = firstCover || GS_MARK_ICON;
+    let markWide = !!firstCover;
+    for (const r of records) {
+      const names = [];
+      if (Array.isArray(r.up?.s)) names.push(...r.up.s);
+      const re = /[「『]([^」』]+)[」』]/g;
+      let m;
+      while ((m = re.exec(r.title || ''))) names.push(m[1]);
+      if (r.contentText) {
+        re.lastIndex = 0;
+        let cm; while ((cm = re.exec(r.contentText))) names.push(cm[1]);
+      }
+      for (const name of names) {
+        const splash = this.getGsCharacterSplash(name);
+        if (splash) { markIcon = splash; markWide = true; break; }
+      }
+      if (markIcon !== firstCover && markIcon !== GS_MARK_ICON) break;
+    }
     return this.renderPoolImage(e, {
       game: '原神',
       title: '原神当前卡池',
       subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
       mode: 'gs',
-      markIcon: firstCover || GS_MARK_ICON,
-      markWide: !!firstCover,
+      markIcon,
+      markWide,
       cards
     });
   }
@@ -1232,6 +1345,10 @@ export class xhh_gacha_pool extends plugin {
     if (!records.length) {
       const localCards = await this.loadGsLocalCards(`${version}${phase || ''}`);
       if (localCards.length) {
+        localCards.forEach((card, i) => {
+          card.index = i + 1;
+          card.versionTag = `#${card.index}${card.version && card.version !== '-' ? ' ' + card.version : ''}`;
+        });
         return this.renderPoolImage(e, {
           game: '原神',
           title: `原神 v${version}${phase || ''} 卡池`,
@@ -1244,15 +1361,39 @@ export class xhh_gacha_pool extends plugin {
       }
       return e.reply(`原神 v${version} 未找到米游社官方卡池公告${error ? '：' + error : ''}`);
     }
-    const cards = records.map(r => this.officialCard(r, '原神'));
+    const cards = records.map((r, i) => {
+      const card = this.officialCard(r, '原神');
+      card.index = i + 1;
+      const ver = card.version && card.version !== '-' ? ' ' + card.version : '';
+      card.versionTag = `#${card.index}${ver}`;
+      return card;
+    });
     const firstCover = records[0]?.cover || records[0]?.images?.[0] || '';
+    let markIcon = firstCover || GS_MARK_ICON;
+    let markWide = !!firstCover;
+    for (const r of records) {
+      const names = [];
+      if (Array.isArray(r.up?.s)) names.push(...r.up.s);
+      const re = /[「『]([^」』]+)[」』]/g;
+      let m;
+      while ((m = re.exec(r.title || ''))) names.push(m[1]);
+      if (r.contentText) {
+        re.lastIndex = 0;
+        let cm; while ((cm = re.exec(r.contentText))) names.push(cm[1]);
+      }
+      for (const name of names) {
+        const splash = this.getGsCharacterSplash(name);
+        if (splash) { markIcon = splash; markWide = true; break; }
+      }
+      if (markIcon !== firstCover && markIcon !== GS_MARK_ICON) break;
+    }
     return this.renderPoolImage(e, {
       game: '原神',
       title: `原神 v${version}${phase || ''} 官方卡池`,
       subtitle: `数据来源：米游社公告${cache ? '（缓存）' : ''}`,
       mode: 'gs',
-      markIcon: firstCover || GS_MARK_ICON,
-      markWide: !!firstCover,
+      markIcon,
+      markWide,
       cards
     });
   }
@@ -1305,6 +1446,34 @@ export class xhh_gacha_pool extends plugin {
       }
     } catch (_) {}
     return query;
+  }
+
+  getGsCharacterSplash(name = '') {
+    const raw = String(name || '').trim();
+    if (!raw) return '';
+    const candidates = [raw];
+    // 去掉 (元素) 后缀
+    const noElem = raw.replace(/[（(][^）)]*[）)]/g, '').trim();
+    if (noElem !== raw) candidates.push(noElem);
+    // 去掉 ·前的称号前缀（如 "镜水析谬·桑多涅" → "桑多涅"）
+    const afterDot = noElem.split('·').pop().trim();
+    if (afterDot && afterDot !== noElem) candidates.push(afterDot);
+    const afterHdot = noElem.split('•').pop().trim();
+    if (afterHdot && afterHdot !== noElem && afterHdot !== afterDot) candidates.push(afterHdot);
+    for (const n of candidates) {
+      for (const ext of ['.webp', '.png', '.jpg']) {
+        const p = `./plugins/xhh/resources/gslogs/imgs/${n}${ext}`;
+        if (fs.existsSync(p)) return fs.realpathSync(p);
+      }
+      const profile = this.getMiaoProfileImage(n);
+      if (profile) return profile;
+      const metaBase = `./plugins/miao-plugin/resources/meta-gs/character/${n}/imgs`;
+      for (const file of ['splash.webp', 'gacha.webp', 'face.webp', 'face-q.webp', 'face0.webp', 'card.webp', 'side.webp']) {
+        const path = `${metaBase}/${file}`;
+        if (fs.existsSync(path)) return fs.realpathSync(path);
+      }
+    }
+    return '';
   }
 
   getGsCharacterIcon(name = '') {
@@ -1432,13 +1601,21 @@ export class xhh_gacha_pool extends plugin {
     // 崩三米游社公告接口近期不稳定，这里优先用本地补给记录，避免因为官方接口异常导致整条命令失败。
     const local = await this.loadBh3CurrentPools();
     if (local.length) {
+      local.forEach((c, i) => { c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; });
+      let markIcon = BH3_MARK_ICON;
+      let markWide = true;
+      const ch = local.find(c => c.s && c.s !== '-');
+      if (ch) {
+        const splash = await this.getBh3CharacterSplash(ch.s);
+        if (splash) { markIcon = splash; }
+      }
       return this.renderPoolImage(e, {
         game: '崩坏3',
         title: '崩坏3当前卡池',
         subtitle: `v${CURRENT_VERSION.bh3} · 本地补给记录`,
         mode: 'bh3',
-        markIcon: BH3_MARK_ICON,
-        markWide: true,
+        markIcon,
+        markWide,
         cards: local
       });
     }
@@ -1450,6 +1627,9 @@ export class xhh_gacha_pool extends plugin {
     if (!authkey) return e.reply(`UID${auth.uid} 获取崩三 authkey 失败，请检查 stoken 是否有效。`);
     const menus = await tool.getMenus(auth.uid, authkey);
     if (!menus.length) return e.reply(`UID${auth.uid} 暂未获取到可用补给菜单。`);
+    const menuCards = menus.map((m, i) => ({
+      version: String(i + 1), title: m.label, type: '', time: '', s: m.label, a: '', weapon: false, index: i + 1, versionTag: `#${i + 1} ${String(i + 1)}`
+    }));
     return this.renderPoolImage(e, {
       game: '崩坏3',
       title: '当前可查询补给',
@@ -1457,15 +1637,7 @@ export class xhh_gacha_pool extends plugin {
       mode: 'bh3',
       markIcon: BH3_MARK_ICON,
       markWide: true,
-      cards: menus.map((m, i) => ({
-        version: String(i + 1),
-        title: m.label,
-        type: '',
-        time: '',
-        s: m.label,
-        a: '',
-        weapon: false
-      })),
+      cards: menuCards,
       note: '提示：这是官方自助查询返回的补给菜单，不是完整历史卡池。'
     });
   }
@@ -1545,6 +1717,12 @@ export class xhh_gacha_pool extends plugin {
     const pools = versionPools.flatMap(v => v.pools.map(p => ({ ...p, version: v.version, phase: v.phase, start: v.start, end: v.end })));
     let markIcon = BH3_MARK_ICON;
     let markWide = true;
+    const ch = pools.find(p => p.s && p.s !== '-');
+    if (ch) {
+      const splash = await this.getBh3CharacterSplash(ch.s);
+      if (splash) { markIcon = splash; }
+    }
+    const cards = pools.map((p, i) => { const c = this.bh3PoolToCard(p, version, phase); c.index = i + 1; c.versionTag = `#${c.index} ${c.version || '-'}`; return c; });
     return this.renderPoolImage(e, {
       game: '崩坏3',
       title: `v${phase ? `${version}${phase}` : version} 补给记录`,
@@ -1552,7 +1730,7 @@ export class xhh_gacha_pool extends plugin {
       mode: 'bh3',
       markIcon,
       markWide,
-      cards: pools.map(p => this.bh3PoolToCard(p, version, phase))
+      cards
     });
   }
 
