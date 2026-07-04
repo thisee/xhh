@@ -130,3 +130,42 @@ body {
 }
 .hero-copy { width: 500px; }
 .summary,.sub-info-text,.skill-card p,.advance-item p { text-shadow: 0 1px 3px rgba(0,0,0,.42); }
+
+.wiki-footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin-top: 18px;
+  padding: 6px 0 2px;
+  text-align: center;
+  color: #e6796d;
+  font-size: 15px;
+  letter-spacing: .5px;
+  text-shadow: 0 1px 2px rgba(255,255,255,.65), 0 2px 6px rgba(0,0,0,.25);
+}
+/* 避免右侧角色立绘压住长名字/简介文字 */
+.hero-card { isolation: isolate; }
+.hero-copy { position: relative; z-index: 4; width: 560px; }
+.portrait-wrap {
+  right: -18px;
+  bottom: -18px;
+  width: 360px;
+  height: 470px;
+  z-index: 1;
+  pointer-events: none;
+}
+.portrait-backdrop { width: 280px; height: 280px; bottom: 70px; opacity: .78; }
+.portrait {
+  width: 340px;
+  height: 450px;
+  object-fit: contain;
+  object-position: right bottom;
+  opacity: .86;
+}
+.summary {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 14px;
+  background: rgba(7, 12, 28, .28);
+  backdrop-filter: blur(2px);
+}
