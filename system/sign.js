@@ -26,6 +26,45 @@ function getStokenEntry(qq, uid) {
     }
 }
 
+function getStokenData(qq) {
+    const path = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+    if (!fs.existsSync(path)) return {};
+    try {
+        return yaml.get(path) || {};
+    } catch (_) {
+        return {};
+    }
+}
+
+function isBh3Region(region = '') {
+    return ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'].includes(String(region || ''));
+}
+
+async function hasXhhBh3Stoken(qq) {
+    const data = getStokenData(qq);
+    return Object.values(data).some(entry => entry?.stuid && entry?.stoken && isBh3Region(entry?.region));
+}
+
+async function getBh3SignTargets(e) {
+    const qq = e.user_id;
+    const data = getStokenData(qq);
+    const selectedUid = await redis.get(`xhh:bh3_uid:${qq}`);
+    const selectedRegion = selectedUid ? await redis.get(`xhh:bh3_region:${qq}`) : null;
+    const targets = [];
+    const add = async (uid, entry = {}) => {
+        if (!uid || !entry?.stuid || !entry?.stoken) return;
+        if (!isBh3Region(entry.region || selectedRegion)) return;
+        if (targets.some(v => String(v.uid) === String(uid))) return;
+        const rawCk = entry.ck_stoken || `stuid=${entry.stuid};stoken=${entry.stoken};${entry.mid ? `mid=${entry.mid};` : ''}`;
+        const ck = await ensureCookieToken(e, rawCk, entry);
+        targets.push({ uid: String(uid), ck, server: entry.region || selectedRegion || 'android01' });
+    };
+
+    if (selectedUid && data[selectedUid]) await add(selectedUid, data[selectedUid]);
+    for (const [uid, entry] of Object.entries(data)) await add(uid, entry);
+    return targets;
+}
+
 async function ensureCookieToken(e, ck, entry = null) {
     if (!ck || /(?:^|;\s*)cookie_token=/.test(ck)) return ck;
     const stuid = entry?.stuid || cookiePart(ck, 'stuid') || cookiePart(ck, 'ltuid');
@@ -59,26 +98,35 @@ async function getSignCookieAndServer(e, game, uid, ck) {
 }
 
 async function MysSign(e, games) {
+    const hasBh3Xhh = games.includes('bh3') && await hasXhhBh3Stoken(e.user_id);
     if (
         !e.user.getMysUser() &&
         !e.user.getMysUser('sr') &&
         !e.user.getMysUser('zzz') &&
-        !e.user.getMysUser('bh3')
+        !e.user.getMysUser('bh3') &&
+        !hasBh3Xhh
     )
         return e.reply('未绑定米游社ck,请发送[扫码绑定]', true);
     let msgs = [];
     let bj = 1;
     for (let game of games) {
-        const mys = e.user.getMysUser(game);
-        if (!mys) continue;
+        const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : game == 'zzz' ? '绝区零' : '崩坏3';
+        let targets = [];
+        if (game === 'bh3') {
+            targets = await getBh3SignTargets(e);
+        }
+        if (!targets.length) {
+            const mys = e.user.getMysUser(game);
+            if (!mys) continue;
             const ck = mys.ck;
-            const uids = mys.uids;
-            const game_name = game == 'gs' ? '原神' : game == 'sr' ? '星铁' : game == 'zzz' ? '绝区零' : '崩坏3';
-            if (!Array.isArray(uids?.[game])) continue;
-            for (let i = 0; i < uids[game].length; i++) {
-                const uid = uids[game][i];
+            const uids = Array.isArray(mys.uids?.[game]) ? mys.uids[game] : [];
+            targets = uids.map(uid => ({ uid, ck, server: null }));
+        }
+        if (!targets.length) continue;
+            for (let i = 0; i < targets.length; i++) {
+                const { uid, ck, server } = targets[i];
                 if (i > 0) await sleep(1000);
-                const signOpt = await getSignCookieAndServer(e, game, uid, ck);
+                const signOpt = game === 'bh3' && server ? { ck, server } : await getSignCookieAndServer(e, game, uid, ck);
                 let headers = mhy.getHeaders(e, signOpt.ck);
                 const Ds = mhy.getDsSign();
                 headers.DS = Ds;
@@ -115,13 +163,14 @@ async function MysSign(e, games) {
                 const day = res.data.total_sign_day;
                 const rew = await reward(e, data);
                 if (res.data.is_sign == true) {
+                    const award = rew[day - 1] || {};
                     msgs.push({
                         game: game_name,
                         uid: uid,
-                        icon: rew[day - 1].icon,
+                        icon: award.icon,
                         tip: '今日已签',
                         day: day,
-                        cnt: rew[day - 1].cnt,
+                        cnt: award.cnt || '',
                     });
                     if (bj) {
                         add(e);
@@ -134,13 +183,14 @@ async function MysSign(e, games) {
                     const sign_res = await api(e, data);
                     //签到成功
                     if (sign_res.retcode == 0) {
+                        const award = rew[day] || {};
                         msgs.push({
                             game: game_name,
                             uid: uid,
-                            icon: rew[day].icon,
+                            icon: award.icon,
                             tip: '签到成功',
                             day: day + 1,
-                            cnt: rew[day].cnt,
+                            cnt: award.cnt || '',
                         });
                         if (bj) {
                             add(e);
@@ -337,6 +387,7 @@ async function reward(e, data) {
     if (rew) return JSON.parse(rew);
     data.type = 'sign_home';
     const res = await api(e, data);
+    if (!Array.isArray(res?.data?.awards)) return [];
     const time = getSecondsToMidnight();
     await redis.set(`xhh:sign:${data.game}`, JSON.stringify(res.data.awards), {
         EX: time,
