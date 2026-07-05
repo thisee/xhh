@@ -155,6 +155,32 @@ export const supportGuoba = () => ({
         component: 'InputTextArea',
       },
       {
+        field: 'manual_gt_enable',
+        label: '签到手动验证码',
+        helpMessage: '游戏签到遇验证码时生成手动验证网页，完成后自动重试',
+        component: 'Switch',
+      },
+      {
+        field: 'manual_gt_public_url',
+        label: '手动验证公网地址',
+        helpMessage: '例如 http://你的域名:3000；群友需要能访问，留空则用127.0.0.1仅本机可用',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'manual_gt_port',
+        label: '手动验证端口',
+        helpMessage: '默认3000，修改后需重启Bot',
+        component: 'InputNumber',
+        componentProps: { min: 1, max: 65535, step: 1 },
+      },
+      {
+        field: 'manual_gt_timeout',
+        label: '手动验证超时秒',
+        helpMessage: '默认120秒',
+        component: 'InputNumber',
+        componentProps: { min: 30, max: 600, step: 10 },
+      },
+      {
         component: 'Divider',
         label: '米游社',
       },
@@ -486,6 +512,10 @@ export const supportGuoba = () => ({
         sbai: !!sign.sbai,
         sign_group: (sign.sign_group || []).join(','),
         bbs_sign_group: (sign.bbs_sign_group || []).join(','),
+        manual_gt_enable: cfg.manual_gt_enable !== false,
+        manual_gt_public_url: cfg.manual_gt_public_url || '',
+        manual_gt_port: cfg.manual_gt_port ?? 3000,
+        manual_gt_timeout: cfg.manual_gt_timeout ?? 120,
         groups: (Array.isArray(cfg.groups) ? cfg.groups : []).join(','),
         forwardMsg: other.forwardMsg !== false,
         bh3: !!other.bh3,
@@ -552,6 +582,7 @@ export const supportGuoba = () => ({
         debug: data.debug,
         bh3_remind_enable: data.bh3_remind_enable,
         bh3_all_note_enable: data.bh3_all_note_enable,
+        manual_gt_enable: data.manual_gt_enable,
         forwardMsg: data.forwardMsg,
         bh3: data.bh3,
         by: data.by,
@@ -572,12 +603,15 @@ export const supportGuoba = () => ({
         qn: data.qn,
         dow_size: data.dow_size,
         b_img_num: data.b_img_num,
+        manual_gt_port: data.manual_gt_port,
+        manual_gt_timeout: data.manual_gt_timeout,
       }
       for (const [k, v] of Object.entries(numMap)) {
         if (v != null) yaml.set(_path + 'config.yaml', k, Number(v))
       }
 
       if (data.gacha_art_source) yaml.set(_path + 'config.yaml', 'gacha_art_source', data.gacha_art_source === 'official' ? 'official' : 'custom')
+      yaml.set(_path + 'config.yaml', 'manual_gt_public_url', String(data.manual_gt_public_url || '').trim())
 
       yaml.set(_path + 'sign.yaml', 'zd_sign', Number(data.zd_sign) ?? 0)
       yaml.set(_path + 'sign.yaml', 'sbai', !!data.sbai)

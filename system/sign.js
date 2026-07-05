@@ -10,6 +10,7 @@ import {
     config
 } from '#xhh';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
+import { manualGeetest } from './manual_geetest.js';
 
 
 function cookiePart(ck = '', key) {
@@ -181,7 +182,20 @@ async function MysSign(e, games) {
                     //未签到,开始签到
                     logger.mark(`[${game_name}签到]QQ: ${e.user_id},UID: ${uid}`);
                     data.type = 'sign';
-                    const sign_res = await api(e, data);
+                    data.manual_captcha = true;
+                    let sign_res = await api(e, data);
+                    if ([1034, 10035].includes(Number(sign_res?.retcode)) && sign_res?.data?.gt) {
+                        const validate = await manualGeetest(e, { ...sign_res.data, uid }, `${game_name} UID:${uid} 签到`);
+                        if (validate?.validate) {
+                            const retryHeaders = {
+                                ...headers,
+                                'x-rpc-challenge': validate.challenge,
+                                'x-rpc-validate': validate.validate,
+                                'x-rpc-seccode': validate.seccode || `${validate.validate}|jordan`,
+                            };
+                            sign_res = await api(e, { ...data, headers: retryHeaders, manual_captcha: false });
+                        }
+                    }
                     //签到成功
                     if (sign_res.retcode == 0) {
                         const award = rew[day] || {};
@@ -204,6 +218,18 @@ async function MysSign(e, games) {
                             game: game_name,
                             uid: uid,
                             tip: sign_res,
+                        });
+                    } else if ([1034, 10035].includes(Number(sign_res?.retcode))) {
+                        msgs.push({
+                            game: game_name,
+                            uid: uid,
+                            tip: '签到遇到验证码，手动验证未完成或验证失败',
+                        });
+                    } else if (sign_res?.message) {
+                        msgs.push({
+                            game: game_name,
+                            uid: uid,
+                            tip: sign_res.message,
                         });
                     }
                 }

@@ -97,6 +97,13 @@ hbxx: false
 
 #http://ttocr.com/
 Verification_API_KEY: ''
+# 米游社签到手动验证码服务
+manual_gt_enable: true
+manual_gt_host: 0.0.0.0
+manual_gt_port: 3000
+manual_gt_public_url: ''
+manual_gt_path: /xhh-gt
+manual_gt_timeout: 120
 
 #卡池立绘来源：custom 使用本地/插件额外图，official 使用官方资源优先
 gacha_art_source: custom

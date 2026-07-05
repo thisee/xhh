@@ -250,6 +250,7 @@ async function api(e, data = {}) {
         logger.error(error);
     }
     const sign = data.type.includes('sign');
+    if (sign && data.manual_captcha && [1034, 10035].includes(Number(res?.retcode))) return res;
     const _err = sign ?
         api_err(e, res, false, data.type, data.silent) :
         api_err(e, res, data.uid, data.type, data.silent);
