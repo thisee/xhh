@@ -2,6 +2,11 @@
 # groups 填需要提醒的群号；也可以在群里发送 #小花火开启崩三提醒 自动加入
 enable: false
 groups: []
+# 提醒艾特模式：none=不艾特，all=艾特全体，users=艾特指定QQ
+at_mode: none
+at_users: []
+# 提醒附带图片，支持网络图片URL或本地图片路径，留空不发送图片
+image: ''
 # 默认按国服常见刷新时间提醒，可在锅巴或本文件里关闭/调整
 items:
   - key: abyss_start
@@ -13,7 +18,7 @@ items:
     name: 深渊结算
     cron: '0 22 * * 3,7'
     advance_minutes: 30
-    msg: '深渊将在 {time} 结算，提前 {advance} 分钟提醒：没打完记得检查一下。'
+    msg: '崩三深渊速报：深渊将在 {time} 结算，提前 {advance} 分钟提醒：没打完记得检查一下。'
   - key: battlefield_start
     name: 记忆战场开始
     cron: '0 4 * * 2'

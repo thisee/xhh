@@ -1,4 +1,5 @@
 import { yaml, pluginPriority } from '#xhh';
+import { segment } from 'oicq';
 import { getAnyCurrentAbyssText } from '../system/bh3_abyss_boss.js';
 
 const _path = './plugins/xhh/config/';
@@ -10,6 +11,33 @@ function getRemindConfig() {
 
 function normalizeGroups(groups = []) {
   return [...new Set((groups || []).map(v => String(v).trim()).filter(Boolean))];
+}
+
+function normalizeList(value = []) {
+  if (Array.isArray(value)) return [...new Set(value.map(v => String(v).trim()).filter(Boolean))];
+  return [...new Set(String(value || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean))];
+}
+
+function getItemValue(cfg, item, key, fallback) {
+  return item?.[key] ?? cfg?.[key] ?? fallback;
+}
+
+function buildPushMessage(cfg, item, text) {
+  const msg = [];
+  const atMode = String(getItemValue(cfg, item, 'at_mode', 'none') || 'none').toLowerCase();
+  const atUsers = normalizeList(getItemValue(cfg, item, 'at_users', []));
+  const image = String(getItemValue(cfg, item, 'image', '') || '').trim();
+
+  if (atMode === 'all') {
+    msg.push(segment.at('all'), '\n');
+  } else if (atMode === 'users' || atMode === 'user') {
+    for (const qq of atUsers) msg.push(segment.at(qq));
+    if (atUsers.length) msg.push('\n');
+  }
+
+  msg.push(text);
+  if (image) msg.push('\n', segment.image(image));
+  return msg.length === 1 ? text : msg;
 }
 
 function cronValues(field, min, max) {
@@ -177,7 +205,8 @@ export class bh3_remind extends plugin {
     const cfg = getRemindConfig();
     const groups = normalizeGroups(cfg.groups);
     if (!groups.length) return e.reply('崩三提醒测试失败：提醒群为空，请先在锅巴填写群号或在群内发送 #小花火开启崩三提醒');
-    const msg = `【小花火崩三提醒测试】\n如果你看到了这条消息，说明提醒群配置和 Bot 发群消息正常。\n当前配置群：${groups.join('、')}`;
+    const text = `【小花火崩三提醒测试】\n如果你看到了这条消息，说明提醒群配置和 Bot 发群消息正常。\n当前配置群：${groups.join('、')}`;
+    const msg = buildPushMessage(cfg, { key: 'test' }, text);
     const results = [];
     for (const groupId of groups) {
       try {
@@ -205,15 +234,16 @@ export class bh3_remind extends plugin {
       if (await redis.get(dedupKey)) continue;
       logger.mark(`[bh3_remind] 触发提醒 ${item.key || item.name} push=${fmtTime(due.pushTime)} event=${fmtTime(due.eventTime)} groups=${groups.join(',')}`);
 
-      let msg = String(item.msg)
+      let text = String(item.msg)
         .replace(/\{time\}/g, `${String(due.eventTime.getHours()).padStart(2, '0')}:${String(due.eventTime.getMinutes()).padStart(2, '0')}`)
         .replace(/\{advance\}/g, String(item.advance_minutes || 0));
       if (item.key === 'abyss_start') {
         const abyssText = await getAnyCurrentAbyssText(true);
-        msg += abyssText
+        text += abyssText
           ? `\n\n${abyssText}\n\n发送 #崩三深渊攻略 查看详细作业图。`
           : '\n\n发送 #崩三当前深渊 可快速查询当期 Boss，发送 #崩三深渊攻略 查看作业图。';
       }
+      const msg = buildPushMessage(cfg, item, text);
 
       for (const groupId of groups) {
         try {

@@ -318,6 +318,31 @@ export const supportGuoba = () => ({
         component: 'InputTextArea',
       },
       {
+        field: 'bh3_remind_at_mode',
+        label: '崩三提醒艾特',
+        helpMessage: '控制深渊/战场/乐土提醒是否艾特全体或指定成员',
+        component: 'Select',
+        componentProps: {
+          options: [
+            { label: '不艾特', value: 'none' },
+            { label: '艾特全体', value: 'all' },
+            { label: '艾特指定QQ', value: 'users' },
+          ],
+        },
+      },
+      {
+        field: 'bh3_remind_at_users',
+        label: '崩三提醒指定QQ',
+        helpMessage: '艾特指定QQ时生效，多个QQ用英文逗号/换行分隔',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'bh3_remind_image',
+        label: '崩三提醒附图',
+        helpMessage: '支持网络图片URL或本地图片路径，留空则不发送图片',
+        component: 'InputTextArea',
+      },
+      {
         component: 'Divider',
         label: '插件优先级（修改后需重启Bot）',
       },
@@ -500,6 +525,9 @@ export const supportGuoba = () => ({
         bh3_all_note_enable: !!cfg.bh3_all_note_enable,
         bh3_all_note_groups: (cfg.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean).join(','),
         bh3_remind_groups: (bh3Remind.groups || []).join(','),
+        bh3_remind_at_mode: bh3Remind.at_mode || 'none',
+        bh3_remind_at_users: (bh3Remind.at_users || []).join(','),
+        bh3_remind_image: bh3Remind.image || '',
       }
     },
     setConfigData(data, { Result }) {
@@ -567,6 +595,10 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'config.yaml', 'bh3_all_note_enable', !!data.bh3_all_note_enable)
       const groups = String(data.bh3_remind_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
       yaml.set(_path + 'bh3_remind.yaml', 'groups', groups)
+      yaml.set(_path + 'bh3_remind.yaml', 'at_mode', ['all', 'users', 'none'].includes(data.bh3_remind_at_mode) ? data.bh3_remind_at_mode : 'none')
+      const remindAtUsers = String(data.bh3_remind_at_users || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
+      yaml.set(_path + 'bh3_remind.yaml', 'at_users', remindAtUsers)
+      yaml.set(_path + 'bh3_remind.yaml', 'image', String(data.bh3_remind_image || '').trim())
       const allNoteGroups = String(data.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
       yaml.set(_path + 'bh3_remind.yaml', 'all_note_groups', allNoteGroups)
 
