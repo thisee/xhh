@@ -21,9 +21,71 @@
 
 ## 快速安装
 
+### GitHub 直连安装
+
+在云崽根目录执行：
+
 ```bash
 git clone -b v2 https://github.com/YUYUYUYU2147/xhh.git ./plugins/xhh/
 cd ./plugins/xhh
+pnpm i
+```
+
+### 使用 GitHub 加速前缀安装
+
+如果服务器访问 GitHub 慢或超时，可以在仓库地址前加 GitHub 代理/加速前缀。下面以 `<加速前缀>` 作为占位，请替换成你当前可用的加速地址：
+
+```bash
+git clone -b v2 <加速前缀>https://github.com/YUYUYUYU2147/xhh.git ./plugins/xhh/
+cd ./plugins/xhh
+pnpm i
+```
+
+示例格式：
+
+```bash
+git clone -b v2 https://gh-proxy.com/https://github.com/YUYUYUYU2147/xhh.git ./plugins/xhh/
+```
+
+> 加速服务可能会失效或更换域名；如果 clone 失败，请换一个可用前缀，或改用直连。
+
+### 已安装后的换源
+
+如果已经安装过 xhh，可以进入插件目录修改远程仓库地址：
+
+```bash
+cd ./plugins/xhh
+
+# 查看当前远程仓库
+git remote -v
+
+# 换成 YUYUYUYU2147 维护版 GitHub 源
+git remote set-url origin https://github.com/YUYUYUYU2147/xhh.git
+
+# 如果需要使用加速前缀，也可以这样设置
+git remote set-url origin <加速前缀>https://github.com/YUYUYUYU2147/xhh.git
+
+# 拉取最新代码
+git fetch origin
+```
+
+### 切换到 v2 分支
+
+如果本地已经 clone 了仓库，但不在 `v2` 分支，可以执行：
+
+```bash
+cd ./plugins/xhh
+
+# 拉取远程分支信息
+git fetch origin
+
+# 切换到 v2 分支；如果本地没有 v2，会自动基于 origin/v2 创建
+git checkout -B v2 origin/v2
+
+# 更新到远程最新提交
+git pull origin v2
+
+# 安装/更新依赖
 pnpm i
 ```
 
