@@ -1,157 +1,179 @@
-@font-face {
-  font-family: '粗';
-  src: url('../font/粗.ttf');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: '宋';
-  src: url('../font/宋.ttf');
-  font-weight: normal;
-  font-style: normal;
-}
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  user-select: none;
-  transform-origin: 0 0;
-}
+@font-face { font-family: '主'; src: url('../font/主.ttf'); }
+@font-face { font-family: '宋'; src: url('../font/宋.ttf'); }
+@font-face { font-family: 'RareCJK'; src: url('../font/unifont.otf'); }
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; transform-origin: 0 0; }
 body {
-  font-family: sans-serif;
-  font-size: 18px;
   width: 1020px;
-  color: #d24747;
-  transform: scale(1.5);
+  color: #5f7890;
+  font-family: '宋','RareCJK','Microsoft YaHei',sans-serif;
+  font-size: 18px;
   transform-origin: 0 0;
 }
 .container {
+  position: relative;
   width: 1020px;
-  padding: 20px 15px 10px 15px;
-  background-color: #f5f6fb;
+  padding: 26px 22px 14px;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 88% 4%, rgba(255,154,197,.38), transparent 24%),
+    radial-gradient(circle at 8% 18%, rgba(129,210,255,.42), transparent 24%),
+    linear-gradient(145deg, rgba(248,253,255,.86), rgba(232,246,255,.82)),
+    url('../srlogs/imgs/bg.jpg');
+  background-size: auto, auto, auto, 520px auto;
+  background-position: center top;
+}
+.container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .18;
+  background-image: linear-gradient(rgba(112,171,214,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(112,171,214,.22) 1px, transparent 1px);
+  background-size: 34px 34px;
+  transform: rotate(-4deg) scale(1.18);
+  pointer-events: none;
 }
 .head_box {
-  background: url('./bg.png');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
-  border-bottom-left-radius: 15px;
-  border-top-left-radius: 15px;
-  font-family: '粗';
-  padding: 10px 20px;
   position: relative;
-  box-shadow: 0 5px 10px 0 rgb(0 0 0 / 15%);
+  z-index: 1;
+  min-height: 146px;
+  padding: 28px 34px;
+  overflow: hidden;
+  border-radius: 28px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255,130,179,.92), rgba(113,199,255,.9));
+  box-shadow: 0 18px 40px rgba(88,145,190,.28), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.head_box::before {
+  content: '';
+  position: absolute;
+  right: 24px;
+  top: -8px;
+  width: 178px;
+  height: 168px;
+  background: url('../Tl/imgs/小花火.png') no-repeat right bottom / contain;
+  filter: drop-shadow(0 12px 20px rgba(74, 98, 140, .26));
+  opacity: .96;
+  transform: rotate(3deg);
+}
+.head_box::after {
+  content: '';
+  position: absolute;
+  right: -44px;
+  bottom: -60px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.35), transparent 62%);
 }
 .head_box .id_text {
-  font-size: 26px;
+  position: relative;
+  z-index: 1;
+  font-family: '主','宋';
+  font-size: 48px;
+  line-height: 1.1;
+  text-shadow: 0 5px 18px rgba(71,91,130,.28);
 }
 .head_box .day_text {
-  font-size: 22px;
-}
-.head_box .genshin_logo {
-  position: absolute;
-  top: -1px;
-  right: 15px;
-  width: 97px;
-}
-.base_info {
   position: relative;
-  padding-left: 10px;
+  z-index: 1;
+  display: inline-flex;
+  margin-top: 16px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: #5f7890;
+  font-size: 18px;
+  font-weight: 900;
+  background: rgba(255,255,255,.72);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.72);
 }
-.uid {
-}
-
 .data_box {
-  border-radius: 15px;
-  margin-top: 20px;
-  margin-bottom: 15px;
-  padding: 20px 0px 5px 0px;
-  background: #fff;
-  box-shadow: 0 5px 10px 0 rgb(0 0 0 / 15%);
   position: relative;
+  z-index: 1;
+  margin-top: 24px;
+  padding: 26px 18px 16px;
+  border-radius: 26px;
+  background: rgba(255,255,255,.68);
+  box-shadow: 0 13px 30px rgba(88,145,190,.18), inset 0 1px 0 rgba(255,255,255,.86);
+  border: 1px solid rgba(255,255,255,.72);
+  backdrop-filter: blur(4px);
 }
 .tab_lable {
   position: absolute;
-  top: -10px;
-  left: -8px;
-  background: #8CD4CC;
-  color: #FF0000;
-  font-size: 16px;
-  padding: 3px 10px;
-  border-radius: 15px 15px 15px 15px;
-  box-shadow: 0 3px 5px 0 rgb(0 0 0 / 15%);
-  z-index: 20;
-}
-.data_line {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 14px;
-}
-.data_line_item {
-  width: 100px;
+  top: -13px;
+  left: 20px;
+  min-width: 128px;
+  padding: 7px 18px 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-family: '主','宋';
+  font-size: 19px;
+  letter-spacing: .5px;
+  background: linear-gradient(135deg, #ff91bd, #75cfff);
+  box-shadow: 0 8px 18px rgba(105,161,205,.25);
   text-align: center;
-  /*margin: 0 20px;*/
+  z-index: 2;
 }
-
-.data_box .lable {
-  font-size: 16px;
-  color: #6067BE;
-  line-height: 1;
-  margin-top: 3px;
-}
-
 .list {
-  display: flex;
-  justify-content: flex-start;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
-
-.list .item {
-  width: 480px;
-  display: flex;
-  align-items: center;
-  background: #f1f1f1;
-  padding: 8px 6px 8px 6px;
-  border-radius: 8px;
-  margin: 0 0px 10px 10px;
-}
+.list .item,
 .list .item_ {
-  width: 235px;
+  position: relative;
+  width: auto;
+  min-height: 74px;
   display: flex;
   align-items: center;
-  background: #f1f1f1;
-  padding: 8px 6px 8px 6px;
-  border-radius: 8px;
-  margin: 0 0px 10px 10px;
+  margin: 0;
+  padding: 13px 14px 12px 18px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,.86), rgba(244,252,255,.68));
+  border: 1px solid rgba(156,206,235,.28);
+  box-shadow: 0 8px 18px rgba(88,145,190,.10), inset 0 1px 0 rgba(255,255,255,.9);
 }
-/*.list .item .icon{*/
-/*width: 24px;*/
-/*height: 24px;*/
-/*background-repeat: no-repeat;*/
-/*background-size: 100% 100%;*/
-/*position: relative;*/
-/*flex-shrink: 0;*/
-/*}*/
-.title {
-  font-size: 20px;
-  margin-left: 6px;
-  line-height: 20px;
-  /*text-shadow: 0.5px 0.5px 0.5px #000000;*/
+.list .item::before,
+.list .item_::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(#ff91bd, #75cfff);
 }
+.list .item:nth-child(3n+1)::before { background: linear-gradient(#ffd66b, #ff91bd); }
+.list .item:nth-child(3n+2)::before { background: linear-gradient(#75cfff, #91f0d0); }
+.title { margin-left: 0; line-height: 1.25; min-width: 0; }
 .title .text {
-  font-family: '粗';
+  font-family: '主','宋','RareCJK';
+  color: #507da9;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  word-break: break-word;
 }
 .title .dec {
-  font-family: '宋';
-  font-size: 16px;
-  color: #999;
+  margin-top: 5px;
+  color: #879bab;
+  font-family: '宋','RareCJK';
+  font-size: 14px;
   font-weight: 800;
-  margin-top: 2px;
+  line-height: 1.35;
+  word-break: break-word;
 }
 .logo {
-  font-size: 14px;
-  font-family: '宋';
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  padding: 10px 0 2px;
+  color: #e6796d;
+  font-family: '宋','RareCJK';
+  font-size: 15px;
   text-align: center;
-  color: #7994a7;
+  text-shadow: 0 1px 2px rgba(255,255,255,.72);
+}
+@media (max-width: 800px) {
+  .list { grid-template-columns: 1fr; }
 }

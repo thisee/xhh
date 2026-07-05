@@ -9,6 +9,9 @@ const DATA_DIR = './plugins/xhh/data/bh3_gacha';
 const GET_AUTHKEY_URL = 'https://api-takumi.mihoyo.com/binding/api/genAuthKey';
 const GACHA_MENUS_URL = 'https://public-operation-common.mihoyo.com/common/bh3_self_help_query/UserMenuQuery/GetMenus';
 const GACHA_LOG_URL = 'https://public-operation-common.mihoyo.com/common/bh3_self_help_query/UserGachaQuery/GetUserGacha';
+const RECHARGE_LOG_URLS = [
+  'https://public-operation-common.mihoyo.com/common/bh3_self_help_query/UserRechargeRecordQuery/GetUserRechargeRecord',
+];
 const BH3_WIKI_BASE = 'https://api-takumi-static.mihoyo.com/common/blackboard/bh3_wiki/v1/home/content/list?app_sn=bh3_wiki';
 let starMapCache = null;
 const ICON_CACHE_DIR = './plugins/xhh/data/bh3_gacha/icons';
@@ -46,6 +49,7 @@ export class bh3_gacha extends plugin {
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?(抽卡记录|抽卡统计)$', fnc: 'gachaSummary' },
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?(刷新|更新)抽卡记录$', fnc: 'refreshGacha' },
         { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?全量(刷新|更新)抽卡记录$', fnc: 'fullRefreshGacha' },
+        { reg: '^#*(崩三|崩坏3|崩坏三|BH3)?(充值记录|充值查询|充值流水|氪金记录)$', fnc: 'rechargeRecord' },
       ],
     });
   }
@@ -192,6 +196,28 @@ export class bh3_gacha extends plugin {
     return /补给|扩充|精准|家园|协同者|人偶|服装/.test(name);
   }
 
+
+  async getRawMenus(uid, authkey, menuTypes = ['1', '2', '3', '4']) {
+    const menus = [];
+    const seen = new Set();
+    for (const menuType of menuTypes) {
+      const params = this.gachaBaseParams(uid, authkey, menuType);
+      const res = await fetch(`${GACHA_MENUS_URL}?${params.toString()}`, {
+        headers: gachaHeaders(),
+      }).then(r => r.json());
+      logger.mark(`[xhh][bh3_gacha] GetMenus raw type=${menuType} response:`, JSON.stringify(res));
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.list) ? res.data.list : Array.isArray(res?.data?.menus) ? res.data.menus : [];
+      for (const menu of list) {
+        const label = menu.label || menu.name || '';
+        const key = `${menuType}:${menu.type || ''}:${label}`;
+        if (!label || seen.has(key)) continue;
+        seen.add(key);
+        menus.push({ ...menu, label, menu_type: menuType });
+      }
+    }
+    return menus;
+  }
+
   async getMenus(uid, authkey) {
     const menus = [];
     const seen = new Set();
@@ -247,6 +273,109 @@ export class bh3_gacha extends plugin {
       await sleep(900);
     }
     return records;
+  }
+
+
+  parseSelfHelpPairs(item = []) {
+    const map = {};
+    for (const pair of item || []) {
+      const label = pair?.label || pair?.name || pair?.key || '';
+      if (!label) continue;
+      const value = pair?.value ?? pair?.content ?? pair?.text ?? '';
+      map[label] = value;
+    }
+    return map;
+  }
+
+  normalizeRechargeRecord(raw = {}) {
+    const data = this.parseSelfHelpPairs(raw.item || raw.items || []);
+    const pick = (...keys) => keys.map(k => data[k]).find(v => v !== undefined && v !== null && String(v).trim() !== '') || '';
+    const time = pick('充值时间', '支付时间', '创建时间', '时间', '发放时间');
+    const product = pick('充值内容', '商品名称', '商品', '内容', '订单内容', '道具名称') || raw.title || raw.name || '';
+    const amount = pick('充值金额', '金额', '实付金额', '订单金额', '支付金额');
+    const status = pick('订单状态', '状态', '支付状态');
+    const orderNo = pick('订单号', '订单编号', '流水号');
+    if (!time && !product && !amount) return null;
+    return { time, product, amount, status, orderNo, raw: data };
+  }
+
+  async fetchSelfHelpRecordsByUrls(uid, authkey, menuType, urls = []) {
+    const result = { records: [], endpoint: '', lastError: null };
+    for (const url of urls) {
+      const records = [];
+      let ok = false;
+      let lastError = null;
+      for (let page = 1; page < 200; page++) {
+        const params = this.gachaBaseParams(uid, authkey, menuType);
+        params.set('page', String(page));
+        params.set('size', '20');
+        params.set('end_id', '0');
+        let res;
+        try {
+          res = await fetch(`${url}?${params.toString()}`, { headers: gachaHeaders() }).then(r => r.json());
+        } catch (err) {
+          lastError = err?.message || String(err);
+          break;
+        }
+        if (res?.retcode !== 0) {
+          lastError = res?.message || res?.msg || JSON.stringify(res);
+          logger.mark('[xhh][bh3_gacha] self-help record response:', url, JSON.stringify(res));
+          break;
+        }
+        ok = true;
+        const list = res?.data?.list || res?.data?.items || res?.data?.records || [];
+        if (!Array.isArray(list) || !list.length) break;
+        for (const raw of list) {
+          const record = this.normalizeRechargeRecord(raw);
+          if (record) records.push(record);
+        }
+        if (list.length < 20) break;
+        await sleep(500);
+      }
+      if (ok) return { records, endpoint: url, lastError };
+      result.lastError = lastError;
+    }
+    return result;
+  }
+
+  formatMoneyValue(value = '') {
+    const text = String(value || '').replace(/,/g, '');
+    const m = text.match(/(?:¥|￥)?\s*(-?\d+(?:\.\d+)?)/);
+    return m ? Number(m[1]) : null;
+  }
+
+  async rechargeRecord(e) {
+    const auth = await this.getAuth(e);
+    if (auth.error) return sendMsg(e, auth.error.replace('抽卡记录', '充值记录'));
+    const { uid, region, stokenCookie } = auth;
+    const authkey = await this.getAuthKey(uid, region, stokenCookie);
+    if (!authkey) return sendMsg(e, `UID${uid} 获取 authkey 失败，请确认 stoken 有效。`);
+
+    const menus = await this.getRawMenus(uid, authkey, ['3']);
+    const menu = menus.find(m => /充值记录/.test(m.label || '')) || { label: '充值记录', type: 1, menu_type: '3' };
+    const queryType = String(menu.type || '1');
+    const { records, lastError } = await this.fetchSelfHelpRecordsByUrls(uid, authkey, queryType, RECHARGE_LOG_URLS);
+    if (!records.length) {
+      return sendMsg(e, `UID${uid} 暂未查询到崩坏3充值记录${lastError ? `\n接口返回：${lastError}` : ''}\n提示：官方自助查询可能只返回近期记录，且需要当前账号 stoken 对应此UID。`);
+    }
+
+    records.sort((a, b) => String(b.time).localeCompare(String(a.time)));
+    const sumList = records.map(r => this.formatMoneyValue(r.amount)).filter(v => Number.isFinite(v));
+    const total = sumList.length ? sumList.reduce((a, b) => a + b, 0) : null;
+    const lines = [
+      `💳 崩坏3充值记录 UID${uid}`,
+      `共 ${records.length} 条${total !== null ? `，可识别金额合计 ￥${total.toFixed(2)}` : ''}`,
+      '────────────────',
+    ];
+    for (const r of records.slice(0, 30)) {
+      const parts = [r.product || '未知商品'];
+      if (r.amount) parts.push(String(r.amount));
+      if (r.status) parts.push(String(r.status));
+      lines.push(`${r.time || '未知时间'}  ${parts.join(' / ')}`);
+    }
+    if (records.length > 30) lines.push(`……仅展示最近30条，其余 ${records.length - 30} 条已省略`);
+    lines.push('from 小花火');
+    return sendMsg(e, lines.join('\n'));
   }
 
   async saveGachaLogs(e, force = false) {
