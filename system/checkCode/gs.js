@@ -1,11 +1,9 @@
-import MysApi from "../../../genshin/model/mys/mysApi.js"
-import GsCfg from "../../../genshin/model/gsCfg.js"
+import MysApi from "./mysApi.js"
+import GsCfg from "../gsCfg.js"
 import lodash from "lodash"
-import NoteUser from "../../../genshin/model/mys/NoteUser.js"
-import MysUser from "../../../genshin/model/mys/MysUser.js"
-import DailyCache from "../../../genshin/model/mys/DailyCache.js"
-import fs from "fs"
-import YAML from 'yaml';
+import NoteUser from "./NoteUser.js"
+import MysUser from "./MysUser.js"
+import DailyCache from "./DailyCache.js"
 
 export default class MysInfo {
   static tips = "请先#绑定Cookie\n发送【Cookie帮助】查看配置教程"
@@ -156,9 +154,8 @@ export default class MysInfo {
 
     let user = await NoteUser.create(e)
     let selfUser = at ? await NoteUser.create(at) : user
-    
     const game = e?.game || (e?.isSr ? "sr" : "gs")
-    
+
     if (!selfUser.hasCk) {
       if (e.noTips !== true) {
         e.reply(
@@ -169,10 +166,12 @@ export default class MysInfo {
       }
       return false
     }
+
     let uid = e?.mysSelfUid ? String(e.uid || "") : ""
     if (uid && selfUser.getUidData(uid, game)?.type === "ck") {
       return uid
     }
+
     return selfUser.getUid(e)
   }
 
@@ -398,7 +397,7 @@ export default class MysInfo {
         res.retcode = 0
       }
     }
-    
+
     switch (res.retcode) {
       case 0:
         break
@@ -411,7 +410,7 @@ export default class MysInfo {
           if (this.ckInfo.uid) {
             logger.mark(`[ck失效][uid:${this.uid}][qq:${this.userId}]`)
             if (!isTask)
-              this.e.reply([`UID:${this.ckInfo.uid}，米游社Cookie已失效，请[刷新ck]或者[扫码绑定]`, this.mysButton])
+              this.e.reply([`UID:${this.ckInfo.uid}，米游社Cookie已失效`, this.mysButton])
           } else {
             logger.mark(`[公共ck失效][ltuid:${this.ckInfo.ltuid}]`)
             if (!isTask)
@@ -517,8 +516,4 @@ export default class MysInfo {
     /** 统计次数设为超限 */
     await this.ckUser.disable(game)
   }
-}
-
-function config(){
-    return YAML.parse(fs.readFileSync('./plugins/xhh/config/config.yaml', 'utf-8'))
 }
