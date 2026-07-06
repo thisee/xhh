@@ -517,3 +517,7 @@ export default class MysInfo {
     await this.ckUser.disable(game)
   }
 }
+
+function config(){
+    return YAML.parse(fs.readFileSync('./plugins/xhh/config/config.yaml', 'utf-8'))
+}
