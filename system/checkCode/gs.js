@@ -1,9 +1,11 @@
-import MysApi from "./mysApi.js"
-import GsCfg from "../gsCfg.js"
+import MysApi from "../../../genshin/model/mys/mysApi.js"
+import GsCfg from "../../../genshin/model/gsCfg.js"
 import lodash from "lodash"
-import NoteUser from "./NoteUser.js"
-import MysUser from "./MysUser.js"
-import DailyCache from "./DailyCache.js"
+import NoteUser from "../../../genshin/model/mys/NoteUser.js"
+import MysUser from "../../../genshin/model/mys/MysUser.js"
+import DailyCache from "../../../genshin/model/mys/DailyCache.js"
+import fs from "fs"
+import YAML from 'yaml';
 
 export default class MysInfo {
   static tips = "请先#绑定Cookie\n发送【Cookie帮助】查看配置教程"
