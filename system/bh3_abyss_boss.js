@@ -172,7 +172,7 @@ export async function fetchCurrentAbyssInfo(auth) {
   if (!auth?.uid || !auth?.ck) return null;
   const e = { user_id: auth.qq || 0 };
   const headers = mhy.getHeaders(e, auth.ck);
-  const indexRes = await api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region });
+  const indexRes = await api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server: auth.region, silent: true });
   if (indexRes?.retcode !== 0) return null;
   const role = indexRes.data?.role || {};
   const level = Number(role.level || 0);

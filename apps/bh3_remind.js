@@ -238,7 +238,12 @@ export class bh3_remind extends plugin {
         .replace(/\{time\}/g, `${String(due.eventTime.getHours()).padStart(2, '0')}:${String(due.eventTime.getMinutes()).padStart(2, '0')}`)
         .replace(/\{advance\}/g, String(item.advance_minutes || 0));
       if (item.key === 'abyss_start') {
-        const abyssText = await getAnyCurrentAbyssText(true);
+        let abyssText = '';
+        try {
+          abyssText = await getAnyCurrentAbyssText(true);
+        } catch (err) {
+          logger.warn(`[bh3_remind] 获取当前深渊速查失败，仍发送基础提醒: ${err.message}`);
+        }
         text += abyssText
           ? `\n\n${abyssText}\n\n发送 #崩三深渊攻略 查看详细作业图。`
           : '\n\n发送 #崩三当前深渊 可快速查询当期 Boss，发送 #崩三深渊攻略 查看作业图。';
