@@ -14,6 +14,9 @@ import {
 } from '../system/zzz_challenge_info.js';
 
 const SEARCH_API = 'https://bbs-api.miyoushe.com/painter/api/user_instant/search/list';
+const GLOBAL_SEARCH_API = 'https://bbs-api.miyoushe.com/post/wapi/searchPosts';
+const POST_FULL_API = 'https://bbs-api.miyoushe.com/post/wapi/getPostFull';
+const GAME_GIDS = { abyss: 1, battlefield: 1, godwar: 1, zzz_defense: 8, zzz_deadly: 8 };
 
 function pickGame(msg) {
   if (/原神|原石|gs/i.test(msg)) return 'gs';
@@ -116,6 +119,35 @@ async function searchPost(keyword, uid, size = 20) {
   return (await searchPosts(keyword, uid, size))[0];
 }
 
+async function searchGlobalPosts(keyword, gids = 1, size = 10) {
+  const url = `${GLOBAL_SEARCH_API}?gids=${encodeURIComponent(gids)}&size=${size}&keyword=${encodeURIComponent(keyword)}&sort_type=2`;
+  const res = await fetch(url, {
+    headers: {
+      Referer: 'https://www.miyoushe.com',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+    },
+  }).then(r => r.json());
+  return (res?.data?.posts || []).map(v => v?.post).filter(Boolean);
+}
+
+async function fetchPostFull(post = {}, gids = 1) {
+  if (!post?.post_id) return post;
+  try {
+    const url = `${POST_FULL_API}?gids=${encodeURIComponent(gids)}&read=1&post_id=${encodeURIComponent(post.post_id)}`;
+    const res = await fetch(url, {
+      headers: {
+        Referer: 'https://www.miyoushe.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+      },
+    }).then(r => r.json());
+    const full = res?.data?.post?.post || res?.data?.post || {};
+    return { ...post, ...full, images: full.images?.length ? full.images : post.images };
+  } catch (err) {
+    logger.warn(`[xhh][estimate] 获取米游社帖子详情 ${post.post_id} 失败: ${err?.message || err}`);
+    return post;
+  }
+}
+
 const BH3_GUIDE_TYPE_WORDS = {
   abyss: /超弦空间|超炫空间|超弦|超炫|深渊|boss|BOSS/ig,
   battlefield: /记忆战场|战场|boss|BOSS/ig,
@@ -158,6 +190,156 @@ function buildBh3GuideArgs(type, keyword, baseArgs) {
   }
   // 专项没搜到时，再回退本期通用攻略。
   return [...args, ...baseArgs];
+}
+
+function uniqueList(list = [], limit = 12) {
+  const seen = new Set();
+  const result = [];
+  for (const item of list.flat().filter(Boolean)) {
+    const text = String(item).trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    result.push(text);
+    if (result.length >= limit) break;
+  }
+  return result;
+}
+
+function decodeHtml(text = '') {
+  return String(text || '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function collectJsonText(value, depth = 0) {
+  if (depth > 8 || value == null) return [];
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(v => collectJsonText(v, depth + 1));
+  if (typeof value !== 'object') return [];
+  const preferKeys = ['text', 'insert', 'content', 'desc', 'title'];
+  const direct = preferKeys.flatMap(k => collectJsonText(value[k], depth + 1));
+  if (direct.length) return direct;
+  return Object.values(value).flatMap(v => collectJsonText(v, depth + 1));
+}
+
+function extractPostSummary(post = {}, maxLen = 3000) {
+  let content = post.content || post.structured_content || post.summary || '';
+  try {
+    const json = JSON.parse(content);
+    if (json?.text) content = json.text;
+    else content = collectJsonText(json).join('\n');
+  } catch (_) {}
+  const text = decodeHtml(content)
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/\\n/g, '\n')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  return text.length > maxLen ? `${text.slice(0, maxLen)}...\n（正文较长已截断，可结合图片或原帖继续查看）` : text;
+}
+
+function postPlainText(post = {}) {
+  return [
+    post.subject,
+    post.content,
+    post.structured_content,
+    post.summary,
+  ].filter(Boolean).join('\n');
+}
+
+function postCreatedAt(post = {}) {
+  return Number(post.created_at || post.publish_at || post.created_time || 0);
+}
+
+function isRecentPost(post = {}, maxDays = 5) {
+  const ts = postCreatedAt(post);
+  if (!ts) return true;
+  return Math.floor(Date.now() / 1000) - ts <= maxDays * 24 * 3600;
+}
+
+function normalizeSearchWord(text = '') {
+  return String(text || '').replace(/[·・!！♪♡♥～~\s]/g, '');
+}
+
+function postContainsAny(post = {}, words = []) {
+  const text = normalizeSearchWord(postPlainText(post));
+  return words.some(word => {
+    const clean = normalizeSearchWord(word);
+    return clean && clean.length >= 2 && text.includes(clean);
+  });
+}
+
+function postMatchesGuideType(post = {}, type) {
+  const raw = postPlainText(post);
+  const title = String(post.subject || '');
+  if (type === 'abyss') {
+    // 只收深渊/超弦相关；单纯战场帖即使命中同名 Boss 也过滤掉。
+    if (!/(超弦|超炫|深渊|红莲|寂灭|苦痛|扰动)/.test(raw)) return false;
+    if (/(记忆战场|战场)/.test(title) && !/(超弦|超炫|深渊)/.test(title)) return false;
+  }
+  if (type === 'battlefield') {
+    if (!/(记忆战场|战场|终极区)/.test(raw)) return false;
+    if (/(超弦|超炫|深渊)/.test(title) && !/(记忆战场|战场)/.test(title)) return false;
+  }
+  if (type === 'godwar') return /(往世乐土|乐土|刻印|因子)/.test(raw);
+  if (type === 'zzz_defense') {
+    if (!/(式舆防卫战|式舆|防卫战|防卫|剧变节点|稳定节点)/.test(raw)) return false;
+    if (/(危局强袭战|危局|强袭战)/.test(title) && !/(式舆|防卫)/.test(title)) return false;
+  }
+  if (type === 'zzz_deadly') {
+    if (!/(危局强袭战|危局|强袭战)/.test(raw)) return false;
+    if (/(式舆防卫战|式舆|防卫战)/.test(title) && !/(危局|强袭)/.test(title)) return false;
+  }
+  return true;
+}
+
+function isGuidePostUsable(post = {}, type, queryList = []) {
+  if (!postMatchesGuideType(post, type)) return false;
+  const queries = (Array.isArray(queryList) ? queryList : [queryList]).filter(Boolean);
+  // 当期深渊/战场/危局已经识别出 Boss 时，必须命中 Boss 名，避免历史深渊混进来。
+  if (queries.length && ['abyss', 'battlefield', 'zzz_deadly'].includes(type)) {
+    return postContainsAny(post, queries);
+  }
+  // 没有当期 Boss 时只放最近攻略，避免全站搜索返回很久以前的历史深渊。
+  if (['abyss', 'battlefield', 'zzz_defense', 'zzz_deadly'].includes(type)) {
+    return isRecentPost(post, 5);
+  }
+  return true;
+}
+
+function formatPostInfo(prefix, post = {}, fallback = '') {
+  const lines = [
+    prefix,
+    post.subject || fallback,
+  ].filter(Boolean);
+  const time = Number(post.created_at || post.publish_at || 0);
+  if (time) lines.push(`发布：${new Date(time * 1000).toLocaleString('zh-CN', { hour12: false })}`);
+  const summary = extractPostSummary(post);
+  if (summary) lines.push(`摘要：${summary}`);
+  if (post.post_id) lines.push(`原帖ID：${post.post_id}`);
+  return lines.join('\n');
+}
+
+function buildGlobalGuideWords(type, queryList, baseArgs) {
+  const rawQueries = Array.isArray(queryList) ? queryList.filter(Boolean) : [queryList].filter(Boolean);
+  if (rawQueries.length) {
+    return uniqueList(rawQueries.map(word => {
+      if (type === 'abyss') return [`${word} 深渊攻略`, `${word} 超弦空间`, `${word} 红莲`, `${word} 寂灭`, word];
+      if (type === 'battlefield') return [`${word} 记忆战场`, `${word} 战场攻略`, `${word} 终极区战场`, word];
+      if (type === 'godwar') return [`${word} 往世乐土`, `${word} 乐土攻略`, `${word} 乐土刻印`, word];
+      if (type === 'zzz_defense') return [`${word} 式舆防卫战`, `${word} 防卫战攻略`, `${word} 绝区零深渊`, word];
+      if (type === 'zzz_deadly') return [`${word} 危局强袭战`, `${word} 危局攻略`, `${word} 强袭战攻略`, word];
+      return [word];
+    }), 14);
+  }
+  return uniqueList(baseArgs.map(([word]) => word), 8);
 }
 
 export class mhy_estimate extends plugin {
@@ -272,10 +454,13 @@ export class mhy_estimate extends plugin {
 
     const baseArgs = getPresetArgs(key, cfg);
     const args = guideKeys.includes(key) ? buildBh3GuideArgs(key, queryList.length ? queryList : query, baseArgs) : baseArgs;
+    const detailGid = GAME_GIDS[key] || 1;
     for (const [searchWord, uid, indexes, author] of args) {
       try {
         const posts = query ? await searchPosts(searchWord, uid, 8) : [await searchPost(searchWord, uid)];
-        for (const post of posts.filter(Boolean)) {
+        for (let post of posts.filter(Boolean)) {
+          if (!isGuidePostUsable(post, key, queryList.length ? queryList : query)) continue;
+          post = await fetchPostFull(post, detailGid);
           const postKey = post.post_id || post.subject || `${uid}:${searchWord}`;
           if (seenPosts.has(postKey)) continue;
           const images = post?.images || [];
@@ -286,14 +471,47 @@ export class mhy_estimate extends plugin {
               seenImages.add(images[i]);
               return segment.image(images[i]);
             });
-          if (!imageSegments.length) continue;
+          const postInfo = formatPostInfo(`作者：${author}`, post, searchWord);
+          if (!imageSegments.length && !extractPostSummary(post)) continue;
           seenPosts.add(postKey);
-          msg.push([`作者：${author}\n${post.subject || searchWord}`, ...imageSegments]);
+          msg.push([postInfo, ...imageSegments]);
           if (query && msg.length >= 6) break;
         }
         if (query && msg.length >= 6) break;
       } catch (err) {
         logger.warn(`[xhh][estimate] 获取 ${searchWord}/${uid} 失败: ${err?.message || err}`);
+      }
+    }
+
+    if (guideKeys.includes(key) && config()?.mys_global_guide_search !== false && (!query || msg.length < 3)) {
+      const gids = GAME_GIDS[key] || 1;
+      const globalWords = buildGlobalGuideWords(key, queryList.length ? queryList : query, baseArgs);
+      for (const searchWord of globalWords) {
+        try {
+          const posts = await searchGlobalPosts(searchWord, gids, query ? 8 : 5);
+          for (let post of posts) {
+            if (!isGuidePostUsable(post, key, queryList.length ? queryList : query)) continue;
+            post = await fetchPostFull(post, gids);
+            const postKey = post.post_id || post.subject || `global:${gids}:${searchWord}`;
+            if (seenPosts.has(postKey)) continue;
+            const images = post?.images || [];
+            const imageSegments = images
+              .filter(url => url && !seenImages.has(url))
+              .slice(0, 12)
+              .map(url => {
+                seenImages.add(url);
+                return segment.image(url);
+              });
+            const postInfo = formatPostInfo('来源：米游社全站搜索', post, searchWord);
+            if (!imageSegments.length && !extractPostSummary(post)) continue;
+            seenPosts.add(postKey);
+            msg.push([postInfo, ...imageSegments]);
+            if (msg.length >= 6) break;
+          }
+          if (msg.length >= 6) break;
+        } catch (err) {
+          logger.warn(`[xhh][estimate] 米游社全站搜索 ${searchWord} 失败: ${err?.message || err}`);
+        }
       }
     }
 

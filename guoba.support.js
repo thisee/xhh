@@ -400,6 +400,12 @@ export const supportGuoba = () => ({
         label: '崩坏3攻略源',
       },
       {
+        field: 'mys_global_guide_search',
+        label: '攻略全站搜索兜底',
+        helpMessage: '开启后攻略源作者搜不到时，会使用米游社全站搜索关键词兜底（类似 genshin 的 #米游社搜索）',
+        component: 'Switch',
+      },
+      {
         field: 'bh3_guide_abyss_sources',
         label: '深渊攻略源',
         helpMessage: '每行：关键词|米游社UID|图片序号|作者名；如 红莲|11956740|0,1,3|残月',
@@ -652,6 +658,7 @@ export const supportGuoba = () => ({
         bh3_remind_at_mode: bh3Remind.at_mode || 'none',
         bh3_remind_at_users: (bh3Remind.at_users || []).join(','),
         bh3_remind_image: bh3Remind.image || '',
+        mys_global_guide_search: cfg.mys_global_guide_search !== false,
         bh3_guide_abyss_sources: cfg.bh3_guide_abyss_sources || defaultBh3GuideSources.abyss,
         bh3_guide_battlefield_sources: cfg.bh3_guide_battlefield_sources || defaultBh3GuideSources.battlefield,
         bh3_guide_godwar_sources: cfg.bh3_guide_godwar_sources || defaultBh3GuideSources.godwar,
@@ -740,6 +747,7 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'bh3_remind.yaml', 'all_note_groups', allNoteGroups)
 
       yaml.set(_path + 'config.yaml', 'bh3_guide_abyss_sources', String(data.bh3_guide_abyss_sources || '').trim())
+      yaml.set(_path + 'config.yaml', 'mys_global_guide_search', data.mys_global_guide_search !== false)
       yaml.set(_path + 'config.yaml', 'bh3_guide_battlefield_sources', String(data.bh3_guide_battlefield_sources || '').trim())
       yaml.set(_path + 'config.yaml', 'bh3_guide_godwar_sources', String(data.bh3_guide_godwar_sources || '').trim())
       yaml.set(_path + 'config.yaml', 'zzz_guide_defense_sources', String(data.zzz_guide_defense_sources || '').trim())
