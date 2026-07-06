@@ -1,9 +1,11 @@
-import MysApi from '../../genshin/model/mys/mysApi.js'
+import MysApi from '../../../genshin/model/mys/mysApi.js'
 import md5 from 'md5'
 import _ from 'lodash'
 import crypto from 'crypto'
-import SRApiTool from './SRApiTool.js'
-import getDeviceFp from './getDeviceFp.js'
+import SRApiTool from '../../../StarRail-plugin/runtime/SRApiTool.js'
+import getDeviceFp from '../../../StarRail-plugin/runtime/getDeviceFp.js'
+import fs from "fs"
+import YAML from 'yaml';
 // const DEVICE_ID = randomString(32).toUpperCase()
 const DEVICE_NAME = randomString(_.random(1, 10))
 export default class MysSRApi extends MysApi {
