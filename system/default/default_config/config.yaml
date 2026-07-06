@@ -130,6 +130,14 @@ zzz_guide_deadly_sources: |-
   危局强袭战|4068738|0,1,2,3,4,5,6,7,8,9|洗礼酱
   危局攻略|285802042|0,1,2,3,4,5|HoYo青枫
 
+#原神/星铁深渊速报图片仓库（每行一个，留空用默认Abyss仓库）
+abyss_report_repos: |-
+  https://cnb.cool/JIUXJIU/Abyss/-/git/raw/main
+  https://cnb.cool/JIUXJIU/AbyssBeta/-/git/raw/main
+#原神/星铁深渊速报默认版本，留空自动读取Nanoka live版本
+abyss_report_gs_version: ''
+abyss_report_sr_version: ''
+
 #插件优先级（修改后需重启）
 tl_priority: -99
 sign_priority: -26
@@ -144,3 +152,4 @@ bh3_profile_priority: 100
 bh3_all_note_priority: 100
 bh3_gacha_priority: 100
 bh3_ledger_priority: 100
+abyss_report_priority: 100

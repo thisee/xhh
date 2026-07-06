@@ -435,6 +435,28 @@ export const supportGuoba = () => ({
       },
       {
         component: 'Divider',
+        label: '原神/星铁深渊速报',
+      },
+      {
+        field: 'abyss_report_repos',
+        label: '深渊速报图片仓库',
+        helpMessage: '每行一个raw仓库地址；用于原神深渊/剧诗/幽境与星铁混沌/虚构/末日图片',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'abyss_report_gs_version',
+        label: '原神默认速报版本',
+        helpMessage: '留空自动读取Nanoka live版本，如 6.7',
+        component: 'Input',
+      },
+      {
+        field: 'abyss_report_sr_version',
+        label: '星铁默认速报版本',
+        helpMessage: '留空自动读取Nanoka live版本，如 4.3',
+        component: 'Input',
+      },
+      {
+        component: 'Divider',
         label: '插件优先级（修改后需重启Bot）',
       },
       {
@@ -525,6 +547,13 @@ export const supportGuoba = () => ({
         field: 'bh3_ledger_priority',
         label: '崩三水晶(bh3_ledger)',
         helpMessage: '默认 100',
+        component: 'InputNumber',
+        componentProps: { min: -9999999999, max: 9999999999, step: 1 },
+      },
+      {
+        field: 'abyss_report_priority',
+        label: '原神/星铁深渊速报(abyss_report)',
+        helpMessage: '默认 100，修改后需重启',
         component: 'InputNumber',
         componentProps: { min: -9999999999, max: 9999999999, step: 1 },
       },
@@ -628,6 +657,10 @@ export const supportGuoba = () => ({
         bh3_guide_godwar_sources: cfg.bh3_guide_godwar_sources || defaultBh3GuideSources.godwar,
         zzz_guide_defense_sources: cfg.zzz_guide_defense_sources || defaultBh3GuideSources.zzzDefense,
         zzz_guide_deadly_sources: cfg.zzz_guide_deadly_sources || defaultBh3GuideSources.zzzDeadly,
+        abyss_report_repos: cfg.abyss_report_repos || 'https://cnb.cool/JIUXJIU/Abyss/-/git/raw/main\nhttps://cnb.cool/JIUXJIU/AbyssBeta/-/git/raw/main',
+        abyss_report_gs_version: cfg.abyss_report_gs_version || '',
+        abyss_report_sr_version: cfg.abyss_report_sr_version || '',
+        abyss_report_priority: cfg.abyss_report_priority ?? 100,
       }
     },
     setConfigData(data, { Result }) {
@@ -711,12 +744,15 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'config.yaml', 'bh3_guide_godwar_sources', String(data.bh3_guide_godwar_sources || '').trim())
       yaml.set(_path + 'config.yaml', 'zzz_guide_defense_sources', String(data.zzz_guide_defense_sources || '').trim())
       yaml.set(_path + 'config.yaml', 'zzz_guide_deadly_sources', String(data.zzz_guide_deadly_sources || '').trim())
+      yaml.set(_path + 'config.yaml', 'abyss_report_repos', String(data.abyss_report_repos || '').trim())
+      yaml.set(_path + 'config.yaml', 'abyss_report_gs_version', String(data.abyss_report_gs_version || '').trim())
+      yaml.set(_path + 'config.yaml', 'abyss_report_sr_version', String(data.abyss_report_sr_version || '').trim())
 
       const priorityFields = [
         'tl_priority', 'sign_priority', 'user_priority', 'wiki_priority',
         'bh3_remind_priority', 'bh3_note_priority', 'bh3_abyss_priority',
         'bh3_battlefield_priority', 'bh3_godwar_priority', 'bh3_profile_priority',
-        'bh3_all_note_priority', 'bh3_gacha_priority', 'bh3_ledger_priority',
+        'bh3_all_note_priority', 'bh3_gacha_priority', 'bh3_ledger_priority', 'abyss_report_priority',
       ]
       for (const f of priorityFields) {
         if (data[f] != null) yaml.set(_path + 'config.yaml', f, Number(data[f]))

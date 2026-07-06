@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="{{ppath}}abyss_report/report.css" />
+</head>
+<body {{sys.scale}}>
+<div class="page {{typeClass}}">
+  <main class="card">
+    <header class="hero">
+      <div class="left">
+        <div class="eyebrow">XHH ABYSS REPORT · {{gameShort}}</div>
+        <h1>{{type}}</h1>
+        <p>{{gameName}} v{{version}} 速报</p>
+      </div>
+      <div class="badge">{{imageCount || 0}}<span>图</span></div>
+    </header>
+    <section class="grid">
+      <div class="item"><span>版本</span><b>v{{version}}</b></div>
+      <div class="item"><span>挑战类型</span><b>{{type}}</b></div>
+      <div class="item wide"><span>图片编号</span><b>{{imageNums}}</b></div>
+    </section>
+    {{if blessing}}
+    <section class="blessing">
+      <div class="tag">深渊祝福</div>
+      <h2>{{blessing.title}}</h2>
+      <p>{{blessing.desc}}</p>
+      {{if blessing.begin && blessing.end}}<small>{{blessing.begin}} ~ {{blessing.end}}</small>{{/if}}
+    </section>
+    {{/if}}
+    <section class="tips">
+      <b>使用提示</b>
+      <p>可发送 #原神6.7深渊、#原神幻想剧诗、#星铁4.3混沌、#星铁4.3虚构、#星铁4.3末日 查看指定版本。</p>
+    </section>
+    <footer>数据来源：{{source}} · 获取时间 {{generatedAt}} · from 小花火</footer>
+  </main>
+</div>
+</body>
+</html>
