@@ -212,7 +212,7 @@ export class abyss_report extends plugin {
       source: images.length ? 'Abyss Repo / Nanoka' : 'Nanoka / 小花火',
       generatedAt: moment().format('MM-DD HH:mm'),
     };
-    const card = await render('abyss_report/report', data, { e, ret: true, pct: 1.55 });
+    const card = await render('abyss_report/report', data, { e, pct: 1.55 });
     const msg = [card, ...images.map(v => segment.image(`file://${v.path}`))];
     if (!images.length) msg.push(`暂无 ${data.gameName} ${version} ${req.type} 速报图片。可以稍后再试，或在锅巴里调整“深渊速报图片仓库”。`);
     return e.reply(msg);

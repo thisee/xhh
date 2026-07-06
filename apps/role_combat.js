@@ -157,7 +157,7 @@ export class role_combat extends plugin {
       version: payload.version,
       fallback: payload.fallback,
       generatedAt: moment().format('MM-DD HH:mm'),
-    }, { e, ret: true, pct: 1.6 });
+    }, { e, pct: 1.6 });
     return e.reply(img);
   }
 }
