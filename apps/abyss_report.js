@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import _ from 'lodash';
 import moment from 'moment';
 import { render, config, pluginPriority } from '#xhh';
+import sharp from '../node_modules/sharp/lib/index.js';
 
 const MANIFEST_URL = 'https://static.nanoka.cc/manifest.json';
 const DEFAULT_REPOS = [
@@ -151,6 +152,51 @@ async function downloadImage(type, number) {
   return '';
 }
 
+
+async function mergeImages(imageList = [], meta = {}) {
+  const paths = imageList.map(v => v.path).filter(Boolean);
+  if (!paths.length) return '';
+  if (paths.length === 1) return paths[0];
+  ensureDir(CACHE_DIR);
+  const out = path.join(CACHE_DIR, `merged_${meta.type || 'report'}_${meta.version || ''}_${imageList.map(v => v.num).join('_')}.jpg`.replace(/[\\/:*?"<>|]/g, '_'));
+  const stats = paths.map(p => fs.existsSync(p) ? fs.statSync(p).mtimeMs : 0).join('|');
+  const needBuild = !fs.existsSync(out) || fs.statSync(out).size < 1024 || fs.statSync(out).mtimeMs < Math.max(...paths.map(p => fs.statSync(p).mtimeMs));
+  if (!needBuild) return out;
+
+  const imgs = [];
+  for (const p of paths) {
+    const img = sharp(p).rotate();
+    const m = await img.metadata();
+    imgs.push({ path: p, width: m.width || 0, height: m.height || 0 });
+  }
+  const width = Math.max(...imgs.map(v => v.width), 1200);
+  const gap = 24;
+  const pad = 28;
+  const titleH = 112;
+  const footerH = 58;
+  const totalH = titleH + footerH + pad * 2 + imgs.reduce((sum, v) => sum + v.height, 0) + gap * (imgs.length - 1);
+  const bg = Buffer.from(`
+  <svg width="${width + pad * 2}" height="${totalH}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#111b35"/><stop offset="0.55" stop-color="#251b3c"/><stop offset="1" stop-color="#10131f"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <text x="${pad}" y="48" fill="#ffe8a8" font-size="22" font-family="sans-serif" letter-spacing="3">XHH ABYSS REPORT</text>
+    <text x="${pad}" y="88" fill="#ffffff" font-size="34" font-family="sans-serif" font-weight="700">${meta.gameName || ''} v${meta.version || ''} ${meta.type || ''}</text>
+    <text x="${(width + pad * 2) / 2}" y="${totalH - 24}" text-anchor="middle" fill="#c8d2ea" font-size="18" font-family="sans-serif">数据来源：Abyss Repo / Nanoka · from 小花火</text>
+  </svg>`);
+  let top = titleH + pad;
+  const composite = [];
+  for (const img of imgs) {
+    composite.push({ input: img.path, left: pad + Math.floor((width - img.width) / 2), top });
+    top += img.height + gap;
+  }
+  await sharp(bg).composite(composite).jpeg({ quality: 92 }).toFile(out);
+  return out;
+}
+
 async function loadGsBlessing(version) {
   try {
     const manifest = await fetchJson(MANIFEST_URL, 6000);
@@ -212,9 +258,11 @@ export class abyss_report extends plugin {
       source: images.length ? 'Abyss Repo / Nanoka' : 'Nanoka / 小花火',
       generatedAt: moment().format('MM-DD HH:mm'),
     };
-    const card = await render('abyss_report/report', data, { e, pct: 1.55 });
-    const msg = [card, ...images.map(v => segment.image(`file://${v.path}`))];
-    if (!images.length) msg.push(`暂无 ${data.gameName} ${version} ${req.type} 速报图片。可以稍后再试，或在锅巴里调整“深渊速报图片仓库”。`);
-    return e.reply(msg);
+    if (!images.length) {
+      await render('abyss_report/report', data, { e, pct: 1.55 });
+      return e.reply(`暂无 ${data.gameName} ${version} ${req.type} 速报图片。可以稍后再试，或在锅巴里调整“深渊速报图片仓库”。`);
+    }
+    const merged = await mergeImages(images, { gameName: data.gameName, version, type: req.type });
+    return e.reply(segment.image(`file://${merged}`));
   }
 }
