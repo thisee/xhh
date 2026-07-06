@@ -18,6 +18,33 @@ function getBh3Remind() {
   return yaml.get(_path + 'bh3_remind.yaml') || {}
 }
 
+const defaultBh3GuideSources = {
+  abyss: [
+    '寂灭|11956740|0,1,3,4,5,6,7,8,9,10,11,12,13,14,15|残月',
+    '红莲|11956740|0,1,3,4,5,6,7,8,9,10,11,12,13,14,15|残月',
+    '红莲|15491760|0,1,3,4,5,6,7,8,9,10,11,12,13,14,15|墨之羽',
+    '红莲|30269990|0,1,3,4,5,6,7,8,9,10,11,12,13,14,15|朔守',
+  ].join('\n'),
+  battlefield: [
+    '记忆战场|11956740|0,1,2,3,4,5,6,7,8,9|残月',
+    '战场作业|15491760|0,1,2,3,4,5,6,7,8,9|墨之羽',
+    '终极区战场|30269990|0,1,2,3,4,5,6,7,8,9|朔守',
+  ].join('\n'),
+  godwar: [
+    '往世乐土|11956740|0,1,2,3,4,5,6,7,8,9|残月',
+    '乐土攻略|15491760|0,1,2,3,4,5,6,7,8,9|墨之羽',
+    '乐土因子|30269990|0,1,2,3,4,5,6,7,8,9|朔守',
+  ].join('\n'),
+  zzzDefense: [
+    '式舆防卫战|4068738|0,1,2,3,4,5,6,7,8,9|洗礼酱',
+    '防卫战攻略|285802042|0,1,2,3,4,5|HoYo青枫',
+  ].join('\n'),
+  zzzDeadly: [
+    '危局强袭战|4068738|0,1,2,3,4,5,6,7,8,9|洗礼酱',
+    '危局攻略|285802042|0,1,2,3,4,5|HoYo青枫',
+  ].join('\n'),
+}
+
 export const supportGuoba = () => ({
   pluginInfo: {
     name: 'xhh',
@@ -370,6 +397,44 @@ export const supportGuoba = () => ({
       },
       {
         component: 'Divider',
+        label: '崩坏3攻略源',
+      },
+      {
+        field: 'bh3_guide_abyss_sources',
+        label: '深渊攻略源',
+        helpMessage: '每行：关键词|米游社UID|图片序号|作者名；如 红莲|11956740|0,1,3|残月',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'bh3_guide_battlefield_sources',
+        label: '战场攻略源',
+        helpMessage: '每行：关键词|米游社UID|图片序号|作者名；按顺序搜索，搜不到会回退通用源',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'bh3_guide_godwar_sources',
+        label: '乐土攻略源',
+        helpMessage: '每行：关键词|米游社UID|图片序号|作者名；支持定向搜索角色/装甲名',
+        component: 'InputTextArea',
+      },
+      {
+        component: 'Divider',
+        label: '绝区零攻略源',
+      },
+      {
+        field: 'zzz_guide_defense_sources',
+        label: '防卫战攻略源',
+        helpMessage: '每行：关键词|米游社UID|图片序号|作者名；如 式舆防卫战|4068738|0,1,2|洗礼酱',
+        component: 'InputTextArea',
+      },
+      {
+        field: 'zzz_guide_deadly_sources',
+        label: '危局强袭战攻略源',
+        helpMessage: '每行：关键词|米游社UID|图片序号|作者名；危局会优先识别当前Boss',
+        component: 'InputTextArea',
+      },
+      {
+        component: 'Divider',
         label: '插件优先级（修改后需重启Bot）',
       },
       {
@@ -558,6 +623,11 @@ export const supportGuoba = () => ({
         bh3_remind_at_mode: bh3Remind.at_mode || 'none',
         bh3_remind_at_users: (bh3Remind.at_users || []).join(','),
         bh3_remind_image: bh3Remind.image || '',
+        bh3_guide_abyss_sources: cfg.bh3_guide_abyss_sources || defaultBh3GuideSources.abyss,
+        bh3_guide_battlefield_sources: cfg.bh3_guide_battlefield_sources || defaultBh3GuideSources.battlefield,
+        bh3_guide_godwar_sources: cfg.bh3_guide_godwar_sources || defaultBh3GuideSources.godwar,
+        zzz_guide_defense_sources: cfg.zzz_guide_defense_sources || defaultBh3GuideSources.zzzDefense,
+        zzz_guide_deadly_sources: cfg.zzz_guide_deadly_sources || defaultBh3GuideSources.zzzDeadly,
       }
     },
     setConfigData(data, { Result }) {
@@ -635,6 +705,12 @@ export const supportGuoba = () => ({
       yaml.set(_path + 'bh3_remind.yaml', 'image', String(data.bh3_remind_image || '').trim())
       const allNoteGroups = String(data.bh3_all_note_groups || '').split(/[,，\s]+/).map(v => v.trim()).filter(Boolean)
       yaml.set(_path + 'bh3_remind.yaml', 'all_note_groups', allNoteGroups)
+
+      yaml.set(_path + 'config.yaml', 'bh3_guide_abyss_sources', String(data.bh3_guide_abyss_sources || '').trim())
+      yaml.set(_path + 'config.yaml', 'bh3_guide_battlefield_sources', String(data.bh3_guide_battlefield_sources || '').trim())
+      yaml.set(_path + 'config.yaml', 'bh3_guide_godwar_sources', String(data.bh3_guide_godwar_sources || '').trim())
+      yaml.set(_path + 'config.yaml', 'zzz_guide_defense_sources', String(data.zzz_guide_defense_sources || '').trim())
+      yaml.set(_path + 'config.yaml', 'zzz_guide_deadly_sources', String(data.zzz_guide_deadly_sources || '').trim())
 
       const priorityFields = [
         'tl_priority', 'sign_priority', 'user_priority', 'wiki_priority',

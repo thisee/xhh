@@ -116,6 +116,20 @@ async function api(e, data = {}) {
                 method: 'GET',
             }
         },
+        //绝区零式舆防卫战
+        zzz_challenge: {
+            url: `https://api-takumi-record.mihoyo.com/event/game_record_zzz/api/zzz/hadal_info_v2?lang=zh-cn&role_id=${uid}&server=${server}&schedule_type=${data.schedule_type || 1}`,
+            obj: {
+                method: 'GET',
+            }
+        },
+        //绝区零危局强袭战
+        zzz_deadly: {
+            url: `https://api-takumi-record.mihoyo.com/event/game_record_zzz/api/zzz/mem_detail?lang=zh-cn&uid=${uid}&region=${server}&schedule_type=${data.schedule_type || 1}`,
+            obj: {
+                method: 'GET',
+            }
+        },
         //崩三水晶
         bh3_ledger: {
             url: `https://api.mihoyo.com/bh3-weekly_finance/api/index?game_biz=bh3_cn&bind_uid=${uid}&bind_region=${server}&month=${data.month || ''}`,

@@ -6,6 +6,7 @@ import { yaml, mhy, api, config } from '#xhh';
 const STOKEN_DIR = './plugins/xhh/data/Stoken';
 const BH3_REGIONS = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02', 'cn_gf01', 'cn_qd01'];
 const CACHE_KEY = 'xhh:bh3:current_abyss_info';
+const BATTLEFIELD_CACHE_KEY = 'xhh:bh3:current_battlefield_info';
 
 const serverMap = {
   cn_gf01: '官服', cn_qd01: 'B服', os_usa: '美服', os_euro: '欧服',
@@ -21,6 +22,7 @@ const abyssLevelMap = {
 
 const oldAbyssLevelMap = { 1: '禁忌', 2: '原罪', 3: '苦痛', 4: '红莲', 5: '寂灭' };
 const oldAbyssLetterMap = { S: '寂灭', A: '红莲', B: '苦痛', C: '原罪', D: '禁忌' };
+const battlefieldAreaMap = { 4: '终极组' };
 
 function fmtTs(ts) {
   if (!ts) return '未知';
@@ -42,6 +44,11 @@ function fmtLevel(level, isOld = false) {
   }
   if (isOld && oldAbyssLevelMap[level]) return oldAbyssLevelMap[level];
   return abyssLevelMap[level] || `Lv.${level}`;
+}
+
+function fmtBattlefieldArea(area) {
+  if (area === undefined || area === null || area === '') return '未知';
+  return battlefieldAreaMap[area] || `第${area}组`;
 }
 
 async function getAuthByQQ(qq, preferredUid = '') {
@@ -147,6 +154,20 @@ export function formatCurrentAbyssInfo(info, compact = false) {
   ].filter(Boolean).join('\n');
 }
 
+export function formatCurrentBattlefieldInfo(info, compact = false) {
+  if (!info) return '';
+  const prefix = compact ? '本期战场速查' : '崩坏3当前战场';
+  const bosses = info.bosses?.length ? info.bosses.join(' / ') : '未知';
+  return [
+    `${prefix}`,
+    `分组：${info.area || '未知'}`,
+    `Boss：${bosses}`,
+    `总分：${info.score || 0}`,
+    `排名：#${info.rank || 0}`,
+    `数据源：${info.nickname || '已绑定账号'} ${info.region || ''} ${info.dataTime || ''}`,
+  ].filter(Boolean).join('\n');
+}
+
 export async function fetchCurrentAbyssInfo(auth) {
   if (!auth?.uid || !auth?.ck) return null;
   const e = { user_id: auth.qq || 0 };
@@ -180,10 +201,58 @@ export async function fetchCurrentAbyssInfo(auth) {
   return null;
 }
 
+export async function fetchCurrentBattlefieldInfo(auth) {
+  if (!auth?.uid || !auth?.ck) return null;
+  const e = { user_id: auth.qq || 0 };
+  const headers = mhy.getHeaders(e, auth.ck);
+  const serverValues = [...new Set([auth.region, mhy.getServer(auth.uid, 'bh3'), 'cn_gf01', 'cn_qd01'].filter(Boolean))];
+
+  for (const server of serverValues) {
+    try {
+      const [indexRes, bfRes] = await Promise.all([
+        api(e, { type: 'bh3_index', uid: auth.uid, headers, game: 'bh3', server, silent: true }),
+        api(e, { type: 'bh3_battle_field', uid: auth.uid, headers, game: 'bh3', server, silent: true }),
+      ]);
+      if (bfRes?.retcode !== 0) continue;
+      const reports = (bfRes?.data?.reports || []).sort(
+        (a, b) => Number(b.time_second || 0) - Number(a.time_second || 0)
+      );
+      if (!reports.length) continue;
+      const latest = reports[0];
+      const bosses = (latest.battle_infos || [])
+        .map(v => v?.boss?.name)
+        .filter(Boolean);
+      if (!bosses.length) continue;
+      const role = indexRes?.data?.role || {};
+      const info = {
+        bosses,
+        area: fmtBattlefieldArea(latest.area),
+        score: latest.score || 0,
+        rank: latest.rank || 0,
+        uid: role.role_id || auth.uid,
+        nickname: role.nickname || '',
+        region: serverMap[server] || server,
+        dataTime: moment().format('MM-DD HH:mm'),
+      };
+      await redis.set(BATTLEFIELD_CACHE_KEY, JSON.stringify(info), { EX: 2 * 3600 });
+      return info;
+    } catch (err) {
+      if (config().debug) logger.mark(`[xhh][bh3_battlefield_boss] ${server} failed: ${err.message}`);
+    }
+  }
+  return null;
+}
+
 export async function getCurrentAbyssInfoByEvent(e) {
   const qq = e?.at || e?.user_id;
   const auth = await getAuthByQQ(qq);
   return fetchCurrentAbyssInfo(auth);
+}
+
+export async function getCurrentBattlefieldInfoByEvent(e) {
+  const qq = e?.at || e?.user_id;
+  const auth = await getAuthByQQ(qq);
+  return fetchCurrentBattlefieldInfo(auth);
 }
 
 export async function getAnyCurrentAbyssText(compact = true) {
