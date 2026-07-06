@@ -52,10 +52,49 @@ const presets = {
   },
 };
 
-async function searchPost(keyword, uid, size = 20) {
+async function searchPosts(keyword, uid, size = 20) {
   const url = `${SEARCH_API}?keyword=${encodeURIComponent(keyword)}&uid=${encodeURIComponent(uid)}&size=${size}&offset=0&sort_type=2`;
   const res = await fetch(url).then(r => r.json());
-  return res?.data?.list?.[0]?.post?.post;
+  return (res?.data?.list || []).map(v => v?.post?.post).filter(Boolean);
+}
+
+async function searchPost(keyword, uid, size = 20) {
+  return (await searchPosts(keyword, uid, size))[0];
+}
+
+const BH3_GUIDE_TYPE_WORDS = {
+  abyss: /超弦空间|超炫空间|超弦|超炫|深渊|boss|BOSS/ig,
+  battlefield: /记忆战场|战场|boss|BOSS/ig,
+  godwar: /往世乐土|乐土/ig,
+};
+
+const BH3_GUIDE_ACTION_WORDS = /攻略图|攻略|速报|作业|阵容|刻印|因子|信息|查询|查看/ig;
+
+function extractBh3GuideKeyword(msg = '', type = 'godwar') {
+  const raw = String(msg || '').replace(/^#/, '').trim();
+  let keyword = raw
+    .replace(/崩坏三|崩坏3|崩三|BH3/ig, '')
+    .replace(BH3_GUIDE_TYPE_WORDS[type] || BH3_GUIDE_TYPE_WORDS.godwar, '')
+    .replace(BH3_GUIDE_ACTION_WORDS, '')
+    .replace(/[：:，,。.!！?？\s]/g, '')
+    .trim();
+  if (!keyword || ['当前', '本期', '本周', '最新', '今日'].includes(keyword)) return '';
+  return keyword.slice(0, 24);
+}
+
+function buildBh3GuideArgs(type, keyword, baseArgs) {
+  if (!keyword) return baseArgs;
+  const keywordMap = {
+    abyss: [`${keyword} 深渊攻略`, `${keyword} 超弦空间`, `${keyword} 红莲`, `${keyword} 寂灭`],
+    battlefield: [`${keyword} 记忆战场`, `${keyword} 战场攻略`, `${keyword} 战场作业`, `${keyword} 终极区战场`],
+    godwar: [`${keyword} 乐土攻略`, `${keyword} 往世乐土`, `${keyword} 乐土刻印`, `${keyword} 乐土因子`],
+  };
+  const args = [];
+  for (const [, uid, , author] of baseArgs) {
+    for (const word of (keywordMap[type] || keywordMap.godwar)) args.push([word, uid, [0,1,2,3,4,5,6,7,8,9,10,11], author]);
+  }
+  // 专项没搜到时，再回退本期通用攻略。
+  return [...args, ...baseArgs];
 }
 
 export class mhy_estimate extends plugin {
@@ -66,6 +105,12 @@ export class mhy_estimate extends plugin {
       event: 'message',
       priority: -Infinity,
       rule: [
+        { reg: '^#?(崩三|崩坏3|崩坏三|BH3).*(深渊|超弦|超弦空间|超炫|超炫空间).*(攻略|攻略图|速报|作业|阵容|boss|BOSS)$', fnc: 'bh3AbyssGuide' },
+        { reg: '^#?(?!.*(原神|星铁|星穹|绝区零|绝区|ZZZ|zzz)).*(深渊|超弦|超弦空间|超炫|超炫空间).*(攻略|攻略图|速报|作业|阵容|boss|BOSS)$', fnc: 'bh3AbyssGuide' },
+        { reg: '^#?(崩三|崩坏3|崩坏三|BH3).*(战场|记忆战场).*(攻略|攻略图|速报|作业|阵容|boss|BOSS)$', fnc: 'bh3BattlefieldGuide' },
+        { reg: '^#?(?!.*(原神|星铁|星穹|绝区零|绝区|ZZZ|zzz)).*(战场|记忆战场).*(攻略|攻略图|速报|作业|阵容|boss|BOSS)$', fnc: 'bh3BattlefieldGuide' },
+        { reg: '^#?(崩三|崩坏3|崩坏三|BH3).*(乐土|往世乐土).*(攻略|攻略图|速报|作业|阵容|刻印|因子)$', fnc: 'bh3GodwarGuide' },
+        { reg: '^#?(?!.*(原神|星铁|星穹|绝区零|绝区|ZZZ|zzz)).*(乐土|往世乐土).*(攻略|攻略图|速报|作业|阵容|刻印|因子)$', fnc: 'bh3GodwarGuide' },
         { reg: '^#?((原神|原石|gs)|(星铁|星琼|sr)|(崩坏三|崩三|水晶|bbb|bh3|！)|(绝区零|绝区|菲林|邦布券|邦布|zzz)|(超弦空间|超炫空间|深渊)|(战场|记忆战场)|(乐土|往世乐土)|(强袭|强袭战))?(前瞻信息|速报|预估|盘点|攻略)$', fnc: 'mysEstimate' },
         { reg: '^#?(崩三|崩坏3|崩坏三|BH3)(深渊|超弦|超弦空间|战场|记忆战场|乐土|往世乐土)(攻略|速报|作业)$', fnc: 'bh3Guide' },
       ],
@@ -76,26 +121,58 @@ export class mhy_estimate extends plugin {
     return this.mysEstimate(e);
   }
 
-  async mysEstimate(e) {
-    const key = pickGame(e.msg || '');
+  async bh3AbyssGuide(e) {
+    return this.mysEstimate(e, 'abyss');
+  }
+
+  async bh3BattlefieldGuide(e) {
+    return this.mysEstimate(e, 'battlefield');
+  }
+
+  async bh3GodwarGuide(e) {
+    return this.mysEstimate(e, 'godwar');
+  }
+
+  async mysEstimate(e, forceKey = '') {
+    const key = forceKey || pickGame(e.msg || '');
     const cfg = presets[key] || presets.gs;
-    await e.reply(cfg.tip, true);
+    const query = ['abyss', 'battlefield', 'godwar'].includes(key) ? extractBh3GuideKeyword(e.msg || '', key) : '';
+    const guideName = key === 'abyss' ? '深渊' : key === 'battlefield' ? '战场' : key === 'godwar' ? '乐土' : cfg.name;
+    await e.reply(query ? `正在搜索「${query}」${guideName}攻略，请稍后...` : cfg.tip, true);
 
     const msg = [];
+    const seenPosts = new Set();
+    const seenImages = new Set();
     if (cfg.custom?.[0]) msg.push([`作者：${cfg.custom[1] || '自定义图片源'}`, segment.image(cfg.custom[0])]);
 
-    for (const [keyword, uid, indexes, author] of cfg.args) {
+    const args = ['abyss', 'battlefield', 'godwar'].includes(key) ? buildBh3GuideArgs(key, query, cfg.args) : cfg.args;
+    for (const [searchWord, uid, indexes, author] of args) {
       try {
-        const post = await searchPost(keyword, uid);
-        const images = post?.images || [];
-        const imageSegments = indexes.filter(i => images[i]).slice(0, 12).map(i => segment.image(images[i]));
-        if (imageSegments.length) msg.push([`作者：${author}\n${post.subject || keyword}`, ...imageSegments]);
+        const posts = query ? await searchPosts(searchWord, uid, 8) : [await searchPost(searchWord, uid)];
+        for (const post of posts.filter(Boolean)) {
+          const postKey = post.post_id || post.subject || `${uid}:${searchWord}`;
+          if (seenPosts.has(postKey)) continue;
+          const images = post?.images || [];
+          const imageSegments = indexes
+            .filter(i => images[i] && !seenImages.has(images[i]))
+            .slice(0, 12)
+            .map(i => {
+              seenImages.add(images[i]);
+              return segment.image(images[i]);
+            });
+          if (!imageSegments.length) continue;
+          seenPosts.add(postKey);
+          msg.push([`作者：${author}\n${post.subject || searchWord}`, ...imageSegments]);
+          if (query && msg.length >= 6) break;
+        }
+        if (query && msg.length >= 6) break;
       } catch (err) {
-        logger.warn(`[xhh][estimate] 获取 ${keyword}/${uid} 失败: ${err?.message || err}`);
+        logger.warn(`[xhh][estimate] 获取 ${searchWord}/${uid} 失败: ${err?.message || err}`);
       }
     }
 
-    if (!msg.length) return e.reply(`未找到${cfg.none || cfg.name}相关图片，请稍后再试！`, true);
-    return e.reply(await makeForwardMsg(e, msg, `${cfg.name}来啦~\n如果出现图片错误，请忽略`));
+    if (!msg.length) return e.reply(`未找到${query ? `「${query}」` : ''}${cfg.none || cfg.name}相关图片，请稍后再试！`, true);
+    const title = query ? `${cfg.name}「${query}」攻略来啦~` : `${cfg.name}来啦~`;
+    return e.reply(await makeForwardMsg(e, msg, `${title}\n如果出现图片错误，请忽略`));
   }
 }
