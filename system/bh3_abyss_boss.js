@@ -373,6 +373,12 @@ export async function fetchCurrentBattlefieldInfo(auth) {
   const e = { user_id: auth.qq || 0 };
   const headers = mhy.getHeaders(e, auth.ck);
   const serverValues = [...new Set([auth.region, mhy.getServer(auth.uid, 'bh3'), 'cn_gf01', 'cn_qd01'].filter(Boolean))];
+  const battlefieldStart = (() => {
+    const now = moment();
+    const start = now.clone().day(2).startOf('day');
+    if (start.isAfter(now)) start.subtract(7, 'days');
+    return start.unix();
+  })();
 
   for (const server of serverValues) {
     try {
@@ -381,7 +387,9 @@ export async function fetchCurrentBattlefieldInfo(auth) {
         api(e, { type: 'bh3_battle_field', uid: auth.uid, headers, game: 'bh3', server, silent: true }),
       ]);
       if (bfRes?.retcode !== 0) continue;
-      const reports = (bfRes?.data?.reports || []).sort(
+      const reports = (bfRes?.data?.reports || [])
+        .filter(r => !r.time_second || Number(r.time_second) >= battlefieldStart)
+        .sort(
         (a, b) => Number(b.time_second || 0) - Number(a.time_second || 0)
       );
       if (!reports.length) continue;

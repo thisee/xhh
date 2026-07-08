@@ -264,6 +264,34 @@ function isRecentPost(post = {}, maxDays = 5) {
   return Math.floor(Date.now() / 1000) - ts <= maxDays * 24 * 3600;
 }
 
+function isThisWeekPost(post = {}) {
+  const ts = postCreatedAt(post);
+  if (!ts) return true;
+  const start = new Date();
+  const day = start.getDay() || 7;
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - day + 1);
+  return ts * 1000 >= start.getTime();
+}
+
+function cycleStartByWeekday(weekday = 2) {
+  const start = new Date();
+  const current = start.getDay();
+  const normalized = current === 0 ? 7 : current;
+  start.setHours(0, 0, 0, 0);
+  let diff = normalized - weekday;
+  if (diff < 0) diff += 7;
+  start.setDate(start.getDate() - diff);
+  return start.getTime();
+}
+
+function isCurrentBattlefieldPost(post = {}) {
+  const ts = postCreatedAt(post);
+  if (!ts) return true;
+  // 记忆战场周二刷新：周二 00:00 后算本期，周一则回退到上周二。
+  return ts * 1000 >= cycleStartByWeekday(2);
+}
+
 function normalizeSearchWord(text = '') {
   return String(text || '').replace(/[·・!！♪♡♥～~\s]/g, '');
 }
@@ -305,9 +333,12 @@ function isGuidePostUsable(post = {}, type, queryList = []) {
   const queries = (Array.isArray(queryList) ? queryList : [queryList]).filter(Boolean);
   // 当期深渊/战场/危局已经识别出 Boss 时，必须命中 Boss 名，避免历史深渊混进来。
   if (queries.length && ['abyss', 'battlefield', 'zzz_deadly'].includes(type)) {
+    if (type === 'battlefield' && !isCurrentBattlefieldPost(post)) return false;
+    if (type === 'abyss' && !isRecentPost(post, 5)) return false;
     return postContainsAny(post, queries);
   }
   // 没有当期 Boss 时只放最近攻略，避免全站搜索返回很久以前的历史深渊。
+  if (type === 'battlefield') return isCurrentBattlefieldPost(post);
   if (['abyss', 'battlefield', 'zzz_defense', 'zzz_deadly'].includes(type)) {
     return isRecentPost(post, 5);
   }
@@ -338,6 +369,16 @@ function buildGlobalGuideWords(type, queryList, baseArgs) {
       if (type === 'zzz_deadly') return [`${word} 危局强袭战`, `${word} 危局攻略`, `${word} 强袭战攻略`, word];
       return [word];
     }), 14);
+  }
+  if (type === 'battlefield') {
+    return uniqueList([
+      '记忆战场阵容分配推荐',
+      '记忆战场每周分配推荐',
+      '终极区 记忆战场 阵容分配',
+      '本周 记忆战场',
+      '记忆战场',
+      ...baseArgs.map(([word]) => word),
+    ], 10);
   }
   return uniqueList(baseArgs.map(([word]) => word), 8);
 }
@@ -412,15 +453,10 @@ export class mhy_estimate extends plugin {
       }
     }
     if (key === 'battlefield' && !query) {
-      try {
-        currentBattlefieldInfo = await getCurrentBattlefieldInfoByEvent(e);
-        if (currentBattlefieldInfo?.bosses?.length) {
-          queryList = currentBattlefieldInfo.bosses;
-          query = currentBattlefieldInfo.bosses.join(' / ');
-        }
-      } catch (err) {
-        logger.warn(`[xhh][estimate] 获取当前战场Boss失败: ${err?.message || err}`);
-      }
+      // 记忆战场接口返回的是个人历史战报，可能刚好还是上期 Boss。
+      // 无指定 Boss 时不再用它拼“正在搜索 xxx”，直接按本周战场关键词搜索，避免提示混入上周内容。
+      query = '';
+      queryList = [];
     }
     if (key === 'zzz_defense' && !query) {
       try {
