@@ -156,9 +156,8 @@ export default class MysInfo {
 
     let user = await NoteUser.create(e)
     let selfUser = at ? await NoteUser.create(at) : user
-    
     const game = e?.game || (e?.isSr ? "sr" : "gs")
-    
+
     if (!selfUser.hasCk) {
       if (e.noTips !== true) {
         e.reply(
@@ -169,10 +168,12 @@ export default class MysInfo {
       }
       return false
     }
+
     let uid = e?.mysSelfUid ? String(e.uid || "") : ""
     if (uid && selfUser.getUidData(uid, game)?.type === "ck") {
       return uid
     }
+
     return selfUser.getUid(e)
   }
 
@@ -398,7 +399,7 @@ export default class MysInfo {
         res.retcode = 0
       }
     }
-    
+
     switch (res.retcode) {
       case 0:
         break
@@ -411,7 +412,7 @@ export default class MysInfo {
           if (this.ckInfo.uid) {
             logger.mark(`[ck失效][uid:${this.uid}][qq:${this.userId}]`)
             if (!isTask)
-              this.e.reply([`UID:${this.ckInfo.uid}，米游社Cookie已失效，请[刷新ck]或者[扫码绑定]`, this.mysButton])
+              this.e.reply([`UID:${this.ckInfo.uid}，米游社Cookie已失效`, this.mysButton])
           } else {
             logger.mark(`[公共ck失效][ltuid:${this.ckInfo.ltuid}]`)
             if (!isTask)
