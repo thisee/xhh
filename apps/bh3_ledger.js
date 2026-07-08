@@ -3,6 +3,7 @@ import puppeteer from '../../../lib/puppeteer/puppeteer.js';
 import NoteUser from '../../genshin/model/mys/NoteUser.js';
 import moment from "moment";
 import fs from 'fs';
+import YAML from 'yaml';
 
 async function sendMsg(e, msg) {
     if (typeof msg === 'string') {
@@ -16,6 +17,23 @@ async function sendMsg(e, msg) {
 
 const HITOKOTO_API = "https://v1.hitokoto.cn/?c=d&encode=json"
 const LEDGER_DATA_DIR = "./data/Bh3Ledger"
+const BH3_LEGACY_REGIONS = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+const BH3_REGION_LABELS = {
+    android01: '安卓官服',
+    ios01: 'iOS服',
+    pc01: '桌面服',
+    bb01: '哔哩哔哩',
+    yyb01: '应用宝服',
+    hun01: '渠道1服',
+    hun02: '渠道2服',
+    cn_gf01: '官服',
+    cn_qd01: '渠道服',
+};
+
+function isBh3StokenEntry(entry = {}) {
+    if (entry.game_biz) return entry.game_biz === 'bh3_cn';
+    return BH3_LEGACY_REGIONS.includes(entry.region || '');
+}
 
 function debugLog(...args) {
     if (config().debug) logger.mark(...args);
@@ -36,6 +54,10 @@ export class bh3_ledger extends plugin {
                 {
                     reg: '^#*上月水晶$',
                     fnc: 'ledgerLastMonth',
+                },
+                {
+                    reg: '^#*删除水晶uid.*',
+                    fnc: 'deleteBh3Uid',
                 },
                 {
                     reg: '^#*切换水晶uid.*',
@@ -355,34 +377,181 @@ export class bh3_ledger extends plugin {
         try { stokenData = await yaml.get(stokenPath); } catch (_) { }
         if (!stokenData) return e.reply('读取绑定数据失败');
 
-        const bh3Regions = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
         let uidList = [];
         for (let key in stokenData) {
             let r = stokenData[key].region || '';
-            if (bh3Regions.includes(r)) {
-                uidList.push({ uid: key, region: r, name: stokenData[key].region_name || '' });
+            if (isBh3StokenEntry(stokenData[key])) {
+                uidList.push({ uid: key, region: r, name: stokenData[key].region_name || BH3_REGION_LABELS[r] || '' });
             }
         }
 
         if (uidList.length === 0) return e.reply('没有找到已绑定的崩坏3账号');
 
+        const current = await redis.get(`xhh:bh3_uid:${qq}`);
         const num = parseInt(e.msg.replace(/^#*切换水晶uid\s*/, '').trim());
         if (!isNaN(num) && num > 0 && num <= uidList.length) {
             const idx = num - 1;
             await redis.set(`xhh:bh3_uid:${qq}`, uidList[idx].uid);
             await redis.set(`xhh:bh3_region:${qq}`, uidList[idx].region);
-            return e.reply(`已将水晶查询UID切换为 ${uidList[idx].uid} (${uidList[idx].name || uidList[idx].region})`);
+            return this.renderSwitchUidCard(e, uidList, uidList[idx].uid, { mode: 'switch', account: uidList[idx] });
         }
 
-        const current = await redis.get(`xhh:bh3_uid:${qq}`);
-        let msg = `当前共 ${uidList.length} 个崩坏3账号：\n`;
-        uidList.forEach((item, i) => {
-            const isCurrent = item.uid === current ? ' ← 当前' : '';
-            msg += `${i + 1}. ${item.uid} (${item.name || item.region})${isCurrent}\n`;
-        });
-        msg += `\n发送 #切换水晶uid 序号 来切换，如 #切换水晶uid 1`;
-        e.reply(msg);
+        await this.renderSwitchUidCard(e, uidList, current);
         return true;
+    }
+
+    async deleteBh3Uid(e) {
+        const qq = e.user_id;
+        const arg = e.msg.replace(/^#*删除水晶uid\s*/, '').trim();
+        const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+        const current = await redis.get(`xhh:bh3_uid:${qq}`);
+        const currentRegion = await redis.get(`xhh:bh3_region:${qq}`);
+        const { data: stokenData, uidList } = await this.loadBh3UidList(qq);
+
+        if (/^(全部|全删|清空|all)$/i.test(arg)) {
+            if (!uidList.length) {
+                await redis.del(`xhh:bh3_uid:${qq}`);
+                await redis.del(`xhh:bh3_region:${qq}`);
+                return this.renderSwitchUidCard(e, [], '', { mode: 'delete_empty' });
+            }
+            for (const item of uidList) delete stokenData[item.uid];
+            await this.writeStokenFile(stokenPath, stokenData);
+            await this.deleteBh3FromXiaoyao(qq, uidList.map(v => v.uid));
+            await redis.del(`xhh:bh3_uid:${qq}`);
+            await redis.del(`xhh:bh3_region:${qq}`);
+            return this.renderSwitchUidCard(e, [], '', { mode: 'delete_all', deletedCount: uidList.length });
+        }
+
+        if (arg) {
+            let target = null;
+            const num = parseInt(arg);
+            if (!isNaN(num) && num > 0 && num <= uidList.length) target = uidList[num - 1];
+            if (!target) target = uidList.find(v => String(v.uid) === String(arg));
+            if (!target) return e.reply(`未找到要删除的崩坏3 UID：${arg}\n发送 #删除水晶uid 全部 可清空全部崩三UID`, true);
+            delete stokenData[target.uid];
+            await this.writeStokenFile(stokenPath, stokenData);
+            await this.deleteBh3FromXiaoyao(qq, [target.uid]);
+            if (String(current) === String(target.uid)) {
+                await redis.del(`xhh:bh3_uid:${qq}`);
+                await redis.del(`xhh:bh3_region:${qq}`);
+            }
+            const rest = uidList.filter(v => String(v.uid) !== String(target.uid));
+            return this.renderSwitchUidCard(e, rest, String(current) === String(target.uid) ? '' : current, {
+                mode: 'delete_one',
+                account: target,
+            });
+        }
+
+        await redis.del(`xhh:bh3_uid:${qq}`);
+        await redis.del(`xhh:bh3_region:${qq}`);
+        if (!current) return this.renderSwitchUidCard(e, uidList, '', { mode: 'delete_empty' });
+        return this.renderSwitchUidCard(e, uidList, '', {
+            mode: 'delete',
+            account: { uid: current, region: currentRegion, name: BH3_REGION_LABELS[currentRegion] || currentRegion || '未知服务器' },
+        });
+    }
+
+    async loadBh3UidList(qq) {
+        const stokenPath = `./plugins/xhh/data/Stoken/${qq}.yaml`;
+        let data = {};
+        if (fs.existsSync(stokenPath)) {
+            try { data = await yaml.get(stokenPath) || {}; } catch (_) { data = {}; }
+        }
+        const uidList = [];
+        for (let key in data || {}) {
+            const r = data[key].region || '';
+            if (isBh3StokenEntry(data[key])) {
+                uidList.push({ uid: key, region: r, name: data[key].region_name || BH3_REGION_LABELS[r] || '' });
+            }
+        }
+        return { data, uidList };
+    }
+
+    async writeStokenFile(path, data = {}) {
+        fs.mkdirSync(path.replace(/\/[^/]+$/, ''), { recursive: true });
+        fs.writeFileSync(path, YAML.stringify(data), 'utf-8');
+    }
+
+    async deleteBh3FromXiaoyao(qq, uids = []) {
+        const path = `./plugins/xiaoyao-cvs-plugin/data/yaml/${qq}.yaml`;
+        if (!fs.existsSync(path) || !uids.length) return;
+        try {
+            const data = await yaml.get(path) || {};
+            for (const uid of uids) delete data[uid];
+            fs.writeFileSync(path, YAML.stringify(data), 'utf-8');
+        } catch (_) { }
+    }
+
+    async renderSwitchUidCard(e, uidList = [], current = '', action = null) {
+        const selected = action?.account || null;
+        const accounts = uidList.map((item, i) => ({
+            ...item,
+            index: i + 1,
+            server: item.name || BH3_REGION_LABELS[item.region] || item.region || '未知服务器',
+            isCurrent: String(item.uid) === String(current),
+            isSelected: selected && String(item.uid) === String(selected.uid) && action?.mode === 'switch',
+        }));
+        const mode = action?.mode || 'list';
+        const headline = mode === 'switch'
+            ? '水晶UID切换完成'
+            : mode === 'delete'
+                ? '默认水晶UID已删除'
+                : mode === 'delete_one'
+                    ? '崩三UID绑定已删除'
+                    : mode === 'delete_all'
+                        ? '崩三UID已全部删除'
+                : mode === 'delete_empty'
+                    ? '暂无默认水晶UID'
+                    : '选择水晶查询UID';
+        const description = mode === 'switch'
+            ? `已将默认水晶查询账号切换为 UID ${selected?.uid || ''}`
+            : mode === 'delete'
+                ? `已清除默认水晶查询UID：${selected?.uid || ''}，下次扫码绑定会重新自动设置`
+                : mode === 'delete_one'
+                    ? `已删除崩坏3 UID：${selected?.uid || ''}，不会影响其他游戏绑定`
+                    : mode === 'delete_all'
+                        ? `已删除 ${action?.deletedCount || 0} 个崩坏3 UID，并清除默认水晶查询UID`
+                : mode === 'delete_empty'
+                    ? '当前没有设置默认水晶查询UID，扫码绑定时会自动设置'
+                    : `当前共绑定 ${accounts.length} 个崩坏3账号，发送 #切换水晶uid 序号 即可切换`;
+        try {
+            const buf = await puppeteer.render('小花火/bh3_ledger/uid_switch', {
+                accounts,
+                current,
+                selected,
+                mode,
+                headline,
+                description,
+                count: accounts.length,
+                time: moment().format('YYYY-MM-DD HH:mm:ss'),
+                sys: { scale: `style=transform:scale(2.4)` },
+                ppath: '../../../../../plugins/xhh/resources/',
+                tplFile: process.cwd() + '/plugins/xhh/resources/bh3_ledger/uid_switch.html',
+                saveId: `bh3_uid_switch_${e.user_id}`,
+            });
+            if (buf && Buffer.isBuffer(buf)) return e.reply(segment.image(buf));
+        } catch (err) {
+            logger.warn(`[xhh][bh3_ledger] 切换UID卡片渲染失败，回退文字: ${err?.message || err}`);
+        }
+        let msg = mode === 'delete'
+            ? `已删除默认水晶查询UID：${selected?.uid || ''}`
+            : mode === 'delete_one'
+                ? `已删除崩坏3 UID：${selected?.uid || ''}`
+                : mode === 'delete_all'
+                    ? `已删除全部崩坏3 UID，共 ${action?.deletedCount || 0} 个`
+            : mode === 'delete_empty'
+                ? '当前没有设置默认水晶查询UID'
+                : selected
+            ? `已将水晶查询UID切换为 ${selected.uid} (${selected.name || selected.region})`
+            : `当前共 ${uidList.length} 个崩坏3账号：\n`;
+        if (!selected) {
+            uidList.forEach((item, i) => {
+                const isCurrent = item.uid === current ? ' ← 当前' : '';
+                msg += `${i + 1}. ${item.uid} (${item.name || item.region})${isCurrent}\n`;
+            });
+            msg += `\n发送 #切换水晶uid 序号 来切换，如 #切换水晶uid 1`;
+        }
+        return e.reply(msg);
     }
 
     async getHitokoto() {

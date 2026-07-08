@@ -17,6 +17,13 @@ import {
     Restart
 } from '../../other/restart.js';
 
+const BH3_LEGACY_REGIONS = ['android01', 'ios01', 'pc01', 'bb01', 'yyb01', 'hun01', 'hun02'];
+
+function isBh3Role(entry = {}) {
+    if (entry.game_biz) return entry.game_biz === 'bh3_cn';
+    return BH3_LEGACY_REGIONS.includes(entry.region || '');
+}
+
 export class user extends plugin {
     constructor(e) {
         super({
@@ -251,6 +258,7 @@ export class user extends plugin {
                                 ck_stoken: `stuid=${stuid};stoken=${SToken};mid=${mid};`,
                                 mid: mid,
                                 ltoken: ltoken,
+                                game_biz: v.game_biz,
                                 region_name: v.region_name,
                                 region: v.region,
                             };
@@ -267,6 +275,8 @@ export class user extends plugin {
                         }
                         await this.process_files(yaml_url, data_);
                     }
+                    const bh3BindInfo = await this.prepareBh3BindInfo(e, data_);
+                    if (bh3BindInfo) sendMsg.push(bh3BindInfo);
                 }
                 await this.replyBindResult(e, sendMsg, '小花火扫码绑定结果');
                 break;
@@ -419,6 +429,27 @@ export class user extends plugin {
             }
             fs.writeFileSync(yaml_url, YAML.stringify(_data_), 'utf-8');
         }
+    }
+
+    async prepareBh3BindInfo(e, data_ = {}) {
+        const accounts = Object.entries(data_)
+            .filter(([, v]) => isBh3Role(v))
+            .map(([uid, v]) => ({
+                uid,
+                region: v.region || '',
+                name: v.region_name || v.region || '未知服务器',
+            }));
+        if (!accounts.length) return '';
+        const current = await redis.get(`xhh:bh3_uid:${e.user_id}`);
+        let defaultText = '';
+        if (!current) {
+            const first = accounts[0];
+            await redis.set(`xhh:bh3_uid:${e.user_id}`, first.uid);
+            await redis.set(`xhh:bh3_region:${e.user_id}`, first.region);
+            defaultText = `\n已自动设为默认水晶查询UID：${first.uid}（${first.name}）`;
+        }
+        const list = accounts.map((item, i) => `${i + 1}. ${item.uid}（${item.name}）`).join('\n');
+        return `已绑定崩坏3账号：\n${list}${defaultText}\n如需切换默认水晶查询账号，请发送 #切换水晶uid`;
     }
 
     async mysReqErrHandler(e, args, reject) {

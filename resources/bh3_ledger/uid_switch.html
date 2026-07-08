@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <title>崩坏3 水晶UID切换</title>
+  <link rel="stylesheet" type="text/css" href="{{ppath}}bh3_ledger/uid_switch.css" />
+</head>
+<body {{sys.scale}}>
+  <div class="container">
+    <img class="role" src="{{ppath}}img/ledger/Senadina.png" draggable="false">
+    <div class="header">
+      <div class="eyebrow">HONKAI IMPACT 3RD</div>
+      <div class="title">{{headline}}</div>
+      <div class="desc">{{description}}</div>
+    </div>
+
+    <div class="cards">
+      {{each accounts item}}
+      <div class="card {{if item.isCurrent}}current{{/if}} {{if item.isSelected}}selected{{/if}}">
+        <div class="idx">#{{item.index}}</div>
+        <div class="main">
+          <div class="uid">UID {{item.uid}}</div>
+          <div class="server">{{item.server}}</div>
+        </div>
+        <div class="tag">
+          {{if item.isSelected}}已切换{{else if item.isCurrent}}当前{{else if mode === 'delete'}}已绑定{{else}}可选{{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
+    <div class="hint">
+      <span>指令示例：</span>
+      <b>#切换水晶uid 1</b>
+    </div>
+    <div class="footer">
+      <span>{{time}} · from 小花火</span>
+    </div>
+  </div>
+</body>
+</html>

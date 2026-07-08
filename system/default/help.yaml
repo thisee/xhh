@@ -40,6 +40,8 @@
       desc: '查看崩坏3上月水晶统计'
     - title: '切换水晶uid'
       desc: '切换崩坏3水晶查询的账号'
+    - title: '删除水晶uid'
+      desc: '清除默认UID；支持 #删除水晶uid 序号/UID/全部'
     - title: '抽卡记录'
       desc: '查看崩坏3抽卡记录统计'
     - title: '刷新抽卡记录'
