@@ -21,10 +21,13 @@
             <div class="game-tags">
               <p class="game_label">游戏列表</p>
               <div class="game-tags-grid">
+                {{if multi_game_name}}
+                <p>{{multi_game_name}}</p>
+                {{/if}}
                 {{if gs_data}}
                 <p>原神</p>
                 {{/if}} {{if sr_data}}
-                <p>崩坏星穹铁道</p>
+                <p>崩坏：星穹铁道</p>
                 {{/if}} {{if zzz_data}}
                 <p>绝区零</p>
                 {{/if}} {{if bh3_data}}
@@ -34,13 +37,55 @@
             </div>
             <img class="xhh" src="{{ppath}}Tl/imgs/小花火.png" />
             <div class="time-line">
-              <p class="time_label">获取时间：</p>
+              <p class="time_label">获取时间</p>
               <p class="time_value">{{time}}</p>
             </div>
           </div>
         </div>
       </div>
 
+      {{if multi_list && multi_list.length}}
+      {{each multi_list item}}
+      <div class="__box">
+        <div class="game">
+          <img src="{{ppath}}{{item.icon}}" />
+          <p>UID：{{item.uid}}</p>
+          <p>{{item.level}}级</p>
+          <p class="game-nick">昵称：{{item.name}}</p>
+          <div class="sign">
+            <img src="{{ppath}}Tl/imgs/签到.png" />
+            <span class="{{item.signed ? '' : 'red'}}">{{item.signText}}</span>
+          </div>
+        </div>
+        <div class="_box">
+          <div class="left_box">
+            <div class="top_box">
+              <img class="tl {{item.iconClass || ''}}" src="{{ppath}}{{item.mainIcon}}" />
+              <div class="k">
+                <p>{{item.mainName}}</p>
+                <div class="k_">
+                  <span class="{{item.mainWarn ? 'red' : 'blue'}}">{{item.current}}</span><span>/{{item.max}}</span>
+                </div>
+              </div>
+            </div>
+            <strong class="huifu">预计恢复时间</strong>
+            <strong class="huifu_time">{{item.time}}</strong>
+          </div>
+          <div class="right_box">
+            {{each item.rows row}}
+            <div class="_box_">
+              <img src="{{ppath}}{{row.icon}}" />
+              <p>{{row.label}}</p>
+              <div class="right_">
+                <p class="{{row.warn ? 'red' : 'blue'}}">{{row.value}}</p>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+      </div>
+      {{/each}}
+      {{else}}
       {{if gs_data}}
       <div class="__box">
         <div class="game">
@@ -364,6 +409,7 @@
           </div>
         </div>
       </div>
+      {{/if}}
       {{/if}}
 
       <img class="mianju" src="{{ppath}}Tl/imgs/面具.png" />

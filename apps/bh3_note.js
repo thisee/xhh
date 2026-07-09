@@ -70,7 +70,7 @@ export class bh3_note extends plugin {
       event: 'message',
       priority: pluginPriority('bh3_note', 100),
       rule: [
-        { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(体力|便笺|便签|实时)$', fnc: 'note' },
+        { reg: '^#*(崩三|崩坏3|崩坏三|BH3)(便笺|便签|实时)$', fnc: 'note' },
       ],
     });
   }
